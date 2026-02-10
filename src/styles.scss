@@ -1,1 +1,15 @@
 /* You can add global styles to this file, and also import other style files */
+@import "primeicons/primeicons.css";
+
+@import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
+
+@font-face {
+  font-family: 'LoveloBlack'; // Nombre que usarás
+  src: url('./assets/fonts/Lovelo\ Black.otf') format('otf');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+    background-color: #f1ffed;
+}

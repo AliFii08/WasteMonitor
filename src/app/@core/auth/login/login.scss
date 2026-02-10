@@ -1,0 +1,106 @@
+.container{
+  font-family: 'Raleway', sans-serif;
+  width: 700px;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #06523f;
+}
+
+h2{
+  font-family: 'Raleway', sans-serif;
+  font-size: 50px;
+  font-weight: 400;
+  color: #fff;
+  margin-top: 110px;
+  margin-bottom: 10px;
+}
+
+hr{
+  width: 100px;
+  height: 3px;
+  background-color: #fff;
+  border: none;
+  margin-top: 0px;
+  margin-bottom: 100px;
+}
+
+label{
+  font-family: 'Raleway', sans-serif;
+  font-size: 25px;
+  font-weight: 500;
+  color: #fff;
+  display: block;
+}
+
+input{
+  font-family: 'Raleway', sans-serif;
+  font-size: 15px;
+  padding: 15px;
+  width: 350px;
+  height: 50px;
+  border-radius: 25px;
+  border: none;
+}
+
+.form-group{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#passwordDiv{
+  margin-top: 20px;
+}
+
+button{
+  font-family: 'Raleway', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  background-color: #68a357;
+  border: none;
+  width: 180px;
+  height: 50px;
+  border-radius: 25px;
+  margin-top: 35px;
+}
+
+form > button[type="submit"]{
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+  cursor: pointer;
+}
+
+.options{
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #fff;
+}
+
+.options a{
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.options a:hover{
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+small{
+  font-family: 'Raleway', sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  color: #ff0000;
+  font-style: italic;
+}

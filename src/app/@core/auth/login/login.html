@@ -1,0 +1,46 @@
+
+
+
+<div class="container">
+    <h2>Inicio de Sesión</h2>
+    <hr>
+
+    <form [formGroup]="LoginForm" (ngSubmit)="onSumit()">
+        <div class="form-group">
+            <label for="email">Correo</label>
+
+            <input type="text" placeholder="xxxx@gmail.com"
+            formControlName="email" pattern="^\d+$" required
+            [class.invalid]="isValidField(correoControl)">
+
+            <small *ngIf="isValidField(correoControl)" class="text-red-600">
+                {{ getErrorMessage(correoControl) }}
+            </small>
+        </div>
+
+        <div class="form-group" id="passwordDiv">
+            <label id="passLabel" for="password">Contraseña</label>
+            <input id="pass" [type]="passwordFieldType" placeholder="••••••••"
+            formControlName="password" required
+            [class.invalid]="isValidField(passwordControl)">
+
+            <!-- <button type="button" class="btn" id="passBtn" (click)="togglePasswordVisibility()">
+              <i [ngClass]="{'pi pi-eye': passwordFieldType === 'password', 'pi pi-eye-slash': passwordFieldType == 'text'}"></i>
+            </button> -->
+
+            <small *ngIf="isValidField(passwordControl)" class="text-red-600">
+            {{ getErrorMessage(passwordControl) }}
+            </small>
+        </div>
+
+        <button type="submit" class="btn">Iniciar Sesión</button>
+
+        <div class="options">
+            <a routerLink="register">Registrarse</a>
+            <span> | </span>
+            <a routerLink="forget-password">Olvido de contraseña</a>
+        </div>
+    </form>
+
+
+</div>
