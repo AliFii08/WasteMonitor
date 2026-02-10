@@ -1,9 +1,10 @@
-
-
+<div class="logo">
+    <img src="assets/images/logoWasteMonitor.png" alt="Logo de la aplicación">
+</div>
 
 <div class="container">
     <h2>Inicio de Sesión</h2>
-    <hr>
+    <!-- <hr> -->
 
     <form [formGroup]="LoginForm" (ngSubmit)="onSumit()">
         <div class="form-group">
@@ -36,8 +37,10 @@
         <button type="submit" class="btn">Iniciar Sesión</button>
 
         <div class="options">
-            <a routerLink="register">Registrarse</a>
-            <span> | </span>
+            <div class="registerOption">
+                <span>¿Aún no tiene una cuenta? </span>
+                <a routerLink="register">Regístrese</a>
+            </div>
             <a routerLink="forget-password">Olvido de contraseña</a>
         </div>
     </form>

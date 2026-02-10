@@ -1,3 +1,12 @@
+.logo img{
+  display: flex;
+  position: fixed;
+  left: 0;
+  margin-top: 70px;
+  margin-left: 0;
+  //width: 1260px;
+}
+
 .container{
   font-family: 'Raleway', sans-serif;
   width: 700px;
@@ -17,7 +26,7 @@ h2{
   font-weight: 400;
   color: #fff;
   margin-top: 110px;
-  margin-bottom: 10px;
+  margin-bottom: 110px;
 }
 
 hr{
@@ -33,7 +42,7 @@ label{
   font-family: 'Raleway', sans-serif;
   font-size: 25px;
   font-weight: 500;
-  color: #fff;
+  color: #ffffff;
   display: block;
 }
 
@@ -45,6 +54,28 @@ input{
   height: 50px;
   border-radius: 25px;
   border: none;
+  color: #000000;
+  background-color: #ffffff;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active{
+  -webkit-text-fill-color: #000000;
+  box-shadow: 0 0 0 1000px #ffffff inset;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+input::placeholder,
+input::-webkit-input-placeholder,
+input::-moz-placeholder,
+input:-ms-input-placeholder{
+  color: #000000;
+  opacity: 0.9;
 }
 
 .form-group{
@@ -70,6 +101,12 @@ button{
   margin-top: 35px;
 }
 
+button:hover{
+  background-color: #578849;
+  transition: 0.5s;
+  cursor: pointer;
+}
+
 form > button[type="submit"]{
   margin-left: auto;
   margin-right: auto;
@@ -80,14 +117,14 @@ form > button[type="submit"]{
 .options{
   margin-top: 20px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  color: #fff;
 }
 
 .options a{
-  color: #fff;
+  color: #56bb3a;
   text-decoration: none;
   font-weight: 500;
 }
@@ -95,6 +132,7 @@ form > button[type="submit"]{
 .options a:hover{
   text-decoration: underline;
   cursor: pointer;
+  color: #6be749;
 }
 
 small{
@@ -103,4 +141,31 @@ small{
   font-size: 16px;
   color: #ff0000;
   font-style: italic;
+}
+
+@media (max-width: 1280px) {
+  .logo img{
+    display: flex;
+    position: fixed;
+    left: 0;
+    margin-top: 55px;
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .container{
+    width: 45%;
+  }
+
+  h2{
+    margin-top: 140px;
+  }
+
+  hr{
+    margin-bottom: 110px;
+  }
+
+  input{
+    font-size: 16px;
+  }
 }
