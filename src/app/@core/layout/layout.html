@@ -1,4 +1,18 @@
-<p>layout works!</p>
+<div class="div-logo">
+  <img class="mini-logo" src="">
+</div>
+
+<nav>
+
+  <div class="icons">
+    <p-button pTooltip="Inicio" class="mb-2" icon="pi pi-home" routerLink="/home"></p-button>
+    <p-button pTooltip="Horarios" class="mb-2" icon="pi pi-fw pi-calendar" routerLink="/home/schedules"></p-button>
+    <p-button pTooltip="Dashboard" class="mb-2" icon="pi pi-cog" routerLink="/home/dashboard"></p-button> <!-- *ngIf="userService.currentUserSignal()?.idCargo !== 5" -->
+    <p-button pTooltip="Conductores" class="mb-2" icon="pi pi-fw pi-users" routerLink="/home/drivers"></p-button>
+    <p-button pTooltip="Vehículos" class="mb-2" icon="pi pi-fw pi-truck" routerLink="/home/vehicles"></p-button>
+    <p-button pTooltip="Rutas" class="mb-2" icon="pi pi-fw pi-map" routerLink="/home/routes"></p-button>
+  </div>
+</nav>
 
 <div>
   <router-outlet></router-outlet>

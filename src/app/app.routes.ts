@@ -11,8 +11,20 @@ export const routes: Routes = [
       import('./pages/home/home').then(m => m.Home),
   },
   {
-    path: 'dashboard',
+    path: 'home/dashboard',
     title: 'Dashboard',
+    loadComponent: () =>
+      import('./pages/dashboard/dashboard').then(m => m.Dashboard),
+  },
+  {
+    path: 'home/horarios',
+    title: 'Horarios',
+    loadComponent: () =>
+      import('./pages/dashboard/dashboard').then(m => m.Dashboard),
+  },
+  {
+    path: 'home/routes',
+    title: 'Rutas',
     loadComponent: () =>
       import('./pages/dashboard/dashboard').then(m => m.Dashboard),
   },
@@ -21,6 +33,12 @@ export const routes: Routes = [
     title: 'Registrarse',
     loadComponent: () =>
       import('./pages/register/register').then(m => m.Register),
+  },
+  {
+    path: 'change-password',
+    title: 'Cambiar Contraseña',
+    loadComponent: () =>
+      import('./@core/auth/change-password/change-password').then(m => m.ChangePassword),
   },
   {
     path: 'login',

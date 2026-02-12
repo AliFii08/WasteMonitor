@@ -30,7 +30,7 @@
             </button> -->
 
             <small *ngIf="isValidField(passwordControl)" class="text-red-600">
-            {{ getErrorMessage(passwordControl) }}
+            {{ getErrorMessage(passwordControl) }}change-password works!
             </small>
         </div>
 
@@ -39,9 +39,9 @@
         <div class="options">
             <div class="registerOption">
                 <span>¿Aún no tiene una cuenta? </span>
-                <a routerLink="register">Regístrese</a>
+                <a routerLink="/register">Regístrese</a>
             </div>
-            <a routerLink="forget-password">Olvido de contraseña</a>
+            <a routerLink="/change-password">Olvido de contraseña</a>
         </div>
     </form>
 
