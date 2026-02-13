@@ -1,12 +1,12 @@
 <div class="fondo1">
     <div class="linea1"></div>
-    <span>Waste</span>
+    <span id="waste">Waste</span>
 </div>
 
 <div class="container">
   <h2>Registro</h2>
 
-  <form>
+  <form [formGroup]="registerForm">
 
     <h3>Datos Personales</h3>
 
@@ -50,9 +50,18 @@
 
 
     <div class="form-group">
-      <label for="sector">Sector</label>
-      <input type="text" placeholder="Sector"
-      formControlName="sector" required>
+      <label for="sector">Sector/Urbanización</label>
+      <div class="select-container">
+                <select formControlName="sector" required> <!-- class="fixed-width-dropdown" -->
+                  <option value="" hidden>Seleccione un turno</option>
+                  <option value="Urb-Jacinto">San Jacinto</option>
+                  <option value="Urb-Trinidad">La Trinidad</option>
+                  <option value="Sect-Ziruma">Ziruma</option>
+                  <option value="Sect-Naranjal">El Naranjal</option>
+                  <option value="Sect-LaPiedra">La Piedra</option>
+                </select>
+                <i class="pi pi-angle-down select-icon"></i>
+              </div>
     </div>
 
     <div class="form-group">
@@ -62,15 +71,15 @@
     </div>
 
     <div class="form-group">
-      <label for="houseNumber">Número de Casa</label>
-      <input type="text" placeholder="Número de Casa"
-      formControlName="houseNumber" required>
+      <label for="houseNumber">Número de Casa/Edificio/Lote</label>
+      <input type="text" placeholder="Número de Casa/Edificio/Lote"
+      formControlName="houseNumber">
     </div>
 
     <div class="form-group">
       <label for="postalCode">Código Postal</label>
       <input type="number" placeholder="Código Postal"
-      formControlName="postalCode" required>
+      formControlName="postalCode">
     </div>
 
     <div class="register-button">
@@ -84,6 +93,6 @@
 </div>
 
 <div class="fondo2">
-  <span>Monitor</span>
+  <span id="monitor">Monitor</span>
   <div class="linea2"></div>
 </div>

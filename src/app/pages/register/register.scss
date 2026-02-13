@@ -1,20 +1,52 @@
 
 
 .linea1{
+  display: flex;
+  position: fixed;
+  bottom: 0;
+  
   width: 27px;
   height: 512px;
   background-color: #06523f;
 }
 
+#waste{
+  font-family: 'LoveloBlack', sans-serif;
+  font-size: 230px; ///////////////////////////////////////////
+  display: inline-block;
+  position: fixed;
+  top: 35%;
+  left: -110px;
+  transform: rotate(-90deg);
+  font-weight: bold;
+  color: #68a357;
+}
+
+#monitor{
+  font-family: 'LoveloBlack', sans-serif;
+  font-size: 240px; ///////////////////////////////////////////
+  font-weight: bold;
+  position: fixed;
+  top: 33%;
+  right: -220px;
+  transform: rotate(90deg);
+  color: #003628;
+
+}
+
 .linea2{
+  display: flex;
+  position: fixed;
   width: 27px;
   height: 512px;
   background-color: #68a357;
+  top: 0;
+  right: 10px;
 }
 
 .container{           //line-width: 27px, line-height: 512px
   font-family: 'Raleway', sans-serif;
-  width: 5%;
+  width: 50%;
   height: 100vh;
   position: fixed;
   top: 0;
