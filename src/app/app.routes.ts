@@ -1,32 +1,39 @@
 import { Routes } from '@angular/router';
-//import { LayoutComponent } from './@core/layout/layout.component';
+import { Layout } from './@core/layout/layout';
 //import { jwtGuard } from './@core/guards/jwt.guard';
 
 export const routes: Routes = [
 
   {
-    path: 'home',
-    title: 'Principal',
-    loadComponent: () =>
-      import('./pages/home/home').then(m => m.Home),
-  },
-  {
-    path: 'home/dashboard',
-    title: 'Dashboard',
-    loadComponent: () =>
-      import('./pages/dashboard/dashboard').then(m => m.Dashboard),
-  },
-  {
-    path: 'home/horarios',
-    title: 'Horarios',
-    loadComponent: () =>
-      import('./pages/dashboard/dashboard').then(m => m.Dashboard),
-  },
-  {
-    path: 'home/routes',
-    title: 'Rutas',
-    loadComponent: () =>
-      import('./pages/dashboard/dashboard').then(m => m.Dashboard),
+    path: 'jjj',
+    component: Layout,
+    canActivate: [/*jwtGuard*/],
+    children: [
+      {
+        path: 'home',
+        title: 'Principal',
+        loadComponent: () =>
+          import('./pages/home/home').then(m => m.Home),
+      },
+      {
+        path: 'home/dashboard',
+        title: 'Dashboard',
+        loadComponent: () =>
+          import('./pages/dashboard/dashboard').then(m => m.Dashboard),
+      },
+      {
+        path: 'home/horarios',
+        title: 'Horarios',
+        loadComponent: () =>
+          import('./pages/dashboard/dashboard').then(m => m.Dashboard),
+      },
+      {
+        path: 'home/routes',
+        title: 'Rutas',
+        loadComponent: () =>
+          import('./pages/dashboard/dashboard').then(m => m.Dashboard),
+      },
+    ]
   },
   {
     path: 'register',

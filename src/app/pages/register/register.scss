@@ -1,0 +1,28 @@
+
+
+.linea1{
+  width: 27px;
+  height: 512px;
+  background-color: #06523f;
+}
+
+.linea2{
+  width: 27px;
+  height: 512px;
+  background-color: #68a357;
+}
+
+.container{           //line-width: 27px, line-height: 512px
+  font-family: 'Raleway', sans-serif;
+  width: 5%;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #06523f;
+}
