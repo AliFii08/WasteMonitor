@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-
+import { DatabaseService } from '../../services/database.service';
 @Component({
   selector: 'app-register',
   standalone: true,
@@ -9,10 +9,15 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
   styleUrl: './register.scss',
 })
 export class Register {
+  constructor(private dbService: DatabaseService) {}
+
   registerForm = new FormGroup({
     name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     lastName: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    email: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.email] }),
+    email: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.email],
+    }),
     phone: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     password: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     confirmPassword: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -21,4 +26,16 @@ export class Register {
     houseNumber: new FormControl('', { nonNullable: true }),
     postalCode: new FormControl('', { nonNullable: true }),
   });
+
+  async onSubmit() {
+    if (this.registerForm.valid) {
+      const data = this.registerForm.getRawValue();
+      try {
+        await this.dbService.guardarUsuario(data);
+        alert('Registro exitoso');
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  }
 }
