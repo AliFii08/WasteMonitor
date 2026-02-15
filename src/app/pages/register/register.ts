@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { DatabaseService } from '../../services/database.service';
 @Component({
   selector: 'app-register',
   standalone: true,
@@ -9,7 +8,7 @@ import { DatabaseService } from '../../services/database.service';
   styleUrl: './register.scss',
 })
 export class Register {
-  constructor(private dbService: DatabaseService) {}
+  // constructor(private dbService: DatabaseService) {}
 
   registerForm = new FormGroup({
     name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -26,16 +25,4 @@ export class Register {
     houseNumber: new FormControl('', { nonNullable: true }),
     postalCode: new FormControl('', { nonNullable: true }),
   });
-
-  async onSubmit() {
-    if (this.registerForm.valid) {
-      const data = this.registerForm.getRawValue();
-      try {
-        await this.dbService.guardarUsuario(data);
-        alert('Registro exitoso');
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  }
 }
