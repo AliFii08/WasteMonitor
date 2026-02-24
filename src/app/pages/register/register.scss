@@ -4,7 +4,7 @@
   display: flex;
   position: fixed;
   bottom: 0;
-  
+  left: 217px;
   width: 27px;
   height: 512px;
   background-color: #06523f;
@@ -12,11 +12,11 @@
 
 #waste{
   font-family: 'LoveloBlack', sans-serif;
-  font-size: 230px; ///////////////////////////////////////////
+  font-size: 150px;
   display: inline-block;
   position: fixed;
-  top: 35%;
-  left: -110px;
+  top: 37%;
+  right: 957px;
   transform: rotate(-90deg);
   font-weight: bold;
   color: #68a357;
@@ -24,11 +24,12 @@
 
 #monitor{
   font-family: 'LoveloBlack', sans-serif;
-  font-size: 240px; ///////////////////////////////////////////
+  font-size: 150PX;
   font-weight: bold;
   position: fixed;
-  top: 33%;
-  right: -220px;
+  top: 50%;
+  bottom: 50%;
+  left: 956px;
   transform: rotate(90deg);
   color: #003628;
 
@@ -41,7 +42,7 @@
   height: 512px;
   background-color: #68a357;
   top: 0;
-  right: 10px;
+  right: 216px;
 }
 
 .container{           //line-width: 27px, line-height: 512px
