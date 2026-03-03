@@ -10,6 +10,7 @@ import {
 } from '@angular/forms';
 import { Auth, createUserWithEmailAndPassword } from '@angular/fire/auth';
 import { Database, ref, set } from '@angular/fire/database';
+import { RouterLink } from "@angular/router";
 
 // Validador personalizado para confirmar que las contraseñas coinciden
 export const passwordMatchValidator: ValidatorFn = (
@@ -43,7 +44,7 @@ export const passwordMatchValidator: ValidatorFn = (
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './register.html',
   styleUrl: './register.scss',
 })
