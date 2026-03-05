@@ -5,12 +5,12 @@ import { Layout } from './@core/layout/layout';
 export const routes: Routes = [
 
   {
-    path: 'jjj',
+    path: '',
     component: Layout,
     canActivate: [/*jwtGuard*/],
     children: [
       {
-        path: 'home',
+        path: '',
         title: 'Principal',
         loadComponent: () =>
           import('./pages/home/home').then(m => m.Home),
