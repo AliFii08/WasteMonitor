@@ -76,6 +76,26 @@ export class Register {
     { validators: passwordMatchValidator },
   );
 
+
+  getErrorMessage(control: FormControl<string>) {
+    let error = control;
+    let message;
+
+    if (error!.errors!['required']) {
+      message = 'El campo es requerido';
+    }
+    if (error!.hasError('minlength') || error!.hasError('maxlength')) {
+      message = 'Debe colocar un minimo de 6 caracteres y un maximo de 16';
+    }
+    if (error!.hasError('email')) {
+      message = 'El email es invalido';
+    }
+
+    return message;
+  }
+
+
+
   async onSubmit() {
     if (this.registerForm.invalid) {
       console.error('Formulario inválido. Por favor, revisa los campos.');

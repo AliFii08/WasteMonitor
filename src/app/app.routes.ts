@@ -11,9 +11,21 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        title: 'Principal',
-        loadComponent: () =>
+        title: 'Inicio',
+        loadComponent: () => 
           import('./pages/home/home').then(m => m.Home),
+      },
+      {
+        path: 'home',
+        title: 'Inicio',
+        loadComponent: () => 
+          import('./pages/home/home').then(m => m.Home),
+      },
+      {
+        path: 'home/horarios',
+        title: 'Horarios',
+        loadComponent: () =>
+          import('./pages/schedules/schedules').then(m => m.Schedules),
       },
       {
         path: 'home/dashboard',
@@ -22,16 +34,22 @@ export const routes: Routes = [
           import('./pages/dashboard/dashboard').then(m => m.Dashboard),
       },
       {
-        path: 'home/horarios',
-        title: 'Horarios',
+        path: 'home/drivers',
+        title: 'Conductores',
         loadComponent: () =>
-          import('./pages/dashboard/dashboard').then(m => m.Dashboard),
+          import('./pages/drivers/drivers').then(m => m.Drivers),
+      },
+      {
+        path: 'home/vehicles',
+        title: 'Vehículos',
+        loadComponent: () =>
+          import('./pages/vehicles/vehicles').then(m => m.Vehicles),
       },
       {
         path: 'home/routes',
         title: 'Rutas',
         loadComponent: () =>
-          import('./pages/dashboard/dashboard').then(m => m.Dashboard),
+          import('./pages/route-drivers/route-drivers').then(m => m.RouteDrivers),
       },
     ]
   },

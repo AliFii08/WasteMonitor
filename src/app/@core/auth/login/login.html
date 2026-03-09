@@ -6,7 +6,7 @@
     <h2>Inicio de Sesión</h2>
     <!-- <hr> -->
 
-    <form [formGroup]="LoginForm" (ngSubmit)="onSubmit()">
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
         <div class="form-group">
             <label for="email">Correo</label>
 
@@ -34,7 +34,7 @@
             </small>
         </div>
 
-        <button type="submit" class="btn">Iniciar Sesión</button>
+        <button type="submit" class="btn" (click)="onSubmit()">Iniciar Sesión</button>
 
         <div class="options">
             <div class="registerOption">

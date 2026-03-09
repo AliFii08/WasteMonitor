@@ -25,7 +25,7 @@ export class Login {
   private router = inject(Router);
   private messageService = inject(MessageService);
 
-  LoginForm: FormGroup<AuthLogin> = this.fb.group({
+  loginForm: FormGroup<AuthLogin> = this.fb.group({
     email: new FormControl<string>('', {
       nonNullable: true,
       validators: [Validators.required, Validators.email],
@@ -36,56 +36,61 @@ export class Login {
     }),
   });
 
+
   get correoControl() {
-    return this.LoginForm.controls.email;
+    return this.loginForm.controls.email;
   }
+
+
   get passwordControl() {
-    return this.LoginForm.controls.password;
+    return this.loginForm.controls.password;
   }
+
 
   isValidField(control: FormControl<string>): boolean {
     return control.invalid && (control.dirty || control.touched);
   }
-  getErrorMessage(control: FormControl<string>): string {
-    if (control.hasError('required')) {
-      return 'Este campo es obligatorio';
+
+
+  getErrorMessage(control: FormControl<string>) {
+    let error = control;
+    let message;
+
+    if (error!.errors!['required']) {
+      message = 'El campo es requerido';
     }
-    if (control.hasError('email')) {
-      return 'Correo electrónico no válido';
+    if (error!.hasError('minlength') || error!.hasError('maxlength')) {
+      message = 'Debe colocar un minimo de 6 caracteres y un maximo de 16';
     }
-    if (control.hasError('minlength')) {
-      const min = control.errors!['minlength'].requiredLength;
-      return `Mínimo ${min} caracteres`;
+    if (error!.hasError('email')) {
+      message = 'El email es invalido';
     }
-    if (control.hasError('maxlength')) {
-      const max = control.errors!['maxlength'].requiredLength;
-      return `Máximo ${max} caracteres`;
-    }
-    return '';
+
+    return message;
   }
 
   passwordFieldType: 'password' | 'text' = 'password';
 
-  togglePasswordVisibility(): void {
-    this.passwordFieldType = this.passwordFieldType == 'password' ? 'text' : 'password';
-    console.log(this.passwordFieldType); // Verifica el valor
-  }
+  // togglePasswordVisibility(): void {
+  //   this.passwordFieldType = this.passwordFieldType == 'password' ? 'text' : 'password';
+  //   console.log(this.passwordFieldType); // Verifica el valor
+  // }
 
   async onSubmit() {
-    // if (!this.LoginForm.valid) {
-    //   this.LoginForm.markAllAsTouched();
-    //   // Log para depuración: Muestra el estado y los errores del formulario en la consola.
-    //   console.error('El formulario es inválido. Revisa el siguiente objeto para ver los detalles:');
-    //   console.log(this.LoginForm.value);
-    //   return;
-    // }
+    if (!this.loginForm.valid) {
+      this.loginForm.markAllAsTouched();
+      // Log para depuración: Muestra el estado y los errores del formulario en la consola.
+      console.error('El formulario es inválido. Revisa el siguiente objeto para ver los detalles:');
+      console.log(this.loginForm.value);
+      return;
+    }
 
-    const { email, password } = this.LoginForm.getRawValue();
+    const { email, password } = this.loginForm.getRawValue();
 
     try {
       await signInWithEmailAndPassword(this.auth, email, password);
       console.log('Sesión iniciada exitosamente');
-      this.router.navigateByUrl('/general');
+      this.router.navigateByUrl('/home');
     } catch (error: any) {
       console.error('Error al iniciar sesión', error);
       let errorMessage = 'Error al iniciar sesión.';
