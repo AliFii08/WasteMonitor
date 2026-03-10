@@ -22,7 +22,7 @@ nav {
   position: fixed;   /* o relative, pero fixed asegura superposición */
   top: 34px;          /* ajusta a gusto */
   left: 18px;
-  z-index: 20; 
+  z-index: 20;
 }
 
 .mini-logo {
@@ -85,7 +85,7 @@ button {
   top: 15px !important;
   filter: none !important;
   }
-  
+
   .p-button .pi {
     font-size: 1.5em;;
   }
@@ -94,6 +94,8 @@ button {
 
 .content {
     margin-left: 68px;
-    padding: 20px;
     background-color: aqua;
+    top: 0;
+    right: 0;
+    bottom: 0;
 }

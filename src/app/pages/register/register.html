@@ -1,84 +1,190 @@
-<div class="fondo1">
-  <div class="linea1"></div>
-  <span id="waste">WASTE</span>
+<div class="fondo">
+  <div class="fondo1">
+    <div class="linea1"></div>
+    <span id="waste">WASTE</span>
+  </div>
+
+  <div class="fondo2">
+    <span id="monitor">MONITOR</span>
+    <div class="linea2"></div>
+  </div>
 </div>
+
+
 
 <div class="container">
   <h2>Registro</h2>
+  <p>Campos con (*) son obligatorios</p>
 
   <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
     <h3>Datos Personales</h3>
 
-    <div class="form-group">
-      <label for="name">Nombre</label>
-      <input type="text" placeholder="Nombre" formControlName="name" required />
+    <div class="form-group two-columns">
+      <div class="field-row">
+        <label for="name">Nombre*</label>
+        <div class="input-block error-slot">
+          <input
+            type="text"
+            placeholder="Nombre"
+            formControlName="name"
+            required
+            [class.invalid]="isValidField(registerForm.controls.name)"
+          />
+          <small *ngIf="isValidField(registerForm.controls.name)">
+            {{ getErrorMessage(registerForm.controls.name) }}
+          </small>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <label for="lastname">Apellido*</label>
+        <div class="input-block error-slot">
+          <input
+            type="text"
+            placeholder="Apellido"
+            formControlName="lastName"
+            required
+            [class.invalid]="isValidField(registerForm.controls.lastName)"
+          />
+          <small *ngIf="isValidField(registerForm.controls.lastName)">
+            {{ getErrorMessage(registerForm.controls.lastName) }}
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group two-columns">
+      <div class="field-row">
+        <label for="email">Correo*</label>
+        <div class="input-block error-slot">
+          <input
+            id="mail"
+            type="email"
+            placeholder="xxxx@gmail.com"
+            formControlName="email"
+            required
+            [class.invalid]="isValidField(registerForm.controls.email)"
+          />
+          <small *ngIf="isValidField(registerForm.controls.email)">
+            {{ getErrorMessage(registerForm.controls.email) }}
+          </small>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <label for="phone">Teléfono</label>
+        <div class="input-block error-slot">
+          <input
+            type="tel"
+            placeholder="1234567890"
+            formControlName="phone"
+            [class.invalid]="isValidField(registerForm.controls.phone)"
+          />
+          <small *ngIf="isValidField(registerForm.controls.phone)">
+            {{ getErrorMessage(registerForm.controls.phone) }}
+          </small>
+        </div>
+      </div>
     </div>
 
     <div class="form-group">
-      <label for="lastname">Apellido</label>
-      <input type="text" placeholder="Apellido" formControlName="lastName" required />
+      <div class="field-row">
+        <label for="password">Contraseña*</label>
+        <div class="input-block error-slot">
+          <input
+            type="password"
+            placeholder="Contraseña"
+            formControlName="password"
+            required
+            [class.invalid]="isValidField(registerForm.controls.password)"
+          />
+          <small *ngIf="isValidField(registerForm.controls.password)">
+            {{ getErrorMessage(registerForm.controls.password) }}
+          </small>
+        </div>
+      </div>
     </div>
 
     <div class="form-group">
-      <label for="email">Correo</label>
-      <input type="email" placeholder="xxxx@gmail.com" formControlName="email" required />
-    </div>
-
-    <div class="form-group">
-      <label for="phone">Teléfono</label>
-      <input type="tel" placeholder="1234567890" formControlName="phone" required />
-    </div>
-
-    <div class="form-group">
-      <label for="password">Contraseña</label>
-      <input type="password" placeholder="Contraseña" formControlName="password" required />
-    </div>
-
-    <div class="form-group">
-      <label for="confirmPassword">Confirmar Contraseña</label>
-      <input
-        type="password"
-        placeholder="Confirmar Contraseña"
-        formControlName="confirmPassword"
-        required
-      />
+      <div class="field-row">
+        <label for="confirmPassword">Confirmar Contraseña*</label>
+        <div class="input-block error-slot">
+          <input
+            type="password"
+            placeholder="Confirmar Contraseña"
+            formControlName="confirmPassword"
+            required
+            [class.invalid]="isValidField(registerForm.controls.confirmPassword)"
+          />
+          <small *ngIf="isValidField(registerForm.controls.confirmPassword)">
+            {{ getErrorMessage(registerForm.controls.confirmPassword) }}
+          </small>
+        </div>
+      </div>
     </div>
 
     <h3>Dirección</h3>
 
     <div class="form-group">
-      <label for="sector">Sector/Urbanización</label>
-      <div class="select-container">
-        <select formControlName="sector" required>
-          <!-- class="fixed-width-dropdown" -->
-          <option value="" hidden>Seleccione un turno</option>
-          <option value="Urb-Jacinto">San Jacinto</option>
-          <option value="Urb-Trinidad">La Trinidad</option>
-          <option value="Sect-Ziruma">Ziruma</option>
-          <option value="Sect-Naranjal">El Naranjal</option>
-          <option value="Sect-LaPiedra">La Piedra</option>
-        </select>
-        <i class="pi pi-angle-down select-icon"></i>
+      <div class="field-row">
+        <label for="sector">Sector/Urbanización*</label>
+        <div class="input-block error-slot">
+          <div class="select-container">
+            <select formControlName="sector" required [class.invalid]="isValidField(registerForm.controls.sector)">
+              <option value="" hidden>Seleccione</option>
+              <option value="Urb-Jacinto">San Jacinto</option>
+              <option value="Urb-Trinidad">La Trinidad</option>
+              <option value="Sect-Ziruma">Ziruma</option>
+              <option value="Sect-Naranjal">El Naranjal</option>
+              <option value="Sect-LaPiedra">La Piedra</option>
+            </select>
+            <i class="pi pi-angle-down select-icon"></i>
+          </div>
+          <small *ngIf="isValidField(registerForm.controls.sector)">
+            {{ getErrorMessage(registerForm.controls.sector) }}
+          </small>
+        </div>
       </div>
     </div>
 
     <div class="form-group">
-      <label for="street">Calle/Avenida</label>
-      <input type="text" placeholder="Calle/Avenida" formControlName="street" required />
+      <div class="field-row">
+        <label for="street">Calle/Avenida*</label>
+        <div class="input-block error-slot">
+          <input
+            type="text"
+            placeholder="Calle/Avenida"
+            formControlName="street"
+            required
+            [class.invalid]="isValidField(registerForm.controls.street)"
+          />
+          <small *ngIf="isValidField(registerForm.controls.street)">
+            {{ getErrorMessage(registerForm.controls.street) }}
+          </small>
+        </div>
+      </div>
     </div>
 
     <div class="form-group">
-      <label for="houseNumber">Número de Casa/Edificio/Lote</label>
-      <input type="text" placeholder="Número de Casa/Edificio/Lote" formControlName="houseNumber" />
+      <div class="field-row">
+        <label for="houseNumber">Número de Casa/Edificio/Lote</label>
+        <div class="input-block">
+          <input type="text" placeholder="Número de Casa/Edificio/Lote" formControlName="houseNumber" />
+        </div>
+      </div>
     </div>
 
     <div class="form-group">
-      <label for="postalCode">Código Postal</label>
-      <input type="number" placeholder="Código Postal" formControlName="postalCode" />
+      <div class="field-row">
+        <label for="postalCode">Código Postal</label>
+        <div class="input-block">
+          <input type="number" placeholder="Código Postal" formControlName="postalCode" />
+        </div>
+      </div>
     </div>
 
     <div class="register-button">
-      <button pButton label="Registrarse" type="submit" [disabled]="registerForm.invalid">
+      <button pButton label="Registrarse" type="submit">
         Registrarse
       </button>
     </div>
@@ -90,9 +196,4 @@
             </div>
         </div>
   </form>
-</div>
-
-<div class="fondo2">
-  <span id="monitor">MONITOR</span>
-  <div class="linea2"></div>
 </div>

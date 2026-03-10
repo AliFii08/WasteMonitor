@@ -11,6 +11,7 @@ import {
 import { Auth, createUserWithEmailAndPassword } from '@angular/fire/auth';
 import { Database, ref, set } from '@angular/fire/database';
 import { RouterLink } from "@angular/router";
+import { CommonModule } from '@angular/common';
 
 // Validador personalizado para confirmar que las contraseñas coinciden
 export const passwordMatchValidator: ValidatorFn = (
@@ -30,12 +31,13 @@ export const passwordMatchValidator: ValidatorFn = (
 
   if (password.value !== confirmPassword.value) {
     // Establece un error en el campo 'confirmPassword' para mostrar un mensaje específico
-    confirmPassword.setErrors({ passwordMismatch: true });
+    confirmPassword.setErrors({ ...confirmPassword.errors, passwordMismatch: true });
     return { passwordMismatch: true }; // Devuelve el error en el grupo de formularios
   } else {
     // Si coinciden, y el error existía, límpialo
     if (confirmPassword.hasError('passwordMismatch')) {
-      confirmPassword.setErrors(null);
+      const { passwordMismatch, ...restErrors } = confirmPassword.errors ?? {};
+      confirmPassword.setErrors(Object.keys(restErrors).length ? restErrors : null);
     }
     return null;
   }
@@ -44,7 +46,7 @@ export const passwordMatchValidator: ValidatorFn = (
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, CommonModule],
   templateUrl: './register.html',
   styleUrl: './register.scss',
 })
@@ -62,8 +64,11 @@ export class Register {
         nonNullable: true,
         validators: [Validators.required, Validators.email],
       }),
-      phone: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      password: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+      phone: new FormControl('', { nonNullable: true }),
+      password: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.required, Validators.minLength(6), Validators.maxLength(16)],
+      }),
       confirmPassword: new FormControl('', {
         nonNullable: true,
         validators: [Validators.required],
@@ -75,6 +80,11 @@ export class Register {
     },
     { validators: passwordMatchValidator },
   );
+
+
+  isValidField(control: FormControl<string>): boolean {
+    return control.invalid && (control.dirty || control.touched);
+  }
 
 
   getErrorMessage(control: FormControl<string>) {
@@ -89,6 +99,9 @@ export class Register {
     }
     if (error!.hasError('email')) {
       message = 'El email es invalido';
+    }
+    if (error!.hasError('passwordMismatch')) {
+      message = 'Las contraseñas no coinciden';
     }
 
     return message;

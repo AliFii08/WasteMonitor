@@ -27,7 +27,7 @@ h2{
   font-weight: 400;
   color: #fff;
   margin-top: 110px;
-  margin-bottom: 110px;
+  margin-bottom: 90px;
 }
 
 hr{
@@ -85,6 +85,11 @@ input:-ms-input-placeholder{
   gap: 8px;
 }
 
+.form-group.error-slot {
+  position: relative;
+  margin-bottom: 30px;
+}
+
 #passwordDiv{
   margin-top: 20px;
 }
@@ -136,17 +141,21 @@ form > button[type="submit"]{
   color: #6be749;
 }
 
+.options span {
+  color: #fff;
+}
+
 small{
   font-family: 'Raleway', sans-serif;
   font-weight: 500;
   font-size: 16px;
   color: #ff0000;
   font-style: italic;
+  position: absolute;
+  top: calc(100% - 2px);
+  margin-top: 5px;
+  left: 8px;
 }
-
-
-
-
 
 @media (min-width: 1280px) and (min-height: 800px) {
   .logo img{
