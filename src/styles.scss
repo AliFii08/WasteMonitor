@@ -11,5 +11,70 @@
 }
 
 body {
+  margin-top: 0;
+  margin-bottom: 0;
     background-color: #f1ffed;
+}
+
+/* PrimeNG Toast overrides */
+.p-toast {
+  opacity: 1 !important;
+}
+
+.p-toast .p-toast-message {
+  border-radius: 14px !important;
+  border: 2px solid transparent !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24) !important;
+  backdrop-filter: none !important;
+  opacity: 1 !important;
+}
+
+.p-toast .p-toast-message-content {
+  padding: 0.9rem 1rem !important;
+}
+
+.p-toast .p-toast-message-text {
+  flex: 1;
+  //text-align: center;
+}
+
+.p-toast .p-toast-summary {
+  font-family: 'LoveloBlack', sans-serif !important;
+  font-size: 0.98rem !important;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+
+.p-toast .p-toast-detail {
+  font-family: 'Raleway', sans-serif !important;
+  font-weight: 600;
+  font-size: 0.95rem !important;
+  color: black !important;
+}
+
+.p-toast .p-toast-message-success {
+  background: #dff8e2 !important;
+  border-color: #68a357 !important;
+  color: #0b3d2f !important;
+  align-items: center;
+}
+
+.p-toast .p-toast-message-error {
+  background: #ffe5e5 !important;
+  border-color: #d62828 !important;
+  color: #5a0000 !important;
+  align-items: center;
+}
+
+.p-toast .p-toast-message-warn {
+  background: #fff2d6 !important;
+  border-color: #d89b00 !important;
+  color: #5d4300 !important;
+  align-items: center;
+}
+
+.p-toast .p-toast-icon-close,
+.p-toast .p-toast-message-icon {
+  color: currentColor !important;
+  opacity: 1 !important;
 }

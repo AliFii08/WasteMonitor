@@ -79,9 +79,11 @@ export class Login {
   async onSubmit() {
     if (!this.loginForm.valid) {
       this.loginForm.markAllAsTouched();
-      // Log para depuración: Muestra el estado y los errores del formulario en la consola.
-      console.error('El formulario es inválido. Revisa el siguiente objeto para ver los detalles:');
-      console.log(this.loginForm.value);
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atención',
+        detail: 'Completa los campos del formulario correctamente.',
+      });
       return;
     }
 
@@ -89,8 +91,12 @@ export class Login {
 
     try {
       await signInWithEmailAndPassword(this.auth, email, password);
-      console.log('Sesión iniciada exitosamente');
-      this.router.navigateByUrl('/home');
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Éxito',
+        detail: 'Inicio de Sesión exitoso.',
+      });
+      await this.router.navigateByUrl('/home');
     } catch (error: any) {
       console.error('Error al iniciar sesión', error);
       let errorMessage = 'Error al iniciar sesión.';
@@ -102,7 +108,12 @@ export class Login {
       ) {
         errorMessage = 'Correo o contraseña incorrectos.';
       }
-      alert(errorMessage);
+
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: errorMessage,
+      });
     }
   }
 }

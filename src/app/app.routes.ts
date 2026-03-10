@@ -1,13 +1,13 @@
 import { Routes } from '@angular/router';
 import { Layout } from './@core/layout/layout';
-//import { jwtGuard } from './@core/guards/jwt.guard';
+import { jwtGuard } from './@core/guards/jwt.guard';
 
 export const routes: Routes = [
 
   {
     path: '',
     component: Layout,
-    canActivate: [/*jwtGuard*/],
+    canActivate: [jwtGuard],
     children: [
       {
         path: '',
@@ -50,6 +50,12 @@ export const routes: Routes = [
         title: 'Rutas',
         loadComponent: () =>
           import('./pages/route-drivers/route-drivers').then(m => m.RouteDrivers),
+      },
+      {
+        path: 'home/profile',
+        title: 'Perfil',
+        loadComponent: () =>
+          import('./pages/profile/profile').then(m => m.Profile),
       },
     ]
   },

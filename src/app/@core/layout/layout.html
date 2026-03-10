@@ -1,5 +1,5 @@
 <div class="div-logo">
-  <img class="mini-logo" src="../../../assets/images/mini-logo.png">
+  <img class="mini-logo" routerLink="/home" src="../../../assets/images/mini-logo.png">
 </div>
 
 <nav>
@@ -11,6 +11,11 @@
     <p-button pTooltip="Conductores" class="mb-2" icon="pi pi-fw pi-users" routerLink="/home/drivers"></p-button>
     <p-button pTooltip="Vehículos" class="mb-2" icon="pi pi-fw pi-truck" routerLink="/home/vehicles"></p-button>
     <p-button pTooltip="Rutas" class="mb-2" icon="pi pi-fw pi-map" routerLink="/home/routes"></p-button>
+  </div>
+
+  <div class="profile">
+    <p-button pTooltip="Perfil" class="mb-2" icon="pi pi-user" routerLink="/home/profile"></p-button>
+    <p-button pTooltip="Cerrar Sesión" class="mb-2" icon="pi pi-sign-out" (click)="logout()"></p-button>
   </div>
 </nav>
 

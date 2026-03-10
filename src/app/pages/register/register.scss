@@ -224,6 +224,9 @@ small{
   top: calc(100% + 2px);
   left: 8px;
   margin: 0;
+  white-space: nowrap;
+  width: max-content;
+  max-width: none;
 }
 
 input.invalid,
@@ -278,5 +281,35 @@ select.invalid {
   top: 0;
   right: 125px;
 }
+
+}
+
+@media (min-width: 1280px) and (min-height: 800px) {
+
+  .linea1{
+    left: 80px;
+  }
+
+  #waste{
+    right: 755px;
+  }
+
+  #monitor{
+    left: 754px;
+  }
+
+  .linea2{
+    right: 80px;
+  }
+
+  .container{
+    width: 58%;
+    height: 854px;
+    padding: 0;
+  }
+  
+  h2{
+    margin-top: 23px;
+  }
 
 }

@@ -10,8 +10,8 @@
         <div class="form-group error-slot">
             <label for="email">Correo</label>
 
-            <input type="text" placeholder="xxxx@gmail.com"
-            formControlName="email" pattern="^\d+$" required
+            <input type="email" placeholder="xxxx@gmail.com"
+            formControlName="email" required
             [class.invalid]="isValidField(correoControl)">
 
             <small *ngIf="isValidField(correoControl)" class="text-red-600">
@@ -34,7 +34,7 @@
             </small>
         </div>
 
-        <button type="submit" class="btn" (click)="onSubmit()">Iniciar Sesión</button>
+        <button type="submit" class="btn">Iniciar Sesión</button>
 
         <div class="options">
             <div class="registerOption">

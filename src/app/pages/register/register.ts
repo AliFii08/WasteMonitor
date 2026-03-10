@@ -8,10 +8,11 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import { Auth, createUserWithEmailAndPassword } from '@angular/fire/auth';
+import { Auth, createUserWithEmailAndPassword, signOut } from '@angular/fire/auth';
 import { Database, ref, set } from '@angular/fire/database';
-import { RouterLink } from "@angular/router";
+import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { MessageService } from 'primeng/api';
 
 // Validador personalizado para confirmar que las contraseñas coinciden
 export const passwordMatchValidator: ValidatorFn = (
@@ -55,6 +56,8 @@ export class Register {
 
   private auth = inject(Auth);
   private db = inject(Database);
+  private router = inject(Router);
+  private messageService = inject(MessageService);
 
   registerForm = new FormGroup(
     {
@@ -111,18 +114,27 @@ export class Register {
 
   async onSubmit() {
     if (this.registerForm.invalid) {
-      console.error('Formulario inválido. Por favor, revisa los campos.');
-      // Marca todos los campos como "tocados" para mostrar los errores de validación en la plantilla
       this.registerForm.markAllAsTouched();
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atención',
+        detail: 'Completa los campos del formulario correctamente.',
+      });
       return;
     }
 
     const { email, password, name, lastName, phone, sector, street, houseNumber, postalCode } =
       this.registerForm.getRawValue();
 
+    const normalizedEmail = email.trim().toLowerCase();
+
     try {
       // 1. Crear el usuario en Firebase Authentication
-      const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        this.auth,
+        normalizedEmail,
+        password,
+      );
       const user = userCredential.user;
 
       console.log('Usuario registrado en Firebase Auth con UID:', user.uid);
@@ -135,7 +147,7 @@ export class Register {
       await set(userNodeRef, {
         name,
         lastName,
-        email,
+        email: normalizedEmail,
         phone,
         address: {
           sector,
@@ -147,8 +159,15 @@ export class Register {
       });
 
       console.log('Datos de usuario guardados en Realtime Database.');
-      alert('¡Registro exitoso!');
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Éxito',
+        detail: 'Registro exitoso.',
+      });
       this.registerForm.reset();
+      await signOut(this.auth);
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      await this.router.navigateByUrl('/login');
     } catch (error: any) {
       console.error('Error durante el registro:', error);
 
@@ -159,9 +178,25 @@ export class Register {
           'Error de configuración: Habilita "Email/Password" en la consola de Firebase (Authentication > Sign-in method).';
       } else if (error.code === 'auth/email-already-in-use') {
         errorMessage = 'Este correo electrónico ya está registrado. Intenta iniciar sesión.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'El correo electrónico no es válido.';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'La contraseña es muy débil. Debe tener al menos 6 caracteres.';
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorMessage =
+          'El proveedor Email/Password no está habilitado en Firebase Authentication.';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage =
+          'Demasiados intentos de registro en poco tiempo. Intenta nuevamente en unos minutos.';
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = 'Error de red al registrar. Verifica tu conexión e intenta otra vez.';
       }
 
-      alert(errorMessage);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: errorMessage,
+      });
     }
   }
 }
