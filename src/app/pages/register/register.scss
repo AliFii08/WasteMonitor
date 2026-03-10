@@ -1,14 +1,10 @@
-.fondo {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-}
+
 
 .linea1{
   display: flex;
   position: fixed;
   bottom: 0;
-  left: 225px;
+  
   width: 27px;
   height: 512px;
   background-color: #06523f;
@@ -16,11 +12,11 @@
 
 #waste{
   font-family: 'LoveloBlack', sans-serif;
-  font-size: 150px;
+  font-size: 230px; ///////////////////////////////////////////
   display: inline-block;
   position: fixed;
-  top: 37%;
-  right: 930px;
+  top: 35%;
+  left: -110px;
   transform: rotate(-90deg);
   font-weight: bold;
   color: #68a357;
@@ -28,12 +24,11 @@
 
 #monitor{
   font-family: 'LoveloBlack', sans-serif;
-  font-size: 150PX;
+  font-size: 240px; ///////////////////////////////////////////
   font-weight: bold;
   position: fixed;
-  top: 50%;
-  bottom: 50%;
-  left: 930px;
+  top: 33%;
+  right: -220px;
   transform: rotate(90deg);
   color: #003628;
 
@@ -46,237 +41,20 @@
   height: 512px;
   background-color: #68a357;
   top: 0;
-  right: 224px;
+  right: 10px;
 }
 
 .container{           //line-width: 27px, line-height: 512px
   font-family: 'Raleway', sans-serif;
   width: 50%;
-  min-height: 100vh;
-  position: relative;
-  margin: 0 auto;
-  padding-bottom: 60px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background-color: #06523f;
-  z-index: 1;
-}
-
-h2{
-  font-family: 'Raleway', sans-serif;
-  color: #fff;
-  font-size: 50px;
-  font-weight: 400;
-  margin-top: 50px;
-  margin-bottom: 15px;
-}
-
-p {
-  font-family: 'Raleway', sans-serif;
-  color: #fff;
-  font-weight: 800;
-  font-size: 16px;
-  margin-top: 0;
-  margin-bottom: 30px;
-}
-
-h3 {
-  font-family: 'Raleway', sans-serif;
-  color: #fff;
-  font-size: 25px;
-}
-
-.form-group {
-  margin-bottom: 25px;
-}
-
-.form-group.two-columns {
-  display: flex;
-}
-
-.field-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-.input-block {
-  display: flex;
-  flex-direction: column;
-}
-
-.input-block.error-slot {
-  position: relative;
-}
-
-label {
-  font-family: 'Raleway', sans-serif;
-  font-size: 18px;
-  color: #fff;
-  margin: 4px 0 0 15px;
-  white-space: nowrap;
-}
-
-input, select {
-  font-family: 'Raleway', sans-serif;
-  font-size: 15px;
-  width: 180px;
-  height: 30px;
-  border-radius: 25px;
-  border: none;
-  padding-left: 10px;
-  color: #000000;
-  background-color: #ffffff;
-  outline: none;
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-select {
-  cursor: pointer;
-  color: black;
-}
-
-.select-container {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-}
-
-.select-icon {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-}
-
-#mail {
-  width: 225px;
-}
-
-button{
-  font-family: 'Raleway', sans-serif;
-  font-size: 20px;
-  font-weight: 700;
-  color: #fff;
-  background-color: #68a357;
-  border: none;
-  width: 180px;
-  height: 50px;
-  border-radius: 25px;
-  margin-top: 15px;
-}
-
-button:hover{
-  background-color: #578849;
-  transition: 0.5s;
-  cursor: pointer;
-}
-
-.register-button{
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
-
-.register-button button[type="submit"]{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-}
-
-.options{
-  margin-top: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.options a{
-  color: #56bb3a;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.options a:hover{
-  text-decoration: underline;
-  cursor: pointer;
-  color: #6be749;
-}
-
-.options span{
-  color: #fff;
-}
-
-small{
-  font-family: 'Raleway', sans-serif;
-  font-weight: 600;
-  font-size: 14px;
-  line-height: 16px;
-  color: #ff0000;
-  font-style: italic;
-  position: absolute;
-  top: calc(100% + 2px);
-  left: 8px;
-  margin: 0;
-}
-
-input.invalid,
-select.invalid {
-  border: 1px solid #ff0000;
-}
-
-
-@media (min-width: 1280px) and (min-height: 800px) {
-
-  .linea1{
-  display: flex;
+  height: 100vh;
   position: fixed;
-  bottom: 0;
-  left: 125px;
-  width: 27px;
-  height: 512px;
-  background-color: #06523f;
-}
-
-#waste{
-  font-family: 'LoveloBlack', sans-serif;
-  font-size: 180px;
-  display: inline-block;
-  position: fixed;
-  top: 37%;
-  right: 725px;
-  transform: rotate(-90deg);
-  font-weight: bold;
-  color: #68a357;
-}
-
-#monitor{
-  font-family: 'LoveloBlack', sans-serif;
-  font-size: 180px;
-  font-weight: bold;
-  position: fixed;
-  top: 49%;
-  bottom: 50%;
-  left: 720px;
-  transform: rotate(90deg);
-  color: #003628;
-
-}
-
-.linea2{
-  display: flex;
-  position: fixed;
-  width: 27px;
-  height: 512px;
-  background-color: #68a357;
   top: 0;
-  right: 125px;
-}
-
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #06523f;
 }

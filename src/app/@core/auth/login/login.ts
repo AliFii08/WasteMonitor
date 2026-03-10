@@ -1,16 +1,9 @@
 import { Component, inject } from '@angular/core';
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router, RouterLink} from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { AuthLogin } from '../../interfaces/forms/form_auth_login';
 import { CommonModule } from '@angular/common';
-import { Auth, signInWithEmailAndPassword } from '@angular/fire/auth';
 
 @Component({
   selector: 'app-login',
@@ -20,89 +13,80 @@ import { Auth, signInWithEmailAndPassword } from '@angular/fire/auth';
   styleUrl: './login.scss',
 })
 export class Login {
-  private auth = inject(Auth);
+
+  //private authService = inject(AuthService);
   private fb = inject(FormBuilder);
   private router = inject(Router);
-  private messageService = inject(MessageService);
+  private messageService: MessageService = new MessageService;
 
-  loginForm: FormGroup<AuthLogin> = this.fb.group({
-    email: new FormControl<string>('', {
-      nonNullable: true,
-      validators: [Validators.required, Validators.email],
-    }),
-    password: new FormControl<string>('', {
-      nonNullable: true,
-      validators: [Validators.required, Validators.minLength(6), Validators.maxLength(16)],
-    }),
-  });
-
+  LoginForm: FormGroup<AuthLogin> = this.fb.group({
+    email: new FormControl<string>('', { nonNullable: true, validators: [Validators.required, Validators.email] }),
+    password: new FormControl<string>('', { nonNullable: true,
+        validators: [
+          Validators.required,
+          Validators.minLength(6),
+          Validators.maxLength(16),
+        ]
+      })
+  })
 
   get correoControl() {
-    return this.loginForm.controls.email;
+    return this.LoginForm.controls.email;
   }
-
-
   get passwordControl() {
-    return this.loginForm.controls.password;
+    return this.LoginForm.controls.password;
   }
-
 
   isValidField(control: FormControl<string>): boolean {
     return control.invalid && (control.dirty || control.touched);
   }
-
-
-  getErrorMessage(control: FormControl<string>) {
-    let error = control;
-    let message;
-
-    if (error!.errors!['required']) {
-      message = 'El campo es requerido';
+  getErrorMessage(control: FormControl<string>): string {
+    if (control.hasError('required')) {
+      return 'Este campo es obligatorio';
     }
-    if (error!.hasError('minlength') || error!.hasError('maxlength')) {
-      message = 'Debe colocar un minimo de 6 caracteres y un maximo de 16';
+    if (control.hasError('email')) {
+      return 'Correo electrónico no válido';
     }
-    if (error!.hasError('email')) {
-      message = 'El email es invalido';
+    if (control.hasError('minlength')) {
+      const min = control.errors!['minlength'].requiredLength;
+      return `Mínimo ${min} caracteres`;
     }
-
-    return message;
+    if (control.hasError('maxlength')) {
+      const max = control.errors!['maxlength'].requiredLength;
+      return `Máximo ${max} caracteres`;
+    }
+    return '';
   }
 
   passwordFieldType: 'password' | 'text' = 'password';
 
-  // togglePasswordVisibility(): void {
-  //   this.passwordFieldType = this.passwordFieldType == 'password' ? 'text' : 'password';
-  //   console.log(this.passwordFieldType); // Verifica el valor
-  // }
+  togglePasswordVisibility(): void {
+    this.passwordFieldType = this.passwordFieldType == 'password' ? 'text' : 'password';
+    console.log(this.passwordFieldType); // Verifica el valor
+  }
 
-  async onSubmit() {
-    if (!this.loginForm.valid) {
-      this.loginForm.markAllAsTouched();
-      // Log para depuración: Muestra el estado y los errores del formulario en la consola.
-      console.error('El formulario es inválido. Revisa el siguiente objeto para ver los detalles:');
-      console.log(this.loginForm.value);
+  onSumit() {
+    if (this.LoginForm.invalid) {
+      this.LoginForm.markAllAsTouched();
       return;
     }
 
-    const { email, password } = this.loginForm.getRawValue();
+    console.log('Iniciando sesión', this.LoginForm.value);
 
-    try {
-      await signInWithEmailAndPassword(this.auth, email, password);
-      console.log('Sesión iniciada exitosamente');
-      this.router.navigateByUrl('/home');
-    } catch (error: any) {
-      console.error('Error al iniciar sesión', error);
-      let errorMessage = 'Error al iniciar sesión.';
+    // aca obtiene los valores del login
+    const formValues = this.LoginForm.value;
 
-      if (
-        error.code === 'auth/invalid-credential' ||
-        error.code === 'auth/user-not-found' ||
-        error.code === 'auth/wrong-password'
-      ) {
-        errorMessage = 'Correo o contraseña incorrectos.';
+    // aca inicia sesion con el servicio
+    /*this.authService.Login(formValues).subscribe({
+      next: () => {
+        console.log('Sesión iniciada exitosamente');
+        this.router.navigateByUrl('/general'); // redirigir a genral
+      },
+      /*error: (err) => {
+        console.error('Error al iniciar sesión', err);
+        alert('Credenciales incorrectas. Por favor, inténtelo de nuevo.');
       }
-      alert(errorMessage);
-    }
+    });*/
   }
+
 }
