@@ -11,6 +11,7 @@ import { MessageService } from 'primeng/api';
 import { AuthLogin } from '../../interfaces/forms/form_auth_login';
 import { CommonModule } from '@angular/common';
 import { Auth, signInWithEmailAndPassword } from '@angular/fire/auth';
+import { SessionTimeoutService } from '../../services/session-timeout.service';
 
 @Component({
   selector: 'app-login',
@@ -24,6 +25,7 @@ export class Login {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private messageService = inject(MessageService);
+  private sessionTimeoutService = inject(SessionTimeoutService);
 
   loginForm: FormGroup<AuthLogin> = this.fb.group({
     email: new FormControl<string>('', {
@@ -91,6 +93,7 @@ export class Login {
 
     try {
       await signInWithEmailAndPassword(this.auth, email, password);
+      this.sessionTimeoutService.startTracking();
       this.messageService.add({
         severity: 'success',
         summary: 'Éxito',
