@@ -8,7 +8,7 @@ import { User } from '../interfaces/user.model';
   providedIn: 'root',
 })
 export class UserService {
-
+//
   //currentUserSignal = signal<User | null>(null);
   currentUserSignal = signal<User | null>(null);
 
@@ -16,5 +16,5 @@ export class UserService {
   currentUser(): Observable<User | null> {
     return of(this.currentUserSignal());
   }
-    
+
 }

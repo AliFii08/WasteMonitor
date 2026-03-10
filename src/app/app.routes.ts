@@ -12,17 +12,17 @@ export const routes: Routes = [
       {
         path: '',
         title: 'Inicio',
-        loadComponent: () => 
+        loadComponent: () =>
           import('./pages/home/home').then(m => m.Home),
       },
       {
         path: 'home',
         title: 'Inicio',
-        loadComponent: () => 
+        loadComponent: () =>
           import('./pages/home/home').then(m => m.Home),
       },
       {
-        path: 'home/horarios',
+        path: 'home/schedules',
         title: 'Horarios',
         loadComponent: () =>
           import('./pages/schedules/schedules').then(m => m.Schedules),
