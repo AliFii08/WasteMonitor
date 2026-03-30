@@ -1,0 +1,57 @@
+.map-container {
+  padding: 20px;
+  max-width: 900px;
+  margin: 20px auto;
+  font-family: 'Raleway', sans-serif;
+}
+
+#map {
+  height: 450px;
+  width: 100%;
+  border-radius: 15px;
+  border: 3px solid white;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+  z-index: 1; /* Para que no se encime sobre menús */
+}
+
+.header-map {
+  margin-bottom: 15px;
+  .title {
+    font-family: 'LoveloBlack', sans-serif;
+    color: #0b3d2f;
+    margin: 0;
+  }
+  .subtitle { color: #68a357; font-weight: 600; }
+}
+
+.footer-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 15px;
+}
+
+.status-badge {
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  &.success {
+    background: #dff8e2;
+    color: #0b3d2f;
+    border: 1px solid #68a357;
+  }
+}
+
+.btn-center {
+  background: #0b3d2f;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: 'Raleway', sans-serif;
+  font-weight: 700;
+  transition: 0.3s;
+  &:hover { background: #1a5c48; }
+}
