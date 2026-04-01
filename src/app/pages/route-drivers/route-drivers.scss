@@ -55,3 +55,15 @@
   transition: 0.3s;
   &:hover { background: #1a5c48; }
 }
+
+.route-selector {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 8px;
+  border: 1px solid #68a357;
+  font-family: 'Raleway', sans-serif;
+  background-color: white;
+  color: #0b3d2f;
+  font-weight: 600;
+}

@@ -1,19 +1,24 @@
-<p>route-drivers works!</p>
-
 <div class="map-container card">
   <div class="header-map">
-    <h2 class="title"><i class="pi pi-map-marker"></i> Ruta de Recolección</h2>
-    <p class="subtitle">Sector Maracaibo - Estado Zulia</p>
+    <h2 class="title"><i class="pi pi-map-marker"></i> Gestión de Rutas</h2>
+    <p class="subtitle">Haz clic en el mapa para añadir puntos a la ruta seleccionada</p>
+    
+    <select class="route-selector" (change)="onRouteSelect($event)">
+      <option value="">-- Selecciona una ruta --</option>
+      <option *ngFor="let route of availableRoutes" [value]="route.id">
+        {{ route.id }}
+      </option>
+    </select>
   </div>
 
   <div id="map"></div>
 
   <div class="footer-info">
     <div class="status-badge success">
-      <i class="pi pi-truck"></i> Camión en movimiento
+      <i class="pi pi-info-circle"></i> {{ selectedRouteId ? 'Editando: ' + selectedRouteId : 'Seleccione una ruta' }}
     </div>
     <button (click)="resetView()" class="btn-center">
-      <i class="pi pi-search-plus"></i> Ubicar Camión
+      <i class="pi pi-search-plus"></i> Reajustar Vista
     </button>
   </div>
 </div>
