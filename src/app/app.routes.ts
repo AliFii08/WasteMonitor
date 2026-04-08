@@ -52,6 +52,18 @@ export const routes: Routes = [
           import('./pages/route-drivers/route-drivers').then(m => m.RouteDrivers),
       },
       {
+        path: 'home/journey-report',
+        title: 'Informe de Jornada',
+        loadComponent: () =>
+          import('./pages/journey-report/journey-report').then(m => m.JourneyReport),
+      },
+      {
+        path: 'home/complaints',
+        title: 'Quejas',
+        loadComponent: () =>
+          import('./pages/complaints/complaints').then(m => m.Complaints),
+      },
+      {
         path: 'home/profile',
         title: 'Perfil',
         loadComponent: () =>

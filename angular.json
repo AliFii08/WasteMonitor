@@ -30,6 +30,7 @@
             ],
             "styles": [
               "src/styles.scss",
+              "node_modules/leaflet/dist/leaflet.css",
               "node_modules/primeflex/primeflex.css"
             ]
           },
