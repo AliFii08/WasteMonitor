@@ -155,6 +155,7 @@ export class Register {
           houseNumber,
           postalCode,
         },
+        rol: 'user'
         // Nota: Por seguridad, NUNCA guardamos la contraseña en la base de datos.
       });
 

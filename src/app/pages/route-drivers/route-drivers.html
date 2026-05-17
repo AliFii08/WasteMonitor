@@ -3,15 +3,26 @@
     <h2 class="title"><i class="pi pi-map-marker"></i> Gestión de Rutas</h2>
     <p class="subtitle">Haz clic en el mapa para añadir puntos a la ruta seleccionada</p>
     
-    <select class="route-selector" (change)="onRouteSelect($event)">
-      <option value="">-- Selecciona una ruta --</option>
-      <option *ngFor="let route of availableRoutes" [value]="route.id">
-        {{ route.id }}
-      </option>
-    </select>
+    <div class="route-actions">
+      <select class="route-selector" (change)="onRouteSelect($event)">
+        <option value="">-- Selecciona una ruta --</option>
+        <option *ngFor="let route of availableRoutes; trackBy: trackByRouteId" [value]="route.id">
+          {{ route.id }}
+        </option>
+      </select>
+      <button type="button" class="btn-create" (click)="createLocalRoute()">
+        <i class="pi pi-plus"></i> Crear ruta local
+      </button>
+      <button type="button" class="btn-add" (click)="prepareAddLocalPoint()" [disabled]="!isBuildingLocalRoute">
+        <i class="pi pi-map-marker"></i> Agregar punto
+      </button>
+      <button type="button" class="btn-save" (click)="saveLocalRouteToFirebase()" [disabled]="!isBuildingLocalRoute || localRoutePoints.length === 0">
+        <i class="pi pi-save"></i> Guardar ruta
+      </button>
+    </div>
   </div>
 
-  <div id="map"></div>
+  <div id="map" ngNonBindable></div>
 
   <div class="footer-info">
     <div class="status-badge success">
