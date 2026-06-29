@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core'; // <-- Importamos OnInit
 import {
   AbstractControl,
   FormControl,
@@ -8,11 +8,13 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import { Auth, signOut } from '@angular/fire/auth';
+import { Auth } from '@angular/fire/auth';
 import { Database, ref, set } from '@angular/fire/database';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MessageService } from 'primeng/api';
+import { UserService } from '../../@core/services/user.service'; // <-- Importamos tu UserService
+import { FirebaseUser } from '../../@core/interfaces/user.model'; // Ajusta los '../' según corresponda
 
 // Validador personalizado corregido con las importaciones correctas de arriba
 export const passwordMatchValidator: ValidatorFn = (
@@ -44,17 +46,17 @@ export const passwordMatchValidator: ValidatorFn = (
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule], // Asegúrate de importar ReactiveFormsModule aquí
+  imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './profile.html',
   styleUrl: './profile.scss',
 })
-export class Profile {
+export class Profile implements OnInit { // <-- Implementamos la interfaz OnInit
   private auth = inject(Auth);
   private db = inject(Database);
   private router = inject(Router);
   private messageService = inject(MessageService);
+  private userService = inject(UserService); // <-- Inyectamos el servicio de usuario
 
-  // Cambiado a profileForm para que coincida con un módulo de edición de perfil
   profileForm = new FormGroup(
     {
       name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -66,7 +68,7 @@ export class Profile {
       phone: new FormControl('', { nonNullable: true }),
       password: new FormControl('', {
         nonNullable: true,
-        validators: [Validators.minLength(6), Validators.maxLength(16)], // Removido required por si no quieren cambiarla
+        validators: [Validators.minLength(6), Validators.maxLength(16)],
       }),
       confirmPassword: new FormControl('', { nonNullable: true }),
       sector: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -77,7 +79,25 @@ export class Profile {
     { validators: passwordMatchValidator },
   );
 
-  // Se especifica un tipo más genérico AbstractControl para evitar problemas de compatibilidad en la plantilla
+  ngOnInit(): void {
+    // 1. Obtenemos el usuario del Signal reactivo
+    const user = this.userService.currentUserSignal();
+
+    if (user) {
+      // 2. Rellenamos el formulario mapeando la estructura plana y anidada (address)
+      this.profileForm.patchValue({
+        name: user.name,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone,
+        sector: user.address?.sector || '',
+        street: user.address?.street || '',
+        houseNumber: user.address?.houseNumber || '',
+        postalCode: user.address?.postalCode ? String(user.address.postalCode) : '',
+      });
+    }
+  }
+
   isValidField(control: AbstractControl | null): boolean {
     if (!control) return false;
     return control.invalid && (control.dirty || control.touched);
@@ -123,28 +143,42 @@ export class Profile {
     }
 
     try {
-      // Al ser edición de perfil, actualizamos directamente en la base de datos usando el UID actual
-      const userNodeRef = ref(this.db, `usuarios/${currentUser.uid}`);
+  const userNodeRef = ref(this.db, `usuarios/${currentUser.uid}`);
 
-      await set(userNodeRef, {
-        name,
-        lastName,
-        email: email.trim().toLowerCase(),
-        phone,
-        address: {
-          sector,
-          street,
-          houseNumber,
-          postalCode,
-        },
-        rol: 'user'
-      });
+  // Mantener el rol actual para no sobrescribirlo accidentalmente
+  const currentRol = this.userService.currentUserSignal()?.rol || 'user';
 
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Éxito',
-        detail: 'Perfil actualizado correctamente.',
-      });
+  const updatedUser = {
+    name,
+    lastName,
+    email: email.trim().toLowerCase(),
+    phone,
+    address: {
+      sector,
+      street,
+      houseNumber,
+      // CORRECCIÓN: Si está vacío, guardamos 0 (o el número correspondiente) para mantener el tipo 'number'
+      postalCode: postalCode ? Number(postalCode) : 0,
+    },
+    rol: currentRol
+  };
+
+  // 1. Guardar cambios en Realtime Database
+  await set(userNodeRef, updatedUser);
+
+  // 2. Actualizar el Signal global con el tipado exacto de FirebaseUser
+  this.userService.currentUserSignal.set({
+    uid: currentUser.uid,
+    ...updatedUser
+  });
+  
+  localStorage.setItem('currentUser', JSON.stringify({ uid: currentUser.uid, ...updatedUser }));
+
+  this.messageService.add({
+    severity: 'success',
+    summary: 'Éxito',
+    detail: 'Perfil actualizado correctamente.',
+  });
     } catch (error: any) {
       console.error('Error al actualizar:', error);
       this.messageService.add({
