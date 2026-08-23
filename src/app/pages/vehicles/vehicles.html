@@ -1,7 +1,109 @@
-<body>
-
+<div class="vehicles-page" [class.blurred-background]="isCreateModalOpen || isUpdateModalOpen">
   <div class="title">
     <h1>Vehículos</h1>
     <span>Vehículos utilizados en la recolección de desechos</span>
   </div>
-</body>
+
+  <p-table
+    #dt1
+    [value]="vehicles"
+    dataKey="id"
+    [rows]="8"
+    [paginator]="true"
+    [showCurrentPageReport]="true"
+    [rowsPerPageOptions]="[8, 15, 30]"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} vehículos"
+    [globalFilterFields]="['id', 'type', 'weight', 'plate']"
+    styleClass="vehicles-table"
+  >
+    <ng-template pTemplate="caption">
+      <div class="caption-row">
+        <div class="search-row">
+          <span class="p-input-icon-right search-input-wrap">
+            <input
+              pInputText
+              type="text"
+              placeholder="Buscar"
+              (input)="dt1.filterGlobal($any($event.target).value, 'contains')"
+              class="search-input"
+            />
+            <i class="pi pi-search"></i>
+          </span>
+
+          <select
+            [(ngModel)]="selectedVehicleType"
+            (change)="dt1.filter(selectedVehicleType, 'type', 'equals')"
+            class="p-inputtext filter-select"
+          >
+            <option value="">Filtrar por tipo</option>
+            @for (vehicleType of vehicleTypes; track vehicleType) {
+              <option [value]="vehicleType">{{ vehicleType | titlecase }}</option>
+            }
+          </select>
+        </div>
+
+        <button pButton icon="pi pi-plus" label="Registrar vehículo" (click)="openCreateModal()"></button>
+      </div>
+    </ng-template>
+
+    <ng-template pTemplate="header">
+      <tr>
+        <th>ID</th>
+        <th>Tipo</th>
+        <th>Capacidad (toneladas)</th>
+        <th>Placa</th>
+        <th class="options-header">Opciones</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-vehicle>
+      <tr>
+        <td>{{ vehicle.id }}</td>
+        <td>{{ vehicle.type | titlecase }}</td>
+        <td>{{ vehicle.weight | number: '1.0-0' }} t</td>
+        <td>{{ vehicle.plate }}</td>
+        <td>
+          <div class="option-actions">
+            <button
+              pButton
+              type="button"
+              icon="pi pi-pencil"
+              class="p-button-rounded p-button-text"
+              title="Editar"
+              (click)="openEditModal(vehicle)"
+            ></button>
+            <button
+              pButton
+              type="button"
+              icon="pi pi-trash"
+              class="p-button-rounded p-button-text p-button-danger"
+              title="Eliminar"
+              (click)="onDeleteVehicle(vehicle)"
+            ></button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5">No hay vehículos registrados.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<app-create-vehicle
+  [(visible)]="isCreateModalOpen"
+  [existingPlates]="existingPlates"
+  (visibleChange)="onCreateModalVisibleChange($event)"
+  (saveVehicle)="onCreateVehicle($event)"
+></app-create-vehicle>
+
+<app-update-vehicle
+  [(visible)]="isUpdateModalOpen"
+  [vehicle]="editingVehicle"
+  [existingPlates]="existingPlates"
+  (visibleChange)="onUpdateModalVisibleChange($event)"
+  (updateVehicle)="onUpdateVehicle($event)"
+></app-update-vehicle>

@@ -1,0 +1,56 @@
+<p-dialog
+  [(visible)]="visible"
+  header="Modificar vehículo"
+  [modal]="true"
+  [draggable]="false"
+  [closable]="true"
+  [style]="{ width: 'min(92vw, 34rem)' }"
+  (onHide)="onCancel()"
+>
+  <form [formGroup]="vehicleForm" class="vehicle-form">
+    <div class="field">
+      <label for="vehicle-id">ID único</label>
+      <input id="vehicle-id" pInputText type="text" [value]="vehicle?.id || ''" disabled />
+    </div>
+
+    <div class="field">
+      <label for="vehicle-type">Tipo de vehículo</label>
+      <select id="vehicle-type" class="p-inputtext" formControlName="type">
+        <option value="">Selecciona un tipo</option>
+        @for (vehicleType of vehicleTypes; track vehicleType) {
+          <option [value]="vehicleType">{{ vehicleType | titlecase }}</option>
+        }
+      </select>
+      @if (typeControl.invalid && (typeControl.touched || typeControl.dirty)) {
+        <small class="field-error">Selecciona un tipo de vehículo.</small>
+      }
+    </div>
+
+    <div class="field">
+      <label for="vehicle-weight">Capacidad de carga (toneladas)</label>
+      <input id="vehicle-weight" pInputText type="number" min="1" formControlName="weight" placeholder="Ej: 5" />
+      @if (weightControl.invalid && (weightControl.touched || weightControl.dirty)) {
+        <small class="field-error">Ingresa la capacidad en toneladas.</small>
+      }
+    </div>
+
+    <div class="field">
+      <label for="vehicle-plate">Placa única</label>
+      <input id="vehicle-plate" pInputText type="text" formControlName="plate" placeholder="Ej: AB123CD" />
+      @if (plateControl.invalid && (plateControl.touched || plateControl.dirty)) {
+        <small class="field-error">Ingresa una placa válida.</small>
+      }
+    </div>
+
+    @if (formError) {
+      <p class="form-error">{{ formError }}</p>
+    }
+  </form>
+
+  <ng-template pTemplate="footer">
+    <div class="actions">
+      <button pButton type="button" class="p-button-text" label="Cancelar" (click)="onCancel()"></button>
+      <button pButton type="button" label="Actualizar" (click)="onUpdate()"></button>
+    </div>
+  </ng-template>
+</p-dialog>

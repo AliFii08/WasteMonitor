@@ -38,12 +38,12 @@ nav {
 }
 
 .icons {
-  margin-top: 30px;
+  margin-top: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  gap: 10px;
+  gap: 2px;
   width: 100%;
   flex: 1;
 }
@@ -101,9 +101,25 @@ button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 5px;
 }
 
 .content {
     margin-left: 68px !important;
+}
+
+
+@media (min-width: 1280px) and (min-height: 800px) {
+
+  .icons {
+  margin-top: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  flex: 1;
+}
+
 }

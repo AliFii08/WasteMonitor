@@ -1,0 +1,38 @@
+.vehicle-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.field label {
+  font-weight: 600;
+  color: #2f3e46;
+}
+
+.field input,
+.field select {
+  width: 100%;
+}
+
+.field-error {
+  color: #c62828;
+  font-size: 0.8rem;
+}
+
+.form-error {
+  margin: 0.2rem 0 0;
+  color: #b00020;
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}

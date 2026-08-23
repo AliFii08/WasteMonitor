@@ -1,23 +1,94 @@
-body{
+.vehicles-page {
   margin-top: 0;
   padding-top: 0;
   font-family: 'Raleway', sans-serif !important;
 }
 
-.title{
+.title {
   display: flex;
   flex-direction: column;
   align-items: center;
   color: #003628;
-  //margin-bottom: 50px;
+  margin-bottom: 40px;
 }
 
-.title h1{
+.title h1 {
   font-size: 45px;
   margin-bottom: 10px;
 }
 
-.title span{
+.title span {
   font-size: 20px;
   color: #06523f;
+}
+
+.caption-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.search-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.search-input {
+  min-width: 230px;
+  padding-right: 2.2rem;
+}
+
+.search-input-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.search-input-wrap i {
+  position: absolute;
+  right: 0.75rem;
+  color: #64748b;
+  pointer-events: none;
+}
+
+.filter-select {
+  min-width: 210px;
+}
+
+.option-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.options-header {
+  text-align: center;
+}
+
+.blurred-background {
+  filter: blur(1.5px);
+}
+
+@media (max-width: 720px) {
+  .title h1 {
+    font-size: 34px;
+    text-align: center;
+  }
+
+  .title span {
+    text-align: center;
+    font-size: 16px;
+    padding: 0 0.5rem;
+  }
+
+  .search-input,
+  .filter-select {
+    width: 100%;
+    min-width: 0;
+  }
 }
