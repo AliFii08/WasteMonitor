@@ -50,16 +50,22 @@ label{
 input{
   font-family: 'Raleway', sans-serif;
   font-size: 15px;
-  padding: 15px;
+  padding: 18px;
   width: 350px;
   height: 50px;
-  border-radius: 25px;
-  border: none;
   color: #000000;
   background-color: #ffffff;
   outline: none;
   -webkit-appearance: none;
   appearance: none;
+  box-sizing: border-box;
+  border: 1px solid #c9d9c6;
+  border-radius: 10px;
+  outline: none;
+  background: #fff;
+  color: #123f32;
+  font: 500 15px 'Raleway', sans-serif;
+  transition: border-color .2s ease, box-shadow .2s ease;
 }
 
 input:-webkit-autofill,
@@ -103,8 +109,9 @@ button{
   border: none;
   width: 180px;
   height: 50px;
-  border-radius: 25px;
+  border-radius: 10px;
   margin-top: 35px;
+  transition: 0.5s;
 }
 
 button:hover{

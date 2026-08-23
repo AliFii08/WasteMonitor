@@ -1,315 +1,281 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  font-family: 'Raleway', sans-serif;
+}
+
 .fondo {
   position: fixed;
   inset: 0;
+  z-index: 2;
   pointer-events: none;
 }
 
-.linea1{
-  display: flex;
+.linea1,
+.linea2 {
   position: fixed;
-  bottom: 0;
-  left: 225px;
+  z-index: 0;
   width: 27px;
   height: 512px;
+}
+
+.linea1 {
+  bottom: 0;
+  left: 125px;
   background-color: #06523f;
 }
 
+.linea2 {
+  top: 0;
+  right: 125px;
+  background-color: #68a357;
+}
+
 #waste{
+  z-index: 0;
   font-family: 'LoveloBlack', sans-serif;
   font-size: 150px;
   display: inline-block;
   position: fixed;
   top: 37%;
-  right: 930px;
+  right: 1016px;
   transform: rotate(-90deg);
   font-weight: bold;
   color: #68a357;
 }
 
 #monitor{
+  color: #003628;
+  z-index: 0;
   font-family: 'LoveloBlack', sans-serif;
   font-size: 150PX;
   font-weight: bold;
   position: fixed;
   top: 50%;
   bottom: 50%;
-  left: 935px;
+  left: 1015px;
   transform: rotate(90deg);
-  color: #003628;
-
 }
 
-.linea2{
-  display: flex;
-  position: fixed;
-  width: 27px;
-  height: 512px;
-  background-color: #68a357;
-  top: 0;
-  right: 224px;
-}
-
-.container{           //line-width: 27px, line-height: 512px
-  font-family: 'Raleway', sans-serif;
-  width: 50%;
-  min-height: 100vh;
+.container {
+  box-sizing: border-box;
   position: relative;
-  margin: 0 auto;
-  padding-bottom: 60px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background-color: #06523f;
   z-index: 1;
+  width: min(58%, 820px);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 34px clamp(28px, 5vw, 72px) 60px;
+  background-color: #06523f;
+  color: #fff;
 }
 
-h2{
-  font-family: 'Raleway', sans-serif;
-  color: #fff;
-  font-size: 50px;
+.container h2 {
+  margin: 0 0 8px;
+  font-size: clamp(36px, 4vw, 50px);
   font-weight: 400;
-  margin-top: 50px;
-  margin-bottom: 15px;
+  text-align: center;
 }
 
-p {
-  font-family: 'Raleway', sans-serif;
-  color: #fff;
-  font-weight: 800;
+.container > p {
+  margin: 0 0 38px;
+  color: #d5efcf;
   font-size: 16px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.container form {
+  width: 100%;
+}
+
+.container h3 {
+  margin: 30px 0 20px;
+  color: #9bd58b;
+  font-size: 12px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+}
+
+.container h3:first-child {
   margin-top: 0;
-  margin-bottom: 30px;
 }
 
-h3 {
-  font-family: 'Raleway', sans-serif;
-  color: #fff;
-  font-size: 25px;
-}
-
-.form-group {
-  margin-bottom: 25px;
+.form-group,
+.form-group.two-columns {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  margin-bottom: 18px;
 }
 
 .form-group.two-columns {
-  display: flex;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
 }
 
 .field-row {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 9px;
+  min-width: 0;
 }
 
-.input-block {
-  display: flex;
-  flex-direction: column;
+.input-block,
+.select-container {
+  width: 100%;
 }
 
 .input-block.error-slot {
-  position: relative;
+  position: static;
 }
 
-label {
-  font-family: 'Raleway', sans-serif;
-  font-size: 18px;
+.container label {
+  margin: 0;
   color: #fff;
-  margin: 4px 0 0 15px;
-  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 800;
 }
 
-input, select {
-  font-family: 'Raleway', sans-serif;
-  font-size: 15px;
-  width: 180px;
-  height: 30px;
-  border-radius: 25px;
-  border: none;
-  padding-left: 10px;
-  color: #000000;
-  background-color: #ffffff;
+.container input,
+.container select {
+  box-sizing: border-box;
+  width: 100%;
+  height: 56px;
+  padding: 0 18px;
+  border: 1px solid #c9d9c6;
+  border-radius: 10px;
   outline: none;
-  -webkit-appearance: none;
-  appearance: none;
+  background: #fff;
+  color: #123f32;
+  font: 500 15px 'Raleway', sans-serif;
+  transition: border-color .2s ease, box-shadow .2s ease;
 }
 
-select {
-  cursor: pointer;
-  color: black;
+.container input::placeholder {
+  color: #93a29c;
+}
+
+.container input:focus,
+.container select:focus {
+  border-color: #68a357;
+  box-shadow: 0 0 0 4px rgba(104, 163, 87, .15);
+}
+
+.container input.invalid,
+.container select.invalid {
+  border-color: #d62828;
 }
 
 .select-container {
   position: relative;
-  display: inline-flex;
-  align-items: center;
+  display: block;
+}
+
+.select-container select {
+  cursor: pointer;
+  appearance: none;
 }
 
 .select-icon {
   position: absolute;
-  right: 12px;
   top: 50%;
+  right: 18px;
+  color: #417636;
+  pointer-events: none;
   transform: translateY(-50%);
-  cursor: pointer;
 }
 
-#mail {
-  width: 225px;
-}
-
-button{
-  font-family: 'Raleway', sans-serif;
-  font-size: 20px;
-  font-weight: 700;
-  color: #fff;
-  background-color: #68a357;
-  border: none;
-  width: 180px;
-  height: 50px;
-  border-radius: 25px;
-  margin-top: 15px;
-}
-
-button:hover{
-  background-color: #578849;
-  transition: 0.5s;
-  cursor: pointer;
-}
-
-.register-button{
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
-
-.register-button button[type="submit"]{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-}
-
-.options{
-  margin-top: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.options a{
-  color: #56bb3a;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.options a:hover{
-  text-decoration: underline;
-  cursor: pointer;
-  color: #6be749;
-}
-
-.options span{
-  color: #fff;
-}
-
-small{
-  font-family: 'Raleway', sans-serif;
-  font-weight: 600;
-  font-size: 14px;
-  line-height: 16px;
-  color: #ff0000;
-  font-style: italic;
-  position: absolute;
-  top: calc(100% + 2px);
-  left: 8px;
+.container small {
+  display: block;
+  width: auto;
+  min-height: 16px;
   margin: 0;
-  white-space: nowrap;
-  width: max-content;
-  max-width: none;
+  color: #ffb4aa;
+  font-size: 12px;
+  line-height: 16px;
+  white-space: normal;
 }
 
-input.invalid,
-select.invalid {
-  border: 1px solid #ff0000;
-}
-
-
-@media (min-width: 1280px) and (min-height: 800px) {
-
-  .linea1{
+.register-button {
   display: flex;
-  position: fixed;
-  bottom: 0;
-  left: 125px;
-  width: 27px;
-  height: 512px;
-  background-color: #06523f;
+  justify-content: center;
+  width: 100%;
+  margin-top: 28px;
 }
 
-#waste{
-  font-family: 'LoveloBlack', sans-serif;
-  font-size: 180px;
-  display: inline-block;
-  position: fixed;
-  top: 37%;
-  right: 725px;
-  transform: rotate(-90deg);
-  font-weight: bold;
-  color: #68a357;
+.register-button button,
+.register-button button[type='submit'] {
+  box-sizing: border-box;
+  width: 180px;
+  height: 56px;
+  margin: 0;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 10px;
+  background: #68a357;
+  color: #fff;
+  cursor: pointer;
+  font: 800 15px 'Raleway', sans-serif;
+  transition: 0.5s;
 }
 
-#monitor{
-  font-family: 'LoveloBlack', sans-serif;
-  font-size: 180px;
-  font-weight: bold;
-  position: fixed;
-  top: 49%;
-  bottom: 50%;
-  left: 725px;
-  transform: rotate(90deg);
-  color: #003628;
-
+.register-button button:hover {
+  background: #4f8e43;
+  transition: 0.5s;
 }
 
-.linea2{
+.options {
   display: flex;
-  position: fixed;
-  width: 27px;
-  height: 512px;
-  background-color: #68a357;
-  top: 0;
-  right: 125px;
+  justify-content: center;
+  margin-top: 24px;
+  text-align: center;
 }
 
+.options a {
+  color: #b9e5ad;
+  font-weight: 700;
+  text-decoration: none;
 }
 
-@media (min-width: 1280px) and (min-height: 800px) {
-
-  .linea1{
-    left: 80px;
-  }
-
-  #waste{
-    right: 755px;
-  }
-
-  #monitor{
-    left: 754px;
-  }
-
-  .linea2{
-    right: 80px;
-  }
-
-  .container{
-    width: 58%;
-    height: 854px;
-    padding: 0;
-  }
-
-  h2{
-    margin-top: 23px;
-  }
-
+.options a:hover {
+  text-decoration: underline;
 }
+
+@media (max-width: 1279px) {
+  .linea1 {
+    left: 8vw;
+  }
+
+  .linea2 {
+    right: 8vw;
+  }
+
+  #waste {
+    right: auto;
+    left: 2vw;
+  }
+
+  #monitor {
+    right: 3vw;
+    left: auto;
+  }
+}
+
+@media (max-width: 900px) {
+  .container {
+    width: 68%;
+  }
+}
+
+@media (max-width: 680px) {
+  .container {
+    width: 84%;
+    padding: 28px 24px 48px;
+  }
+
+  .form-group.two-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
