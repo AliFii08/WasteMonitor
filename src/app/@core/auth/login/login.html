@@ -21,13 +21,20 @@
 
         <div class="form-group error-slot" id="passwordDiv">
             <label id="passLabel" for="password">Contraseña</label>
-            <input id="pass" [type]="passwordFieldType" placeholder="••••••••"
-            formControlName="password" required
-            [class.invalid]="isValidField(passwordControl)">
+            <div class="password-input">
+                <input id="pass" [type]="passwordFieldType" placeholder="••••••••"
+                formControlName="password" required
+                [class.invalid]="isValidField(passwordControl)">
 
-            <!-- <button type="button" class="btn" id="passBtn" (click)="togglePasswordVisibility()">
-              <i [ngClass]="{'pi pi-eye': passwordFieldType === 'password', 'pi pi-eye-slash': passwordFieldType == 'text'}"></i>
-            </button> -->
+                <button
+                    type="button"
+                    class="password-toggle"
+                    aria-label="Mostrar u ocultar contraseña"
+                    (click)="togglePasswordVisibility()"
+                >
+                    <i class="pi" [ngClass]="passwordFieldType === 'password' ? 'pi-eye' : 'pi-eye-slash'"></i>
+                </button>
+            </div>
 
             <small *ngIf="isValidField(passwordControl)" class="text-red-600">
             {{ getErrorMessage(passwordControl) }}
