@@ -190,13 +190,36 @@ export class AuthService {
   }
 
   /**
-   * Envía el correo nativo de recuperación de Firebase.
-   * Funciona 100% en el cliente sin requerir backend ni sesión activa.
+   * Verifica la existencia del correo en Realtime Database y, de existir,
+   * envía el correo nativo de recuperación de Firebase.
    */
   async sendResetPasswordEmail(email: string): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
 
     const cleanEmail = email.trim().toLowerCase();
+
+    // 1. Consultar nodo de usuarios para verificar si el correo está registrado
+    const usersRef = ref(this.database, 'usuarios');
+    const snapshot = await get(usersRef);
+
+    if (!snapshot.exists()) {
+      throw { code: 'auth/user-not-found' };
+    }
+
+    let userFound = false;
+
+    snapshot.forEach((child) => {
+      const data = child.val();
+      if (data && data.email && data.email.toLowerCase() === cleanEmail) {
+        userFound = true;
+      }
+    });
+
+    if (!userFound) {
+      throw { code: 'auth/user-not-found' };
+    }
+
+    // 2. Si el correo existe en la base de datos, se envía el email nativo
     await sendPasswordResetEmail(this.auth, cleanEmail);
   }
 }

@@ -34,7 +34,7 @@ export class ChangePassword {
     } catch (err: any) {
       let detail = 'Ocurrió un error al enviar el correo de recuperación.';
       if (err.code === 'auth/user-not-found') {
-        detail = 'El correo no está registrado.';
+        detail = 'El correo no se encuentra registrado.';
       } else if (err.code === 'auth/invalid-email') {
         detail = 'Formato de correo inválido.';
       }
