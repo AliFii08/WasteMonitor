@@ -1,7 +1,144 @@
-<body>
+<div class="container">
+
 
   <div class="title">
     <h1>Perfil</h1>
     <span>Información personal y configuración de la cuenta</span>
   </div>
-</body>
+
+  <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+
+    <div class="form-group two-columns">
+      <div class="field-row">
+        <label for="name">Nombre*</label>
+        <div class="input-block error-slot">
+          <input type="text" placeholder="Nombre" formControlName="name"
+            [class.invalid]="isValidField(profileForm.controls.name)" />
+          @if (isValidField(profileForm.controls.name)) {
+          <small>{{ getErrorMessage(profileForm.controls.name) }}</small>
+          }
+        </div>
+      </div>
+
+      <div class="field-row">
+        <label for="lastname">Apellido*</label>
+        <div class="input-block error-slot">
+          <input type="text" placeholder="Apellido" formControlName="lastName"
+            [class.invalid]="isValidField(profileForm.controls.lastName)" />
+          @if (isValidField(profileForm.controls.lastName)) {
+          <small>{{ getErrorMessage(profileForm.controls.lastName) }}</small>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group two-columns">
+      <div class="field-row">
+        <label for="email">Correo*</label>
+        <div class="input-block error-slot">
+          <input id="mail" type="email" placeholder="xxxx@gmail.com" formControlName="email"
+            [class.invalid]="isValidField(profileForm.controls.email)" />
+          @if (isValidField(profileForm.controls.email)) {
+          <small>{{ getErrorMessage(profileForm.controls.email) }}</small>
+          }
+        </div>
+      </div>
+
+      <div class="field-row">
+        <label for="phone">Teléfono</label>
+        <div class="input-block error-slot">
+          <input type="tel" placeholder="1234567890" formControlName="phone"
+            [class.invalid]="isValidField(profileForm.controls.phone)" />
+          @if (isValidField(profileForm.controls.phone)) {
+          <small>{{ getErrorMessage(profileForm.controls.phone) }}</small>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="field-row">
+        <label for="password">Contraseña Nueva</label>
+        <div class="input-block error-slot">
+          <input type="password" placeholder="Contraseña" formControlName="password"
+            [class.invalid]="isValidField(profileForm.controls.password)" />
+          @if (isValidField(profileForm.controls.password)) {
+          <small>{{ getErrorMessage(profileForm.controls.password) }}</small>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="field-row">
+        <label for="confirmPassword">Confirmar Contraseña Nueva</label>
+        <div class="input-block error-slot">
+          <input type="password" placeholder="Confirmar Contraseña" formControlName="confirmPassword"
+            [class.invalid]="isValidField(profileForm.controls.confirmPassword)" />
+          @if (isValidField(profileForm.controls.confirmPassword)) {
+          <small>{{ getErrorMessage(profileForm.controls.confirmPassword) }}</small>
+          }
+        </div>
+      </div>
+    </div>
+
+    <h3>Dirección</h3>
+
+    <div class="form-group">
+      <div class="field-row">
+        <label for="sector">Sector/Urbanización*</label>
+        <div class="input-block error-slot">
+          <div class="select-container">
+            <select formControlName="sector" [class.invalid]="isValidField(profileForm.controls.sector)">
+              <option value="" hidden>Seleccione</option>
+              <option value="Urb-Jacinto">San Jacinto</option>
+              <option value="Urb-Trinidad">La Trinidad</option>
+              <option value="Sect-Ziruma">Ziruma</option>
+              <option value="Sect-Naranjal">El Naranjal</option>
+              <option value="Sect-LaPiedra">La Piedra</option>
+            </select>
+            <i class="pi pi-angle-down select-icon"></i>
+          </div>
+          @if (isValidField(profileForm.controls.sector)) {
+          <small>{{ getErrorMessage(profileForm.controls.sector) }}</small>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="field-row">
+        <label for="street">Calle/Avenida*</label>
+        <div class="input-block error-slot">
+          <input type="text" placeholder="Calle/Avenida" formControlName="street"
+            [class.invalid]="isValidField(profileForm.controls.street)" />
+          @if (isValidField(profileForm.controls.street)) {
+          <small>{{ getErrorMessage(profileForm.controls.street) }}</small>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="field-row">
+        <label for="houseNumber">Número de Casa/Edificio/Lote</label>
+        <div class="input-block">
+          <input type="text" placeholder="Número de Casa/Edificio/Lote" formControlName="houseNumber" />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="field-row">
+        <label for="postalCode">Código Postal</label>
+        <div class="input-block">
+          <input type="number" placeholder="Código Postal" formControlName="postalCode" />
+        </div>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-submit">Guardar Cambios</button>
+
+  </form>
+
+</div>

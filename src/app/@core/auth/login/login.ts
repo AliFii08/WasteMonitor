@@ -10,8 +10,8 @@ import { Router, RouterLink } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { AuthLogin } from '../../interfaces/forms/form_auth_login';
 import { CommonModule } from '@angular/common';
-import { Auth, signInWithEmailAndPassword } from '@angular/fire/auth';
 import { SessionTimeoutService } from '../../services/session-timeout.service';
+import { AuthService } from '../../services/auth.service'; // <-- Importas el nuevo servicio
 
 @Component({
   selector: 'app-login',
@@ -21,11 +21,11 @@ import { SessionTimeoutService } from '../../services/session-timeout.service';
   styleUrl: './login.scss',
 })
 export class Login {
-  private auth = inject(Auth);
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private messageService = inject(MessageService);
   private sessionTimeoutService = inject(SessionTimeoutService);
+  private authService = inject(AuthService); // <-- Inyección limpia
 
   loginForm: FormGroup<AuthLogin> = this.fb.group({
     email: new FormControl<string>('', {
@@ -38,45 +38,28 @@ export class Login {
     }),
   });
 
+  passwordFieldType: 'password' | 'text' = 'password';
 
   get correoControl() {
     return this.loginForm.controls.email;
   }
 
-
   get passwordControl() {
     return this.loginForm.controls.password;
   }
-
 
   isValidField(control: FormControl<string>): boolean {
     return control.invalid && (control.dirty || control.touched);
   }
 
-
   getErrorMessage(control: FormControl<string>) {
-    let error = control;
-    let message;
-
-    if (error!.errors!['required']) {
-      message = 'El campo es requerido';
+    if (control.errors?.['required']) return 'El campo es requerido';
+    if (control.hasError('minlength') || control.hasError('maxlength')) {
+      return 'Debe colocar un mínimo de 6 caracteres y un máximo de 16';
     }
-    if (error!.hasError('minlength') || error!.hasError('maxlength')) {
-      message = 'Debe colocar un minimo de 6 caracteres y un maximo de 16';
-    }
-    if (error!.hasError('email')) {
-      message = 'El email es invalido';
-    }
-
-    return message;
+    if (control.hasError('email')) return 'El email es inválido';
+    return '';
   }
-
-  passwordFieldType: 'password' | 'text' = 'password';
-
-  // togglePasswordVisibility(): void {
-  //   this.passwordFieldType = this.passwordFieldType == 'password' ? 'text' : 'password';
-  //   console.log(this.passwordFieldType); // Verifica el valor
-  // }
 
   async onSubmit() {
     if (!this.loginForm.valid) {
@@ -92,13 +75,16 @@ export class Login {
     const { email, password } = this.loginForm.getRawValue();
 
     try {
-      await signInWithEmailAndPassword(this.auth, email, password);
+      // Toda la complejidad de Firebase Auth y DB ahora se reduce a esta llamada
+      await this.authService.login(email, password);
+
       this.sessionTimeoutService.startTracking();
       this.messageService.add({
         severity: 'success',
         summary: 'Éxito',
         detail: 'Inicio de Sesión exitoso.',
       });
+
       await this.router.navigateByUrl('/home');
     } catch (error: any) {
       console.error('Error al iniciar sesión', error);
@@ -110,6 +96,8 @@ export class Login {
         error.code === 'auth/wrong-password'
       ) {
         errorMessage = 'Correo o contraseña incorrectos.';
+      } else if (error.message === 'user-data-not-found') {
+        errorMessage = 'El usuario no posee información asociada en el sistema.';
       }
 
       this.messageService.add({
