@@ -6,15 +6,6 @@
   </div>
   
 <div class="map-container card">
-<<<<<<< HEAD
-  <div class="header-map">    
-    <select class="route-selector" (change)="onRouteSelect($event)">
-      <option value="">-- Selecciona una ruta --</option>
-      <option *ngFor="let route of availableRoutes" [value]="route.id">
-        {{ route.id }}
-      </option>
-    </select>
-=======
   <div class="header-map">
     <h2 class="title"><i class="pi pi-map-marker"></i> Gestión de Rutas</h2>
     <p class="subtitle">Haz clic en el mapa para añadir puntos a la ruta seleccionada</p>
@@ -36,7 +27,6 @@
         <i class="pi pi-save"></i> Guardar ruta
       </button>
     </div>
->>>>>>> 060ee90a01509d419f62932e1fedcd182fafdb44
   </div>
 
   <div id="map" ngNonBindable></div>
