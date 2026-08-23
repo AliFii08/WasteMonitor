@@ -1,46 +1,46 @@
 import { Component, inject, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { MessageService } from 'primeng/api';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-change-password',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './change-password.html',
   styleUrl: './change-password.scss',
 })
 export class ChangePassword {
   private authService = inject(AuthService);
-  private cdr = inject(ChangeDetectorRef);
+  private messageService = inject(MessageService);
 
   email: string = '';
-  message: string = '';
-  isError: boolean = false;
   loading: boolean = false;
 
   async onSendResetLink() {
     if (!this.email) return;
 
     this.loading = true;
-    this.message = '';
 
     try {
       await this.authService.sendResetPasswordEmail(this.email);
-      this.message = 'Se ha enviado un enlace de recuperación a tu correo electrónico.';
-      this.isError = false;
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Enlace enviado',
+        detail: 'Revisa tu correo electrónico para restablecer tu contraseña.',
+      });
     } catch (err: any) {
-      this.isError = true;
+      let detail = 'Ocurrió un error al enviar el correo de recuperación.';
       if (err.code === 'auth/user-not-found') {
-        this.message = 'El correo no está registrado.';
+        detail = 'El correo no se encuentra registrado.';
       } else if (err.code === 'auth/invalid-email') {
-        this.message = 'Formato de correo inválido.';
-      } else {
-        this.message = 'Ocurrió un error al enviar el correo de recuperación.';
+        detail = 'Formato de correo inválido.';
       }
+      this.messageService.add({ severity: 'error', summary: 'No se pudo enviar', detail });
     } finally {
       this.loading = false;
-      this.cdr.detectChanges();
     }
   }
 }
