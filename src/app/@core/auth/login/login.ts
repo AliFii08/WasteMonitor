@@ -48,6 +48,10 @@ export class Login {
     return this.loginForm.controls.password;
   }
 
+  togglePasswordVisibility() {
+    this.passwordFieldType = this.passwordFieldType === 'password' ? 'text' : 'password';
+  }
+
   isValidField(control: FormControl<string>): boolean {
     return control.invalid && (control.dirty || control.touched);
   }

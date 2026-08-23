@@ -51,6 +51,9 @@ export class Register {
   private messageService = inject(MessageService);
   private authService = inject(AuthService); // <-- Inyectamos el servicio
 
+  passwordFieldType: 'password' | 'text' = 'password';
+  confirmPasswordFieldType: 'password' | 'text' = 'password';
+
   registerForm = new FormGroup(
     {
       name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -78,6 +81,15 @@ export class Register {
 
   isValidField(control: FormControl<string>): boolean {
     return control.invalid && (control.dirty || control.touched);
+  }
+
+  togglePasswordVisibility() {
+    this.passwordFieldType = this.passwordFieldType === 'password' ? 'text' : 'password';
+  }
+
+  toggleConfirmPasswordVisibility() {
+    this.confirmPasswordFieldType =
+      this.confirmPasswordFieldType === 'password' ? 'text' : 'password';
   }
 
   getErrorMessage(control: FormControl<string>) {

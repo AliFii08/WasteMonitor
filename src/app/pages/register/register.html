@@ -91,13 +91,23 @@
       <div class="field-row">
         <label for="password">Contraseña*</label>
         <div class="input-block error-slot">
-          <input
-            type="password"
-            placeholder="Contraseña"
-            formControlName="password"
-            required
-            [class.invalid]="isValidField(registerForm.controls.password)"
-          />
+          <div class="password-input">
+            <input
+              [type]="passwordFieldType"
+              placeholder="Contraseña"
+              formControlName="password"
+              required
+              [class.invalid]="isValidField(registerForm.controls.password)"
+            />
+            <button
+              type="button"
+              class="password-toggle"
+              aria-label="Mostrar u ocultar contraseña"
+              (click)="togglePasswordVisibility()"
+            >
+              <i class="pi" [ngClass]="passwordFieldType === 'password' ? 'pi-eye' : 'pi-eye-slash'"></i>
+            </button>
+          </div>
           <small *ngIf="isValidField(registerForm.controls.password)">
             {{ getErrorMessage(registerForm.controls.password) }}
           </small>
@@ -109,13 +119,23 @@
       <div class="field-row">
         <label for="confirmPassword">Confirmar Contraseña*</label>
         <div class="input-block error-slot">
-          <input
-            type="password"
-            placeholder="Confirmar Contraseña"
-            formControlName="confirmPassword"
-            required
-            [class.invalid]="isValidField(registerForm.controls.confirmPassword)"
-          />
+          <div class="password-input">
+            <input
+              [type]="confirmPasswordFieldType"
+              placeholder="Confirmar Contraseña"
+              formControlName="confirmPassword"
+              required
+              [class.invalid]="isValidField(registerForm.controls.confirmPassword)"
+            />
+            <button
+              type="button"
+              class="password-toggle"
+              aria-label="Mostrar u ocultar confirmación de contraseña"
+              (click)="toggleConfirmPasswordVisibility()"
+            >
+              <i class="pi" [ngClass]="confirmPasswordFieldType === 'password' ? 'pi-eye' : 'pi-eye-slash'"></i>
+            </button>
+          </div>
           <small *ngIf="isValidField(registerForm.controls.confirmPassword)">
             {{ getErrorMessage(registerForm.controls.confirmPassword) }}
           </small>
