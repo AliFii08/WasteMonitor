@@ -57,6 +57,9 @@ export class Profile implements OnInit { // <-- Implementamos la interfaz OnInit
   private messageService = inject(MessageService);
   private userService = inject(UserService); // <-- Inyectamos el servicio de usuario
 
+  passwordFieldType: 'password' | 'text' = 'password';
+  confirmPasswordFieldType: 'password' | 'text' = 'password';
+
   profileForm = new FormGroup(
     {
       name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -101,6 +104,15 @@ export class Profile implements OnInit { // <-- Implementamos la interfaz OnInit
   isValidField(control: AbstractControl | null): boolean {
     if (!control) return false;
     return control.invalid && (control.dirty || control.touched);
+  }
+
+  togglePasswordVisibility() {
+    this.passwordFieldType = this.passwordFieldType === 'password' ? 'text' : 'password';
+  }
+
+  toggleConfirmPasswordVisibility() {
+    this.confirmPasswordFieldType =
+      this.confirmPasswordFieldType === 'password' ? 'text' : 'password';
   }
 
   getErrorMessage(control: AbstractControl | null): string {
@@ -171,7 +183,7 @@ export class Profile implements OnInit { // <-- Implementamos la interfaz OnInit
     uid: currentUser.uid,
     ...updatedUser
   });
-  
+
   localStorage.setItem('currentUser', JSON.stringify({ uid: currentUser.uid, ...updatedUser }));
 
   this.messageService.add({

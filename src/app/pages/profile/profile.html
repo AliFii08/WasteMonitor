@@ -1,12 +1,11 @@
 <div class="container">
-
-
   <div class="title">
     <h1>Perfil</h1>
     <span>Información personal y configuración de la cuenta</span>
   </div>
 
   <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+    <h3>Datos Personales</h3>
 
     <div class="form-group two-columns">
       <div class="field-row">
@@ -60,8 +59,18 @@
       <div class="field-row">
         <label for="password">Contraseña Nueva</label>
         <div class="input-block error-slot">
-          <input type="password" placeholder="Contraseña" formControlName="password"
-            [class.invalid]="isValidField(profileForm.controls.password)" />
+          <div class="password-input">
+            <input [type]="passwordFieldType" placeholder="Contraseña" formControlName="password"
+              [class.invalid]="isValidField(profileForm.controls.password)" />
+            <button
+              type="button"
+              class="password-toggle"
+              aria-label="Mostrar u ocultar contraseña nueva"
+              (click)="togglePasswordVisibility()"
+            >
+              <i class="pi" [ngClass]="passwordFieldType === 'password' ? 'pi-eye' : 'pi-eye-slash'"></i>
+            </button>
+          </div>
           @if (isValidField(profileForm.controls.password)) {
           <small>{{ getErrorMessage(profileForm.controls.password) }}</small>
           }
@@ -73,8 +82,18 @@
       <div class="field-row">
         <label for="confirmPassword">Confirmar Contraseña Nueva</label>
         <div class="input-block error-slot">
-          <input type="password" placeholder="Confirmar Contraseña" formControlName="confirmPassword"
-            [class.invalid]="isValidField(profileForm.controls.confirmPassword)" />
+          <div class="password-input">
+            <input [type]="confirmPasswordFieldType" placeholder="Confirmar Contraseña" formControlName="confirmPassword"
+              [class.invalid]="isValidField(profileForm.controls.confirmPassword)" />
+            <button
+              type="button"
+              class="password-toggle"
+              aria-label="Mostrar u ocultar confirmación de contraseña nueva"
+              (click)="toggleConfirmPasswordVisibility()"
+            >
+              <i class="pi" [ngClass]="confirmPasswordFieldType === 'password' ? 'pi-eye' : 'pi-eye-slash'"></i>
+            </button>
+          </div>
           @if (isValidField(profileForm.controls.confirmPassword)) {
           <small>{{ getErrorMessage(profileForm.controls.confirmPassword) }}</small>
           }
@@ -137,7 +156,9 @@
       </div>
     </div>
 
-    <button type="submit" class="btn-submit">Guardar Cambios</button>
+    <div class="action-row">
+      <button type="submit" class="btn-submit">Guardar Cambios</button>
+    </div>
 
   </form>
 
