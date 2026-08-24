@@ -22,12 +22,13 @@
   color: #06523f;
 }
 
-.caption-row {
+.table-toolbar {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
   align-items: center;
+  padding: 1rem;
   margin-left: 20px;
   margin-right: 20px;
 }
@@ -39,9 +40,30 @@
   align-items: center;
 }
 
+.select-all-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #0f4b3a;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.select-all-wrap input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  accent-color: #06523f;
+  cursor: pointer;
+}
+
 .search-input {
   min-width: 230px;
-  padding-right: 2.2rem;
+  height: 42px;
+  border: 1px solid #c9d9c6;
+  border-radius: 8px;
+  padding: 0 2.3rem 0 0.8rem;
+  color: #123f32;
+  font: 600 14px 'Raleway', sans-serif;
 }
 
 .search-input-wrap {
@@ -59,6 +81,44 @@
 
 .filter-select {
   min-width: 210px;
+  height: 42px;
+  border: 1px solid #c9d9c6;
+  border-radius: 8px;
+  padding: 0 0.8rem;
+  color: #123f32;
+  background: #fff;
+  font: 600 14px 'Raleway', sans-serif;
+}
+
+.create-btn,
+.bulk-delete-btn {
+  height: 42px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #fff;
+  font: 800 13px 'Raleway', sans-serif;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.create-btn {
+  background: #68a357;
+}
+
+.create-btn:hover {
+  background: #4f8e43;
+}
+
+.bulk-delete-btn {
+  background: #d62828;
+}
+
+.bulk-delete-btn:hover {
+  background: #b51f1f;
 }
 
 .option-actions {
@@ -69,6 +129,11 @@
 }
 
 .options-header {
+  text-align: center;
+}
+
+.select-col {
+  width: 44px;
   text-align: center;
 }
 

@@ -4,10 +4,59 @@
     <span>Vehículos utilizados en la recolección de desechos</span>
   </div>
 
+  <div class="table-toolbar">
+    <div class="search-row">
+      <span class="search-input-wrap">
+        <input
+          type="text"
+          placeholder="Buscar"
+          class="search-input"
+          (input)="dt1.filterGlobal($any($event.target).value, 'contains')"
+        />
+        <i class="pi pi-search"></i>
+      </span>
+
+      <select
+        [(ngModel)]="selectedVehicleType"
+        (change)="dt1.filter(selectedVehicleType, 'type', 'equals')"
+        class="filter-select"
+      >
+        <option value="">Filtrar por tipo</option>
+        @for (vehicleType of vehicleTypes; track vehicleType) {
+          <option [value]="vehicleType">{{ vehicleType | titlecase }}</option>
+        }
+      </select>
+
+      <label class="select-all-wrap" for="selectAllVehicles">
+        <input
+          id="selectAllVehicles"
+          type="checkbox"
+          [checked]="allVehiclesSelected"
+          (change)="toggleSelectAllVehicles(dt1, $any($event.target).checked)"
+        />
+        Seleccionar todos
+      </label>
+
+      @if (selectedVehicles.length) {
+        <button type="button" class="bulk-delete-btn" (click)="onDeleteSelectedVehicles()">
+          <i class="pi pi-trash"></i>
+          Eliminar seleccionados
+        </button>
+      }
+    </div>
+
+    <button type="button" class="create-btn" (click)="openCreateModal()">
+      <i class="pi pi-plus"></i>
+      Registrar vehículo
+    </button>
+  </div>
+
   <p-table
     #dt1
     [value]="vehicles"
     [loading]="loading"
+    [(selection)]="selectedVehicles"
+    (selectionChange)="onVehiclesSelectionChange(dt1)"
     dataKey="id"
     [rows]="8"
     [paginator]="true"
@@ -17,35 +66,6 @@
     [globalFilterFields]="['id', 'type', 'weight', 'plate']"
     styleClass="vehicles-table"
   >
-    <ng-template pTemplate="caption">
-      <div class="caption-row">
-        <div class="search-row">
-          <span class="p-input-icon-right search-input-wrap">
-            <input
-              pInputText
-              type="text"
-              placeholder="Buscar"
-              (input)="dt1.filterGlobal($any($event.target).value, 'contains')"
-              class="search-input"
-            />
-            <i class="pi pi-search"></i>
-          </span>
-
-          <select
-            [(ngModel)]="selectedVehicleType"
-            (change)="dt1.filter(selectedVehicleType, 'type', 'equals')"
-            class="p-inputtext filter-select"
-          >
-            <option value="">Filtrar por tipo</option>
-            @for (vehicleType of vehicleTypes; track vehicleType) {
-              <option [value]="vehicleType">{{ vehicleType | titlecase }}</option>
-            }
-          </select>
-        </div>
-
-        <button pButton icon="pi pi-plus" label="Registrar vehículo" (click)="openCreateModal()"></button>
-      </div>
-    </ng-template>
 
     <ng-template pTemplate="header">
       <tr>
@@ -67,6 +87,7 @@
         <td> AcaEstadoDelVehiculo</td>
         <td>
           <div class="option-actions">
+            <p-tableCheckbox [value]="vehicle"></p-tableCheckbox>
             <button
               pButton
               type="button"

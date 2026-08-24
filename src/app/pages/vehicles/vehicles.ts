@@ -3,7 +3,7 @@ import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { TableModule } from 'primeng/table';
+import { Table, TableModule } from 'primeng/table';
 import { Vehicle, VEHICLE_TYPES } from '../../@core/interfaces/vehicle.model';
 import { VehiculoService } from '../../@core/services/vehiculos.service';
 import { CreateVehicleComponent } from './components/create-vehicle/create-vehicle';
@@ -32,6 +32,8 @@ export class Vehicles implements OnInit {
   loading: boolean = false;
 
   selectedVehicleType = '';
+  selectedVehicles: Vehicle[] = [];
+  allVehiclesSelected = false;
   isCreateModalOpen = false;
   isUpdateModalOpen = false;
   editingVehicle: Vehicle | null = null;
@@ -78,6 +80,55 @@ export class Vehicles implements OnInit {
     this.isUpdateModalOpen = isVisible;
     if (!isVisible) {
       this.editingVehicle = null;
+    }
+  }
+
+  private getVisibleVehicles(table: Table): Vehicle[] {
+    return (table.filteredValue as Vehicle[] | null) ?? this.vehicles;
+  }
+
+  onVehiclesSelectionChange(table: Table): void {
+    const visibleVehicles = this.getVisibleVehicles(table);
+    this.allVehiclesSelected =
+      visibleVehicles.length > 0 &&
+      visibleVehicles.every((vehicle) => this.selectedVehicles.some((selected) => selected.id === vehicle.id));
+  }
+
+  toggleSelectAllVehicles(table: Table, checked: boolean): void {
+    const visibleVehicles = this.getVisibleVehicles(table);
+    const selectedIds = new Set(this.selectedVehicles.map((vehicle) => vehicle.id));
+
+    if (checked) {
+      this.selectedVehicles = [
+        ...this.selectedVehicles,
+        ...visibleVehicles.filter((vehicle) => !selectedIds.has(vehicle.id)),
+      ];
+    } else {
+      const visibleIds = new Set(visibleVehicles.map((vehicle) => vehicle.id));
+      this.selectedVehicles = this.selectedVehicles.filter((vehicle) => !visibleIds.has(vehicle.id));
+    }
+
+    this.allVehiclesSelected = checked;
+  }
+
+  async onDeleteSelectedVehicles(): Promise<void> {
+    if (!this.selectedVehicles.length) return;
+
+    const canDelete = window.confirm(
+      `Se eliminarán ${this.selectedVehicles.length} vehículo(s). Esta acción no se puede deshacer.`,
+    );
+
+    if (!canDelete) return;
+
+    try {
+      await Promise.all(
+        this.selectedVehicles.map((vehicle) => this.vehiculoService.deleteVehicle(vehicle.id)),
+      );
+      this.selectedVehicles = [];
+      this.allVehiclesSelected = false;
+      await this.loadVehicles();
+    } catch (error) {
+      console.error('Error al eliminar vehículos seleccionados:', error);
     }
   }
 

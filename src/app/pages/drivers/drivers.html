@@ -4,6 +4,44 @@
     <span>Miembros de la brigada de recolección de desechos sólidos</span>
   </div>
 
+
+  <div class="table-toolbar">
+    <div class="search-row">
+      <span class="search-input-wrap">
+        <input
+          type="text"
+          placeholder="Buscar"
+          class="search-input"
+          [(ngModel)]="driverSearchTerm"
+          (input)="onDriverSearchChange()"
+        />
+        <i class="pi pi-search"></i>
+      </span>
+
+      <label class="select-all-wrap" for="selectAllDrivers">
+        <input
+          id="selectAllDrivers"
+          type="checkbox"
+          [checked]="allDriversSelected"
+          (change)="toggleSelectAllDrivers($any($event.target).checked)"
+        />
+        Seleccionar todos
+      </label>
+
+      @if (hasSelectedDrivers) {
+        <button type="button" class="bulk-delete-btn" (click)="deleteSelectedDrivers()">
+           <i class="pi pi-trash"></i>
+           Eliminar seleccionados
+        </button>
+        }
+    </div>
+
+      <button type="button" class="create-btn" (click)="createDriver()">
+        <i class="pi pi-plus"></i>
+        Crear conductor
+      </button>
+  </div>
+
   <section class="table-card" aria-label="Tabla de conductores">
     <div class="table-wrap">
       <table class="drivers-table">
@@ -19,7 +57,8 @@
         </thead>
 
         <tbody>
-          <tr>
+          <tr [class.hidden-row]="!driverRowVisible[0]">
+
             <td>DRV-001</td>
             <td>Carlos Mendoza</td>
             <td><span class="role-chip supervisor">Supervisor</span></td>
@@ -27,6 +66,11 @@
             <td>Ruta Norte</td>
             <td>
               <div class="option-actions">
+                <input
+                  type="checkbox"
+                  [checked]="selectedDriverRows[0]"
+                  (change)="toggleDriverRow(0, $any($event.target).checked)"
+                />
                 <button type="button" class="icon-btn" title="Editar">
                   <i class="pi pi-pencil"></i>
                 </button>
@@ -37,7 +81,7 @@
             </td>
           </tr>
 
-          <tr>
+          <tr [class.hidden-row]="!driverRowVisible[1]">
             <td>DRV-002</td>
             <td>José Villalobos</td>
             <td><span class="role-chip crew">Crew</span></td>
@@ -45,6 +89,11 @@
             <td>Ruta Norte</td>
             <td>
               <div class="option-actions">
+                <input
+                  type="checkbox"
+                  [checked]="selectedDriverRows[1]"
+                  (change)="toggleDriverRow(1, $any($event.target).checked)"
+                />
                 <button type="button" class="icon-btn" title="Editar">
                   <i class="pi pi-pencil"></i>
                 </button>
@@ -55,7 +104,7 @@
             </td>
           </tr>
 
-          <tr>
+          <tr [class.hidden-row]="!driverRowVisible[2]">
             <td>DRV-003</td>
             <td>Mariana Gutiérrez</td>
             <td><span class="role-chip crew">Crew</span></td>
@@ -63,6 +112,11 @@
             <td>Ruta Centro</td>
             <td>
               <div class="option-actions">
+                <input
+                  type="checkbox"
+                  [checked]="selectedDriverRows[2]"
+                  (change)="toggleDriverRow(2, $any($event.target).checked)"
+                />
                 <button type="button" class="icon-btn" title="Editar">
                   <i class="pi pi-pencil"></i>
                 </button>
@@ -73,7 +127,7 @@
             </td>
           </tr>
 
-          <tr>
+          <tr [class.hidden-row]="!driverRowVisible[3]">
             <td>DRV-004</td>
             <td>Luis Herrera</td>
             <td><span class="role-chip supervisor">Supervisor</span></td>
@@ -81,6 +135,11 @@
             <td>Ruta Sur</td>
             <td>
               <div class="option-actions">
+                <input
+                  type="checkbox"
+                  [checked]="selectedDriverRows[3]"
+                  (change)="toggleDriverRow(3, $any($event.target).checked)"
+                />
                 <button type="button" class="icon-btn" title="Editar">
                   <i class="pi pi-pencil"></i>
                 </button>
@@ -91,7 +150,7 @@
             </td>
           </tr>
 
-          <tr>
+          <tr [class.hidden-row]="!driverRowVisible[4]">
             <td>DRV-005</td>
             <td>Angela Rivas</td>
             <td><span class="role-chip crew">Crew</span></td>
@@ -99,6 +158,11 @@
             <td>Ruta Sur</td>
             <td>
               <div class="option-actions">
+                <input
+                  type="checkbox"
+                  [checked]="selectedDriverRows[4]"
+                  (change)="toggleDriverRow(4, $any($event.target).checked)"
+                />
                 <button type="button" class="icon-btn" title="Editar">
                   <i class="pi pi-pencil"></i>
                 </button>
