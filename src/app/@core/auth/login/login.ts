@@ -92,7 +92,7 @@ export class Login {
       await this.router.navigateByUrl('/home');
     } catch (error: any) {
       console.error('Error al iniciar sesión', error);
-      let errorMessage = 'Error al iniciar sesión.';
+      let errorMessage = 'Error en las credenciales.';
 
       if (
         error.code === 'auth/invalid-credential' ||

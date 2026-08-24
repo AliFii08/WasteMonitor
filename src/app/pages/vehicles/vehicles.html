@@ -7,6 +7,7 @@
   <p-table
     #dt1
     [value]="vehicles"
+    [loading]="loading"
     dataKey="id"
     [rows]="8"
     [paginator]="true"
@@ -52,6 +53,7 @@
         <th>Tipo</th>
         <th>Capacidad (toneladas)</th>
         <th>Placa</th>
+        <th>Estado</th>
         <th class="options-header">Opciones</th>
       </tr>
     </ng-template>
@@ -62,6 +64,7 @@
         <td>{{ vehicle.type | titlecase }}</td>
         <td>{{ vehicle.weight | number: '1.0-0' }} t</td>
         <td>{{ vehicle.plate }}</td>
+        <td> AcaEstadoDelVehiculo</td>
         <td>
           <div class="option-actions">
             <button
@@ -87,10 +90,63 @@
 
     <ng-template pTemplate="emptymessage">
       <tr>
-        <td colspan="5">No hay vehículos registrados.</td>
+        <td colspan="6">No hay vehículos registrados.</td>
       </tr>
     </ng-template>
   </p-table>
+
+  <!-- COMO SE VERAN LAS TABLAS -->
+
+  <!-- <section class="preview-section" aria-label="Vista previa de estilo de tabla">
+
+    <div class="preview-table-wrap">
+      <table class="preview-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Tipo</th>
+            <th>Capacidad (toneladas)</th>
+            <th>Placa</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>VEH-001</td>
+            <td>Compactador</td>
+            <td>12 t</td>
+            <td>AB123CD</td>
+            <td><span class="status-chip active">Operativo</span></td>
+          </tr>
+          <tr>
+            <td>VEH-002</td>
+            <td>Volteo</td>
+            <td>9 t</td>
+            <td>EF456GH</td>
+            <td><span class="status-chip maintenance">Mantenimiento</span></td>
+          </tr>
+          <tr>
+            <td>VEH-003</td>
+            <td>Recolector lateral</td>
+            <td>10 t</td>
+            <td>IJ789KL</td>
+            <td><span class="status-chip active">Operativo</span></td>
+          </tr>
+          <tr>
+            <td>VEH-004</td>
+            <td>Camión ligero</td>
+            <td>4 t</td>
+            <td>MN012OP</td>
+            <td><span class="status-chip inactive">Fuera de servicio</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section> -->
+
+  <!-- COMO SE VERAN LAS TABLAS -->
+
+
 </div>
 
 <app-create-vehicle

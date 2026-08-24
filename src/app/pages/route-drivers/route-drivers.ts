@@ -1,5 +1,5 @@
 import { Component, AfterViewInit, OnDestroy, NgZone, inject } from '@angular/core';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common'; // Para el *ngFor
 import { Database, ref, get, set, push } from '@angular/fire/database'; // Firebase
 import * as L from 'leaflet';
@@ -14,7 +14,7 @@ const localPointIcon = L.divIcon({
 @Component({
   selector: 'app-route-drivers',
   standalone: true,
-  imports: [HttpClientModule, CommonModule],
+  imports: [CommonModule],
   templateUrl: './route-drivers.html',
   styleUrl: './route-drivers.scss',
 })

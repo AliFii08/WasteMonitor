@@ -1,7 +1,85 @@
-<body>
-
+<div class="dashboard-page">
   <div class="title">
     <h1>Dashboard</h1>
     <span>Gestión de la flota de recolección de Juana de Ávila</span>
   </div>
-</body>
+
+  <div class="dashboard-layout">
+    <section class="tabs-card" aria-label="Panel de pestañas">
+      <div class="tabs-header" role="tablist" aria-label="Secciones del dashboard">
+        <button
+          type="button"
+          class="tab-button"
+          role="tab"
+          [class.active]="activeTab === 'vehicles'"
+          [attr.aria-selected]="activeTab === 'vehicles'"
+          (click)="selectTab('vehicles')"
+        >
+          Vehículos
+        </button>
+
+        <button
+          type="button"
+          class="tab-button"
+          role="tab"
+          [class.active]="activeTab === 'employees'"
+          [attr.aria-selected]="activeTab === 'employees'"
+          (click)="selectTab('employees')"
+        >
+          Empleados
+        </button>
+
+        <button
+          type="button"
+          class="tab-button"
+          role="tab"
+          [class.active]="activeTab === 'operations'"
+          [attr.aria-selected]="activeTab === 'operations'"
+          (click)="selectTab('operations')"
+        >
+          Operaciones
+        </button>
+      </div>
+
+      <div class="tab-content" role="tabpanel">
+        @if (activeTab === 'vehicles') {
+          <h2>Vehículos</h2>
+          <p>Aquí irá el contenido de la sección de vehículos.</p>
+        }
+
+        @if (activeTab === 'employees') {
+          <h2>Empleados</h2>
+          <p>Aquí irá el contenido de la sección de empleados.</p>
+        }
+
+        @if (activeTab === 'operations') {
+          <h2>Operaciones</h2>
+          <p>Aquí irá el contenido de la sección de operaciones.</p>
+        }
+      </div>
+    </section>
+
+    <aside class="notifications-card" aria-label="Notificaciones">
+      <div class="notifications-head">
+        <h2>Notificaciones</h2>
+        <span>{{ notifications.length }}</span>
+      </div>
+
+      <div class="notifications-list">
+        @for (notification of notifications; track notification.id) {
+          <article class="notification-item">
+            <div class="notification-item-top">
+              <strong>{{ notification.title }}</strong>
+              <small>{{ notification.time }}</small>
+            </div>
+            <p>{{ notification.message }}</p>
+          </article>
+        }
+
+        @if (!notifications.length) {
+          <p class="empty-notifications">No hay notificaciones nuevas.</p>
+        }
+      </div>
+    </aside>
+  </div>
+</div>

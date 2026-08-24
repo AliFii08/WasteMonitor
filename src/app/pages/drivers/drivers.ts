@@ -3,6 +3,7 @@ import { ConductoresService } from '../../@core/services/conductores.service';
 import { EmpleadoService } from '../../@core/services/empleado.service';
 @Component({
   selector: 'app-drivers',
+  standalone: true,
   imports: [],
   templateUrl: './drivers.html',
   styleUrl: './drivers.scss',
@@ -17,5 +18,5 @@ export class Drivers implements OnInit {
     await this.empleadoService.getEmpleado();
   }
 
-  
+
 }
