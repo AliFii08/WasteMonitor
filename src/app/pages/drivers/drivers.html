@@ -1,4 +1,4 @@
-<div class="drivers-page">
+<!-- <div class="drivers-page">
   <div class="title">
     <h1>Conductores</h1>
     <span>Miembros de la brigada de recolección de desechos sólidos</span>
@@ -172,6 +172,100 @@
               </div>
             </td>
           </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div> -->
+
+<div class="drivers-page">
+  <div class="title">
+    <h1>Conductores</h1>
+    <span>Miembros de la brigada de recolección de desechos sólidos</span>
+  </div>
+
+  <div class="table-toolbar">
+    <div class="search-row">
+      <span class="search-input-wrap">
+        <input
+          type="text"
+          placeholder="Buscar"
+          class="search-input"
+          [(ngModel)]="driverSearchTerm"
+          (input)="onDriverSearchChange()"
+        />
+        <i class="pi pi-search"></i>
+      </span>
+
+      <label class="select-all-wrap" for="selectAllDrivers">
+        <input
+          id="selectAllDrivers"
+          type="checkbox"
+          [checked]="allDriversSelected"
+          (change)="toggleSelectAllDrivers($any($event.target).checked)"
+        />
+        Seleccionar todos
+      </label>
+
+      @if (hasSelectedDrivers) {
+        <button type="button" class="bulk-delete-btn" (click)="deleteSelectedDrivers()">
+           <i class="pi pi-trash"></i>
+           Eliminar seleccionados
+        </button>
+      }
+    </div>
+
+    <button type="button" class="create-btn" (click)="createDriver()">
+      <i class="pi pi-plus"></i>
+      Crear conductor
+    </button>
+  </div>
+
+  <section class="table-card" aria-label="Tabla de conductores">
+    <div class="table-wrap">
+      <table class="drivers-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Cargo</th>
+            <th>Camión asignado</th>
+            <th>Ruta asignada</th>
+            <th class="options-header">Opciones</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (driver of driversList; track driver.uid; let i = $index) {
+            <tr [class.hidden-row]="!driverRowVisible[i]">
+              <td>{{ driver.driverId }}</td>
+              <td>{{ driver.nombreCompleto }}</td>
+              <td>
+                <span 
+                  class="role-chip" 
+                  [ngClass]="{ 'supervisor': driver.cargo === 'supervisor', 'crew': driver.cargo === 'crew' }">
+                  {{ driver.cargo | titlecase }}
+                </span>
+              </td>
+              <td>{{ driver.camionAsignado }}</td>
+              <td>{{ driver.rutaAsignada }}</td>
+              <td>
+                <div class="option-actions">
+                  <input
+                    type="checkbox"
+                    [checked]="selectedDriverRows[i]"
+                    (change)="toggleDriverRow(i, $any($event.target).checked)"
+                  />
+                  <button type="button" class="icon-btn" title="Editar">
+                    <i class="pi pi-pencil"></i>
+                  </button>
+                  <button type="button" class="icon-btn danger" title="Eliminar">
+                    <i class="pi pi-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
         </tbody>
       </table>
     </div>

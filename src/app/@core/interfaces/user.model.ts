@@ -21,17 +21,35 @@ export interface UserLogin extends User{
   access_token:string
 }
 
+// export interface FirebaseUser {
+//   uid: string;
+//   email: string;
+//   name: string;
+//   lastName: string;
+//   phone: string;
+//   rol: string;
+//   address?: {
+//     houseNumber: string;
+//     postalCode: number;
+//     sector: string;
+//     street: string;
+//   };
+// }
+
 export interface FirebaseUser {
   uid: string;
-  email: string;
+  driverId?: string; // Formato DRV-001
   name: string;
   lastName: string;
-  phone: string;
-  rol: string;
+  email: string;
+  phone?: string;
+  rol: 'admin' | 'user' | 'supervisor' | 'crew' | 'conductor' | 'empleado';
+  camionId?: string; // Formato VEH-001
+  rutaAsignada?: string; // Opcional si se calcula dinámicamente desde la ruta del camión
   address?: {
-    houseNumber: string;
-    postalCode: number;
-    sector: string;
-    street: string;
-  };
+     houseNumber: string;
+     postalCode: number;
+     sector: string;
+     street: string;
+   };
 }

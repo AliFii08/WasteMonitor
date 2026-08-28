@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
+import { DashboardService } from '../../@core/services/dashboard.service';
 
 type DashboardTab = 'vehicles' | 'employees' | 'operations';
 
@@ -16,7 +17,9 @@ interface DashboardNotification {
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
-export class Dashboard {
+export class Dashboard implements OnInit {
+  private dashboardService = inject(DashboardService);
+
   activeTab: DashboardTab = 'vehicles';
 
   notifications: DashboardNotification[] = [
@@ -40,8 +43,19 @@ export class Dashboard {
     },
   ];
 
+  async ngOnInit(): Promise<void> {
+    const stats = await this.dashboardService.obtenerEstadisticas();
+
+    if (stats) {
+      console.group('%c📊 ESTADÍSTICAS DEL DASHBOARD', 'color: #0d5c3a; font-size: 14px; font-weight: bold;');
+      console.log('👷 Empleados:', stats.empleados);
+      console.log('🚛 Vehículos:', stats.vehiculos);
+      console.log('🗺️ Operaciones y Rutas:', stats.operaciones);
+      console.groupEnd();
+    }
+  }
+
   selectTab(tab: DashboardTab): void {
     this.activeTab = tab;
   }
-
 }

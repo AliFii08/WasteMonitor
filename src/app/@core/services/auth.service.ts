@@ -25,6 +25,9 @@ export interface RegisterData {
   postalCode: string | number;
 }
 
+// auth.service.ts
+export type UserRole = 'admin' | 'supervisor' | 'crew' | 'conductor' | 'user';
+
 @Injectable({
   providedIn: 'root',
 })
@@ -221,5 +224,34 @@ export class AuthService {
 
     // 2. Si el correo existe en la base de datos, se envía el email nativo
     await sendPasswordResetEmail(this.auth, cleanEmail);
+  }
+
+  getCurrentRole(): UserRole {
+    const user = this.userService.currentUserSignal();
+    if (user && user.rol) {
+      return user.rol.toLowerCase() as UserRole;
+    }
+
+    if (isPlatformBrowser(this.platformId)) {
+      const stored = localStorage.getItem('currentUser');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          return (parsed.rol || 'user').toLowerCase() as UserRole;
+        } catch {
+          return 'user';
+        }
+      }
+    }
+
+    return 'user';
+  }
+
+  /**
+   * Verifica si el rol del usuario está dentro de los permitidos
+   */
+  hasRole(allowedRoles: UserRole[]): boolean {
+    const currentRole = this.getCurrentRole();
+    return allowedRoles.includes(currentRole);
   }
 }

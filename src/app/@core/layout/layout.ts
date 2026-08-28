@@ -5,11 +5,11 @@ import { Auth, signOut } from '@angular/fire/auth';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { SessionTimeoutService } from '../services/session-timeout.service';
+import { AuthService } from '../services/auth.service'; // Adjust the relative path if needed
 
 @Component({
   selector: 'app-layout',
-  imports: [RouterOutlet, RouterLink, 
-    CommonModule, ButtonModule, TooltipModule],
+  imports: [RouterOutlet, RouterLink, CommonModule, ButtonModule, TooltipModule],
   templateUrl: './layout.html',
   styleUrl: './layout.scss',
 })
@@ -17,6 +17,7 @@ export class Layout {
   private auth = inject(Auth);
   private router = inject(Router);
   private sessionTimeoutService = inject(SessionTimeoutService);
+  public authService = inject(AuthService); // Public so it can be accessed in layout.html
 
   async logout() {
     try {
@@ -28,5 +29,4 @@ export class Layout {
       alert('No se pudo cerrar sesión. Intenta nuevamente.');
     }
   }
-
 }
