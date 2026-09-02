@@ -1,0 +1,42 @@
+<p-dialog 
+  header="Actualizar Estado de la Queja" 
+  [(visible)]="visible" 
+  [modal]="true" 
+  [style]="{ width: '450px' }"
+  (onHide)="cerrarModal()">
+
+  <div *ngIf="queja" class="mb-3 surface-ground p-3 border-round">
+    <small class="text-500 font-medium block">Asunto</small>
+    <span class="font-bold text-800">{{ queja.asunto }}</span>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="guardarCambios()" class="p-fluid flex flex-column gap-3">
+    <div class="field">
+      <label for="estado" class="font-bold block mb-2">Estado de la Atención</label>
+      <p-select 
+        [options]="opcionesEstado" 
+        formControlName="estado" 
+        optionLabel="label" 
+        optionValue="value" 
+        placeholder="Seleccione un estado"
+        appendTo="body">
+      </p-select>
+    </div>
+
+    <div class="flex justify-content-end gap-2 mt-3">
+      <p-button 
+        label="Cancelar" 
+        icon="pi pi-times" 
+        [text]="true" 
+        severity="secondary" 
+        (onClick)="cerrarModal()">
+      </p-button>
+      <p-button 
+        label="Actualizar" 
+        icon="pi pi-check" 
+        type="submit" 
+        [loading]="loading">
+      </p-button>
+    </div>
+  </form>
+</p-dialog>

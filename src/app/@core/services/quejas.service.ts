@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { Database, ref, push, set, get } from '@angular/fire/database';
+import { Database, ref, push, set, get, update, query, orderByChild, equalTo } from '@angular/fire/database';
 import { Quejas } from '../interfaces/quejas.model'; // Ajusta la ruta del modelo si es necesario
 
 @Injectable({
@@ -24,9 +24,15 @@ export class QuejasService {
   }
 
   // Método para obtener y formatear las quejas
-  async obtenerQuejas(): Promise<Quejas[]> {
+  async obtenerQuejas(userId?: string): Promise<Quejas[]> {
     const quejasRef = ref(this.database, 'quejas');
-    const snapshot = await get(quejasRef);
+    
+    // Si se pasa userId, se aplica la consulta filtrada
+    const consulta = userId 
+      ? query(quejasRef, orderByChild('userId'), equalTo(userId))
+      : quejasRef;
+
+    const snapshot = await get(consulta);
 
     if (!snapshot.exists()) {
       return [];
@@ -35,7 +41,6 @@ export class QuejasService {
     const data = snapshot.val();
     const listaQuejas: Quejas[] = [];
 
-    // Mapeamos las llaves del objeto (ej. "queja_001") al campo id
     Object.keys(data).forEach((key) => {
       listaQuejas.push({
         id: key,
@@ -44,5 +49,27 @@ export class QuejasService {
     });
 
     return listaQuejas;
+  }
+
+  async obtenerUsuarioPorId(userId: string): Promise<{ name: string; lastName: string } | null> {
+    const userRef = ref(this.database, `usuarios/${userId}`);
+    const snapshot = await get(userRef);
+
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      return {
+        name: data.name || data.nombreUsuario || 'Usuario',
+        lastName: data.lastName || ''
+      };
+    }
+
+    return null;
+  }
+
+  
+
+  async actualizarEstadoQueja(quejaId: string, nuevoEstado: 'pendiente' | 'en_revision' | 'resuelto'): Promise<void> {
+    const quejaRef = ref(this.database, `quejas/${quejaId}`);
+    await update(quejaRef, { estado: nuevoEstado });
   }
 }

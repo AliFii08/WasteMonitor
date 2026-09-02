@@ -1,0 +1,48 @@
+<p-dialog 
+  header="Detalle de la Queja" 
+  [(visible)]="visible" 
+  [modal]="true" 
+  [style]="{ width: '500px' }"
+  (onHide)="cerrarModal()">
+
+  <div *ngIf="queja" class="flex flex-column gap-3">
+    <div>
+      <span class="text-500 font-medium block mb-1">Asunto</span>
+      <h3 class="m-0 text-900 font-semibold">{{ queja.asunto }}</h3>
+    </div>
+
+    <div>
+      <span class="text-500 font-medium block mb-1">Estado</span>
+      <p-tag [value]="queja.estado" [severity]="getSeverity(queja.estado)"></p-tag>
+    </div>
+
+    <div>
+      <span class="text-500 font-medium block mb-1">Descripción</span>
+      <p class="m-0 text-800 line-height-3 surface-ground p-3 border-round">
+        {{ queja.descripcion }}
+      </p>
+    </div>
+
+    <div class="grid grid-nogutter border-top-1 surface-border pt-3 mt-2">
+      <div class="col-6">
+        <span class="text-500 font-medium block">Fecha de creación</span>
+        <span class="text-800 font-semibold">
+          {{ queja.fecha | date:'dd/MM/yyyy HH:mm' }}
+        </span>
+      </div>
+      <div class="col-6">
+        <span class="text-500 font-medium block">Creado por</span>
+        <span class="text-800 font-semibold">{{ nombreUsuario() }}</span>
+      </div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button 
+      label="Cerrar" 
+      icon="pi pi-times" 
+      severity="secondary" 
+      (onClick)="cerrarModal()">
+    </p-button>
+  </ng-template>
+</p-dialog>
