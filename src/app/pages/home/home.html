@@ -1,4 +1,37 @@
-<p>home works!</p>
+<div class="home-container">
+  <!-- Card Flotante de Información para el Usuario -->
+  <div class="info-card" *ngIf="!loading">
+    <div class="card-header">
+      <i class="pi pi-map-marker icon-location"></i>
+      <h3>Ubicación y Ruta de Recolección</h3>
+    </div>
 
+    <div class="card-body">
+      <p class="address-text">
+        <strong>Tu Dirección:</strong> {{ userAddressText || 'No registrada' }}
+      </p>
 
-<div id="map"></div>
+      <div *ngIf="nearestRouteId" class="route-info">
+        <p class="route-badge">
+          Ruta Más Cercana: <span>{{ nearestRouteId }}</span>
+        </p>
+        <p *ngIf="routeDistanceKm !== null" class="distance-text">
+          Distancia aproximada a tu sector: <strong>{{ routeDistanceKm }} km</strong>
+        </p>
+      </div>
+
+      <div *ngIf="!nearestRouteId" class="no-route-info">
+        <p>No se encontró ninguna ruta de recolección cercana a tu dirección.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Indicador de Carga -->
+  <div class="loading-overlay" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Localizando tu vivienda y trazando ruta cercana...</p>
+  </div>
+
+  <!-- Contenedor del Mapa Leaflet -->
+  <div id="map" class="map-container"></div>
+</div>

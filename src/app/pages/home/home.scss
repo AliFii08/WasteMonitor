@@ -1,15 +1,117 @@
-#map {
-  height: 100vh;  // 100% de la altura de la pantalla
-  width: 100vw;   // 100% del ancho de la pantalla
-  position: absolute;
-  top: 0;
-  left: 0;
+// #map {
+//   height: 100vh;  // 100% de la altura de la pantalla
+//   width: 100vw;   // 100% del ancho de la pantalla
+//   position: absolute;
+//   top: 0;
+//   left: 0;
+//   z-index: 1;
+// }
+
+// // Asegurar que el body no interfiera
+// :host {
+//   display: block;
+//   width: 100%;
+//   height: 100%;
+// }
+
+.home-container {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 0px);
+  overflow: hidden;
+}
+
+.map-container {
+  width: 100%;
+  height: 100%;
   z-index: 1;
 }
 
-// Asegurar que el body no interfiera
-:host {
-  display: block;
-  width: 100%;
-  height: 100%;
+.info-card {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 500;
+  background: #ffffff;
+  padding: 16px 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  max-width: 340px;
+  font-family: system-ui, -apple-system, sans-serif;
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+
+    .icon-location {
+      font-size: 1.4rem;
+      color: #06523f;
+    }
+
+    h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      color: #06523f;
+      font-weight: 700;
+    }
+  }
+
+  .card-body {
+    .address-text {
+      font-size: 0.9rem;
+      color: #444;
+      margin-bottom: 12px;
+    }
+
+    .route-badge {
+      font-size: 0.95rem;
+      margin: 4px 0;
+
+      span {
+        background-color: #68a357;
+        color: #fff;
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-weight: bold;
+      }
+    }
+
+    .distance-text {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 6px;
+    }
+  }
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 500;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 12px 18px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ccc;
+    border-top-color: #06523f;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }

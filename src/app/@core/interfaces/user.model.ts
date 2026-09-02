@@ -51,5 +51,7 @@ export interface FirebaseUser {
      postalCode: number;
      sector: string;
      street: string;
+     lat: number;
+     lng: number;
    };
 }
