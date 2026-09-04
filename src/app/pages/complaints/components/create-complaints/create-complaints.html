@@ -1,0 +1,55 @@
+<p-dialog 
+  header="Registrar Nueva Queja" 
+  [(visible)]="visible" 
+  [modal]="true" 
+  [style]="{ width: '450px' }"
+  (onHide)="cerrarModal()">
+
+  <form [formGroup]="form" (ngSubmit)="guardarQueja()" class="p-fluid flex flex-column gap-3">
+    <div class="field">
+      <label for="asunto" class="font-bold">Asunto</label>
+      <input 
+        pInputText 
+        id="asunto" 
+        formControlName="asunto" 
+        placeholder="Ej. Retraso en recolección" />
+      <small 
+        *ngIf="form.get('asunto')?.invalid && form.get('asunto')?.touched" 
+        class="p-error">
+        El asunto es requerido (mínimo 5 caracteres).
+      </small>
+    </div>
+
+    <div class="field">
+      <label for="descripcion" class="font-bold">Descripción</label>
+      <textarea 
+        pInputTextarea 
+        id="descripcion" 
+        formControlName="descripcion" 
+        rows="4" 
+        placeholder="Detalle la problemática ocurrida...">
+      </textarea>
+      <small 
+        *ngIf="form.get('descripcion')?.invalid && form.get('descripcion')?.touched" 
+        class="p-error">
+        La descripción es requerida (mínimo 10 caracteres).
+      </small>
+    </div>
+
+    <div class="flex justify-content-end gap-2 mt-3">
+      <p-button 
+        label="Cancelar" 
+        icon="pi pi-times" 
+        [text]="true" 
+        severity="secondary" 
+        (onClick)="cerrarModal()">
+      </p-button>
+      <p-button 
+        label="Guardar" 
+        icon="pi pi-check" 
+        type="submit" 
+        [loading]="loading">
+      </p-button>
+    </div>
+  </form>
+</p-dialog>

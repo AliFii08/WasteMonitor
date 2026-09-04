@@ -1,10 +1,82 @@
-<body>
-
+<div class="container">
   <div class="title">
     <h1>Gestión de Quejas</h1>
     <span>Por favor, detalle su problemática.</span>
   </div>
-  
 
-  
-</body>
+  <div class="table-card">
+    <div class="flex justify-content-end mb-3">
+      <p-button 
+        label="Nueva Queja" 
+        icon="pi pi-plus" 
+        severity="success" 
+        (onClick)="mostrarModalCrear = true">
+      </p-button>
+    </div>
+
+    <p-table 
+      [value]="quejas()" 
+      [loading]="loading()" 
+      [paginator]="true" 
+      [rows]="5" 
+      responsiveLayout="scroll"
+      styleClass="p-datatable-striped">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Asunto</th>
+          <th>Descripción</th>
+          <th>Fecha</th>
+          <th>Estado</th>
+          <th style="width: 140px; text-align: center;">Acciones</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-queja>
+        <tr>
+          <td><strong>{{ queja.asunto }}</strong></td>
+          <td>{{ queja.descripcion }}</td>
+          <td>{{ queja.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td>
+            <p-tag [value]="queja.estado" [severity]="getSeverity(queja.estado)"></p-tag>
+          </td>
+          <td style="text-align: center;">
+            <p-button 
+              icon="pi pi-eye" 
+              [text]="true" 
+              [rounded]="true" 
+              severity="info"
+              (onClick)="verQueja(queja)">
+            </p-button>
+          
+            <!-- Solo visible para el Admin -->
+            <p-button 
+              *ngIf="esAdmin()"
+              icon="pi pi-pencil" 
+              [text]="true" 
+              [rounded]="true" 
+              severity="warn"
+              (onClick)="editarQueja(queja)">
+            </p-button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<!-- Modal de Creación -->
+<app-create-complaints 
+  [(visible)]="mostrarModalCrear" 
+  (quejaCreada)="cargarQuejas()">
+</app-create-complaints>
+
+<!-- Modal de Visualización -->
+<app-view-complaints 
+  [(visible)]="mostrarModalVer" 
+  [queja]="quejaSeleccionada">
+</app-view-complaints>
+
+<app-update-complaints 
+  [(visible)]="mostrarModalEditar" 
+  [queja]="quejaSeleccionada" 
+  (quejaActualizada)="cargarQuejas()">
+</app-update-complaints>
