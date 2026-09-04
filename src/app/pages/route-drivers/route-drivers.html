@@ -11,33 +11,41 @@
       <p class="subtitle">Haz clic en el mapa para añadir puntos a la ruta seleccionada</p>
 
       <div class="route-actions">
-        <select class="route-selector" (change)="onRouteSelect($event)">
-          <option value="">-- Selecciona una ruta --</option>
-          <option *ngFor="let route of availableRoutes(); trackBy: trackByRouteId" [value]="route.id">
-            {{ route.nombreRuta || route.id }}
-          </option>
-        </select>
+  <select class="route-selector" (change)="onRouteSelect($event)">
+    <option value="">-- Selecciona una ruta --</option>
+    <option *ngFor="let route of availableRoutes(); trackBy: trackByRouteId" [value]="route.id">
+      {{ route.nombreRuta || route.id }}
+    </option>
+  </select>
 
-        <button type="button" class="btn-create" (click)="createLocalRoute()">
-          <i class="pi pi-plus"></i> Crear ruta local
-        </button>
+  <button type="button" class="btn-create" (click)="createLocalRoute()">
+    <i class="pi pi-plus"></i> Crear ruta local
+  </button>
 
-        <button type="button" class="btn-add" (click)="prepareAddLocalPoint()" [disabled]="!isBuildingLocalRoute()">
-          <i class="pi pi-map-marker"></i> Agregar punto
-        </button>
+  <!-- Input para asignar nombre a la nueva ruta -->
+  <input
+    *ngIf="isBuildingLocalRoute()"
+    type="text"
+    class="route-name-input"
+    placeholder="Nombre de la ruta..."
+    [value]="routeNameInput()"
+    (input)="routeNameInput.set($any($event.target).value)"
+  />
 
-        <button type="button" class="btn-save" (click)="saveLocalRouteToFirebase()" [disabled]="!isBuildingLocalRoute() || localRoutePoints().length === 0">
-          <i class="pi pi-save"></i> Guardar ruta
-        </button>
-      </div>
+  <button type="button" class="btn-add" (click)="prepareAddLocalPoint()" [disabled]="!isBuildingLocalRoute()">
+    <i class="pi pi-map-marker"></i> Agregar punto
+  </button>
+
+  <button type="button" class="btn-save" (click)="saveLocalRouteToFirebase()" [disabled]="!isBuildingLocalRoute() || localRoutePoints().length === 0">
+    <i class="pi pi-save"></i> Guardar ruta
+  </button>
+</div>
     </div>
 
     <!-- Se añade la etiqueta del selector del mapa -->
     <app-mapa></app-mapa>
 
-    <!-- Tabla de puntos numerados -->
-    <!-- route-drivers.html -->
-<div class="points-table-container" *ngIf="currentPoints().length > 0">
+<div class="points-table-container" *ngIf="currentPoints().length > 0 || selectedRouteId()">
   <h3 class="table-title">Puntos de la ruta ({{ currentPoints().length }})</h3>
   <table class="points-table">
     <thead>
@@ -50,28 +58,112 @@
       </tr>
     </thead>
     <tbody>
+      <!-- Filas de puntos existentes -->
       <tr *ngFor="let point of currentPoints(); let i = index; trackBy: trackByPointKey">
-        <td class="point-number">
-          <span class="badge-number">{{ point.index }}</span>
-        </td>
+  @if (editingPointKey() !== point.key) {
+    <!-- VISTA NORMAL -->
+    <td class="point-number">
+      <span class="badge-number">{{ point.index }}</span>
+    </td>
+    <td class="point-address">
+      <i class="pi pi-map-marker text-emerald-600"></i>
+      {{ point.address || 'Sin dirección' }}
+    </td>
+    <td>{{ point.lat }}</td>
+    <td>{{ point.lng }}</td>
+    <td class="actions-cell">
+      <button type="button" class="btn-tbl-action edit" (click)="startEditing(point)" title="Editar punto">
+        <i class="pi pi-pencil"></i>
+      </button>
+      <button type="button" class="btn-tbl-action delete" (click)="deletePoint(point, i)" title="Eliminar punto">
+        <i class="pi pi-trash"></i>
+      </button>
+    </td>
+  } @else {
+    <!-- VISTA EDICIÓN EN LA MISMA FILA -->
+    <td class="point-number">
+      <span class="badge-number bg-amber-600">{{ point.index }}</span>
+    </td>
+    <td>
+      <button
+        type="button"
+        class="btn-select-map"
+        [class.active]="isSelectingFromMap()"
+        (click)="enableMapSelection()"
+      >
+        <i class="pi pi-map-marker"></i>
+        {{ isSelectingFromMap() ? 'Haz clic en el mapa...' : 'Cambiar ubicación' }}
+      </button>
+    </td>
+    <td>
+      <input type="number" step="any" class="tbl-input" [value]="editLat()" readonly />
+    </td>
+    <td>
+      <input type="number" step="any" class="tbl-input" [value]="editLng()" readonly />
+    </td>
+    <td class="actions-cell">
+      <button type="button" class="btn-tbl-save" (click)="saveEditedPoint(point)" title="Guardar cambios">
+        <i class="pi pi-check"></i>
+      </button>
+      <button type="button" class="btn-tbl-action delete" (click)="cancelEditing()" title="Cancelar">
+        <i class="pi pi-times"></i>
+      </button>
+    </td>
+  }
+</tr>
 
-        <!-- AQUÍ SE REEMPLAZA ESTA CELDA -->
-        <td class="point-address">
-          <i class="pi pi-map-marker text-emerald-600"></i>
-          {{ point.address || 'Buscando dirección...' }}
-        </td>
+      <!-- Renglón para agregar un nuevo punto directamente a la ruta guardada -->
+      <!-- Renglón para capturar e insertar nuevo punto -->
+<tr *ngIf="selectedRouteId() && !isBuildingLocalRoute()" class="add-point-row">
+  <td class="text-center">
+    <i class="pi pi-plus-circle text-emerald-600"></i>
+  </td>
 
-        <td>{{ point.lat }}</td>
-        <td>{{ point.lng }}</td>
-        <td class="actions-cell">
-          <button type="button" class="btn-tbl-action edit" (click)="editPoint(point, i)" title="Editar punto">
-            <i class="pi pi-pencil"></i>
-          </button>
-          <button type="button" class="btn-tbl-action delete" (click)="deletePoint(point, i)" title="Eliminar punto">
-            <i class="pi pi-trash"></i>
-          </button>
-        </td>
-      </tr>
+  <!-- Botón explícito para activar la marcación en el mapa -->
+  <td>
+    <button
+      type="button"
+      class="btn-select-map"
+      [class.active]="isSelectingFromMap()"
+      (click)="enableMapSelection()"
+    >
+      <i class="pi pi-map-marker"></i>
+      {{ isSelectingFromMap() ? 'Haz clic en el mapa...' : 'Seleccionar en mapa' }}
+    </button>
+  </td>
+
+  <td>
+    <input
+      type="number"
+      step="any"
+      class="tbl-input"
+      placeholder="Latitud"
+      [value]="newPointLat()"
+      readonly
+    />
+  </td>
+  <td>
+    <input
+      type="number"
+      step="any"
+      class="tbl-input"
+      placeholder="Longitud"
+      [value]="newPointLng()"
+      readonly
+    />
+  </td>
+  <td class="actions-cell">
+    <button
+      type="button"
+      class="btn-tbl-save"
+      (click)="addPointFromTable()"
+      [disabled]="!newPointLat() || !newPointLng()"
+      title="Guardar punto en la ruta"
+    >
+      <i class="pi pi-check"></i> Agregar
+    </button>
+  </td>
+</tr>
     </tbody>
   </table>
 </div>

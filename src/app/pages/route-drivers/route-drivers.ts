@@ -37,6 +37,28 @@ export class RouteDrivers implements AfterViewInit, OnDestroy {
   isBuildingLocalRoute = signal<boolean>(false);
   localRoutePoints = signal<RoutePoint[]>([]);
   awaitingLocalPoint = signal<boolean>(false);
+  isSelectingFromMap = signal<boolean>(false);
+  editingPointKey = signal<string | null>(null);
+  editLat = signal<string>('');
+  editLng = signal<string>('');
+
+  startEditing(point: DisplayPoint): void {
+    this.editingPointKey.set(point.key);
+    this.editLat.set(point.lat.toString());
+    this.editLng.set(point.lng.toString());
+    this.isSelectingFromMap.set(false);
+
+    // Colocar marcador de previsualización en el punto actual
+    this.mapaComponent.showTemporaryMarker(point.lat, point.lng);
+  }
+
+  cancelEditing(): void {
+    this.editingPointKey.set(null);
+    this.editLat.set('');
+    this.editLng.set('');
+    this.isSelectingFromMap.set(false);
+    this.mapaComponent.clearTemporaryMarker();
+  }
 
   // Calcula dinámicamente los puntos asignándoles un índice numérico secuencial (1, 2, 3...)
   currentPoints = computed<DisplayPoint[]>(() => {
@@ -56,31 +78,34 @@ export class RouteDrivers implements AfterViewInit, OnDestroy {
     const route = this.availableRoutes().find((r) => r.id === routeId);
     if (!route) return [];
 
-    const points: DisplayPoint[] = [];
-    let count = 1;
+    // Filtrar y ordenar numéricamente según la clave (p1, p2, p3...)
+    const pointKeys = Object.keys(route)
+      .filter((key) => key !== 'id' && key !== 'nombreRuta')
+      .sort((a, b) => {
+        const numA = parseInt(a.replace('p', ''), 10);
+        const numB = parseInt(b.replace('p', ''), 10);
+        return numA - numB;
+      });
 
-    Object.keys(route).forEach((key) => {
-      if (key !== 'id' && key !== 'nombreRuta') {
-        const val = route[key];
-        if (typeof val === 'object' && val !== null && 'x' in val && 'y' in val) {
-          const pt = val as RoutePoint;
-          points.push({
-            index: count++,
-            key,
-            lat: pt.x,
-            lng: pt.y,
-            address: pt.address || 'Sin dirección',
-          });
-        }
-      }
+    return pointKeys.map((key, idx) => {
+      const val = route[key] as RoutePoint;
+      return {
+        index: idx + 1,
+        key,
+        lat: val.x,
+        lng: val.y,
+        address: val.address || 'Sin dirección',
+      };
     });
-
-    return points;
   });
 
   ngAfterViewInit(): void {
     this.mapaComponent.initMap((lat, lng) => this.handleMapClick(lat, lng));
     this.loadRoutes();
+  }
+
+  enableMapSelection(): void {
+    this.isSelectingFromMap.set(true);
   }
 
   async loadRoutes(): Promise<void> {
@@ -102,8 +127,49 @@ export class RouteDrivers implements AfterViewInit, OnDestroy {
       return;
     }
 
-    if (this.selectedRouteId()) {
-      this.addPointToCurrentRoute(lat, lng);
+    if (this.selectedRouteId() && this.isSelectingFromMap()) {
+      if (this.editingPointKey()) {
+        // Si estamos editando, actualiza los campos del punto en edición
+        this.editLat.set(lat.toString());
+        this.editLng.set(lng.toString());
+      } else {
+        // Si estamos agregando uno nuevo
+        this.newPointLat.set(lat.toString());
+        this.newPointLng.set(lng.toString());
+      }
+      this.mapaComponent.showTemporaryMarker(lat, lng);
+    }
+  }
+
+  // Guardar los cambios del punto editado
+  async saveEditedPoint(point: DisplayPoint): Promise<void> {
+    const routeId = this.selectedRouteId();
+    const lat = parseFloat(this.editLat());
+    const lng = parseFloat(this.editLng());
+
+    if (isNaN(lat) || isNaN(lng)) return;
+
+    try {
+      if (this.isBuildingLocalRoute()) {
+        const updated = [...this.localRoutePoints()];
+        const idx = point.index - 1;
+        updated[idx] = { ...updated[idx], x: lat, y: lng };
+        this.localRoutePoints.set(updated);
+        await this.updateLocalMapMarkers(updated);
+      } else if (routeId) {
+        const address = await this.routesService.getPlaceName(lat, lng);
+        await this.routesService.updateRoutePoint(routeId, point.key, {
+          x: lat,
+          y: lng,
+          address,
+        });
+        await this.loadRoutes();
+        await this.refreshSelectedRouteView(routeId);
+      }
+
+      this.cancelEditing();
+    } catch (error) {
+      console.error('Error al actualizar el punto:', error);
     }
   }
 
@@ -138,12 +204,16 @@ export class RouteDrivers implements AfterViewInit, OnDestroy {
     }
   }
 
+  // Agrega la nueva señal en la clase RouteDrivers:
+  routeNameInput = signal<string>('');
+
+  // Método para limpiar campos al iniciar la creación local:
   createLocalRoute(): void {
     this.isBuildingLocalRoute.set(true);
     this.localRoutePoints.set([]);
     this.awaitingLocalPoint.set(false);
     this.selectedRouteId.set('');
-
+    this.routeNameInput.set(''); // Limpia el nombre anterior
     this.mapaComponent.clearAll();
   }
 
@@ -228,21 +298,31 @@ export class RouteDrivers implements AfterViewInit, OnDestroy {
     }
   }
 
+  // Actualiza saveLocalRouteToFirebase:
   async saveLocalRouteToFirebase(): Promise<void> {
     const points = this.localRoutePoints();
+    const name = this.routeNameInput().trim();
+
     if (!this.isBuildingLocalRoute() || points.length === 0) return;
 
+    if (!name) {
+      alert('Por favor ingrese un nombre para la ruta.');
+      return;
+    }
+
     try {
-      const routeKey = await this.routesService.saveRoute(points, this.availableRoutes().length);
+      const routeKey = await this.routesService.saveRoute(points, name);
+
       this.isBuildingLocalRoute.set(false);
       this.awaitingLocalPoint.set(false);
       this.localRoutePoints.set([]);
+      this.routeNameInput.set('');
 
       await this.loadRoutes();
       this.selectedRouteId.set(routeKey);
       await this.refreshSelectedRouteView(routeKey);
     } catch (error) {
-      console.error('Error al guardar:', error);
+      console.error('Error al guardar la ruta:', error);
     }
   }
 
@@ -264,6 +344,34 @@ export class RouteDrivers implements AfterViewInit, OnDestroy {
       if (!pt.address) {
         pt.address = await this.routesService.getPlaceName(pt.lat, pt.lng);
       }
+    }
+  }
+
+  // Agrega estas señales dentro de la clase RouteDrivers:
+  newPointLat = signal<string>('');
+  newPointLng = signal<string>('');
+
+  // Método para agregar el punto manualmente desde la fila de la tabla
+  async addPointFromTable(): Promise<void> {
+    const routeId = this.selectedRouteId();
+    const lat = parseFloat(this.newPointLat());
+    const lng = parseFloat(this.newPointLng());
+
+    if (!routeId || isNaN(lat) || isNaN(lng)) return;
+
+    try {
+      await this.routesService.addPointToRoute(routeId, { x: lat, y: lng });
+
+      // Limpiar estados y marcador temporal
+      this.newPointLat.set('');
+      this.newPointLng.set('');
+      this.isSelectingFromMap.set(false);
+      this.mapaComponent.clearTemporaryMarker();
+
+      await this.loadRoutes();
+      await this.refreshSelectedRouteView(routeId);
+    } catch (error) {
+      console.error('Error al agregar punto:', error);
     }
   }
 

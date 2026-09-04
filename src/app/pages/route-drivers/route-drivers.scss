@@ -234,3 +234,68 @@ body{
   justify-content: center;
   font-size: 0.8rem;
 }
+
+.add-point-row {
+  background-color: #f0fdf4;
+
+  .tbl-input {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid #a7f3d0;
+    border-radius: 6px;
+    font-size: 0.85rem;
+
+    &:focus {
+      outline: none;
+      border-color: #059669;
+      box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
+    }
+  }
+
+  .btn-tbl-save {
+    background-color: #059669;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: background-color 0.2s;
+
+    &:hover:not(:disabled) {
+      background-color: #047857;
+    }
+
+    &:disabled {
+      background-color: #9ca3af;
+      cursor: not-allowed;
+    }
+  }
+}
+
+:host ::ng-deep {
+  .custom-temp-marker .marker-pin-temp {
+    width: 28px;
+    height: 28px;
+    border-radius: 50% 50% 50% 0;
+    background: #e11d48; /* Rojo destacado para previsualizar */
+    position: absolute;
+    transform: rotate(-45deg);
+    left: 50%;
+    top: 50%;
+    margin: -20px 0 0 -14px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #ffffff;
+
+    span {
+      transform: rotate(45deg);
+      color: #ffffff;
+      font-weight: bold;
+      font-size: 14px;
+    }
+  }
+}

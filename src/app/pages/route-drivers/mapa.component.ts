@@ -78,6 +78,33 @@ export class MapaComponent implements OnDestroy {
     }
   }
 
+  // Agrega esta propiedad a MapaComponent:
+  private tempMarker?: L.Marker;
+
+  // Método para colocar un marcador temporal de selección
+  showTemporaryMarker(lat: number, lng: number): void {
+    if (this.tempMarker) {
+      this.map.removeLayer(this.tempMarker);
+    }
+
+    const tempIcon = L.divIcon({
+      className: 'custom-temp-marker',
+      html: `<div class="marker-pin-temp"><span>+</span></div>`,
+      iconSize: [30, 42],
+      iconAnchor: [15, 42],
+    });
+
+    this.tempMarker = L.marker([lat, lng], { icon: tempIcon }).addTo(this.map);
+  }
+
+  // Método para remover el marcador temporal tras guardar
+  clearTemporaryMarker(): void {
+    if (this.tempMarker) {
+      this.map.removeLayer(this.tempMarker);
+      this.tempMarker = undefined;
+    }
+  }
+
   clearAll(): void {
     this.clearRoute();
     this.markersGroup.clearLayers();

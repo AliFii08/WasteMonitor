@@ -52,8 +52,10 @@ export class RoutesService {
     return [];
   }
 
-  async saveRoute(points: RoutePoint[], totalRoutesCount: number): Promise<string> {
-    const pointsObject: Record<string, RoutePoint> = {};
+  async saveRoute(points: RoutePoint[], nombreRuta: string): Promise<string> {
+    const pointsObject: Record<string, any> = {
+      nombreRuta: nombreRuta || 'Ruta sin nombre',
+    };
 
     for (let index = 0; index < points.length; index++) {
       const pt = points[index];
@@ -61,17 +63,34 @@ export class RoutesService {
       pointsObject[`p${index + 1}`] = { ...pt, address };
     }
 
-    const routeKey = `route${totalRoutesCount + 1}`;
-    const newRouteRef = ref(this.database, `routes/${routeKey}`);
-
+    // Genera un ID único para la ruta
+    const newRouteRef = push(ref(this.database, 'routes'));
     await set(newRouteRef, pointsObject);
-    return routeKey;
+
+    return newRouteRef.key!;
   }
 
   async addPointToRoute(routeId: string, point: RoutePoint): Promise<void> {
     const address = await this.getPlaceName(point.x, point.y);
+
+    // 1. Obtener la ruta actual desde Firebase para contar cuántos puntos existen
     const routeRef = ref(this.database, `routes/${routeId}`);
-    const newPointRef = push(routeRef);
+    const snapshot = await get(routeRef);
+
+    let pointIndex = 1;
+    if (snapshot.exists()) {
+      const routeData = snapshot.val();
+      // Filtra únicamente las propiedades que corresponden a puntos (p1, p2, etc.)
+      const existingPoints = Object.keys(routeData).filter(
+        (key) => key !== 'id' && key !== 'nombreRuta',
+      );
+      pointIndex = existingPoints.length + 1;
+    }
+
+    // 2. Guardar el nuevo punto con la clave secuencial (ej. p3, p4...)
+    const nextPointKey = `p${pointIndex}`;
+    const newPointRef = ref(this.database, `routes/${routeId}/${nextPointKey}`);
+
     await set(newPointRef, { ...point, address });
   }
 
