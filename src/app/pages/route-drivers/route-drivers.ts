@@ -1,280 +1,156 @@
-import { Component, AfterViewInit, OnDestroy, NgZone, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { CommonModule } from '@angular/common'; // Para el *ngFor
-import { Database, ref, get, set, push } from '@angular/fire/database'; // Firebase
-import * as L from 'leaflet';
-
-const localPointIcon = L.divIcon({
-  className: 'local-point-icon',
-  html: '<i class="pi pi-map-marker" style="color: #FF0000;"></i>',
-  iconSize: [24, 24],
-  iconAnchor: [12, 24],
-});
+import { Component, AfterViewInit, OnDestroy, ViewChild, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RoutesService, RouteData, RoutePoint } from '../../@core/services/routes.service';
+import { MapaComponent } from './mapa.component';
 
 @Component({
   selector: 'app-route-drivers',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MapaComponent],
   templateUrl: './route-drivers.html',
   styleUrl: './route-drivers.scss',
 })
 export class RouteDrivers implements AfterViewInit, OnDestroy {
-  map!: L.Map;
-  private routeLayer!: L.Polyline;
-  private markers: L.Marker[] = [];
+  @ViewChild(MapaComponent) mapaComponent!: MapaComponent;
 
-  // Lista de rutas obtenidas de Firebase
-  availableRoutes: any[] = [];
-  selectedRouteId: string = '';
-  // Estado para la ruta local (temporal, en memoria)
-  isBuildingLocalRoute: boolean = false;
-  localRoutePoints: { x: number | null; y: number | null }[] = [];
-  awaitingLocalPoint: boolean = false;
+  private routesService = inject(RoutesService);
 
-  // Inyección de servicios
-  private http = inject(HttpClient);
-  private database = inject(Database);
-  private ngZone = inject(NgZone);
+  availableRoutes = signal<RouteData[]>([]);
+  selectedRouteId = signal<string>('');
+  
+  isBuildingLocalRoute = signal<boolean>(false);
+  localRoutePoints = signal<RoutePoint[]>([]);
+  awaitingLocalPoint = signal<boolean>(false);
 
   ngAfterViewInit(): void {
-    this.initMap();
-    this.loadRoutesFromFirebase();
+    this.mapaComponent.initMap((lat, lng) => this.handleMapClick(lat, lng));
+    this.loadRoutes();
   }
 
-  private initMap(): void {
-    this.map = L.map('map').setView([10.6447, -71.6106], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap',
-    }).addTo(this.map);
-
-    console.log('Mapa inicializado', { isBuildingLocalRoute: this.isBuildingLocalRoute, selectedRouteId: this.selectedRouteId });
-
-    // Evento para manejar clics en el mapa fuera de Angular
-    this.ngZone.runOutsideAngular(() => {
-      this.map.on('click', (e: L.LeafletMouseEvent) => {
-        const lat = e.latlng.lat;
-        const lng = e.latlng.lng;
-        console.log('Click en mapa', { lat, lng, isBuildingLocalRoute: this.isBuildingLocalRoute, awaitingLocalPoint: this.awaitingLocalPoint });
-
-        if (this.isBuildingLocalRoute) {
-          if (!this.awaitingLocalPoint) {
-            console.log('Click ignorado: no está activo el modo Agregar punto');
-            return;
-          }
-          this.ngZone.run(() => this.addLocalPoint(lat, lng));
-          return;
-        }
-
-        this.ngZone.run(() => this.addPointToCurrentRoute(lat, lng));
-      });
-    });
+  async loadRoutes(): Promise<void> {
+    try {
+      const routes = await this.routesService.getRoutes();
+      this.availableRoutes.set(routes);
+    } catch (error) {
+      console.error('Error al cargar las rutas:', error);
+    }
   }
 
-  // Carga inicial de todas las rutas para el desplegable
-  private loadRoutesFromFirebase() {
-    console.log('Leyendo rutas desde Firebase...');
-    const routesRef = ref(this.database, 'routes');
-    get(routesRef)
-      .then((snapshot) => {
-        const data = snapshot.val();
-        console.log('Snapshot de rutas recibida', data);
-        if (data) {
-          this.availableRoutes = Object.keys(data).map((key) => ({
-            id: key,
-            ...data[key],
-          }));
-          console.log('Rutas disponibles actualizadas', this.availableRoutes.map((route) => route.id));
-        } else {
-          this.availableRoutes = [];
-          console.log('No hay rutas en Firebase');
-        }
-      })
-      .catch((error) => {
-        console.error('Error leyendo rutas desde Firebase', error);
-      });
+  private handleMapClick(lat: number, lng: number): void {
+    if (this.isBuildingLocalRoute()) {
+      if (!this.awaitingLocalPoint()) return;
+      this.addLocalPoint(lat, lng);
+      return;
+    }
+
+    if (this.selectedRouteId()) {
+      this.addPointToCurrentRoute(lat, lng);
+    }
   }
 
-  // Al seleccionar una ruta en el HTML
-  onRouteSelect(event: any) {
-    this.selectedRouteId = event.target.value;
-    console.log('Ruta seleccionada', this.selectedRouteId);
-    // Desactivar modo de ruta local
-    this.isBuildingLocalRoute = false;
-    this.localRoutePoints = [];
-    this.awaitingLocalPoint = false;
+  async onRouteSelect(event: Event): Promise<void> {
+    const routeId = (event.target as HTMLSelectElement).value;
+    this.selectedRouteId.set(routeId);
+    
+    this.isBuildingLocalRoute.set(false);
+    this.localRoutePoints.set([]);
+    this.awaitingLocalPoint.set(false);
 
-    const route = this.availableRoutes.find((r) => r.id === this.selectedRouteId);
+    const route = this.availableRoutes().find((r) => r.id === routeId);
     if (route) {
-      console.log('Cargando ruta de Firebase', route);
-      // Convertimos el objeto de puntos (p1, p2...) en un array ordenado para OSRM
-      const points = Object.values(route).filter((val) => typeof val === 'object');
-      this.trazarRutaReal(points as any[]);
+      const points = Object.values(route).filter((val): val is RoutePoint => typeof val === 'object' && val !== null && 'x' in val);
+      const coordinates = await this.routesService.getOSRMRouteCoordinates(points);
+      this.mapaComponent.drawRoute(coordinates);
     } else {
-      console.log('Ruta no encontrada en availableRoutes', this.selectedRouteId);
+      this.mapaComponent.clearAll();
     }
   }
 
-  trackByRouteId(index: number, route: any) {
-    return route?.id;
+  createLocalRoute(): void {
+    this.isBuildingLocalRoute.set(true);
+    this.localRoutePoints.set([]);
+    this.awaitingLocalPoint.set(false);
+    this.selectedRouteId.set('');
+    
+    this.mapaComponent.clearAll();
+    alert('Ruta local creada. Haz clic en "Agregar punto" y luego selecciona un punto en el mapa.');
   }
 
-  private trazarRutaReal(points: any[]): void {
-    console.log('Trazando ruta real con puntos', points);
-    if (points.length < 2) return;
-
-    // Formateamos para OSRM: "lng,lat;lng,lat;lng,lat..."
-    const coordsString = points.map((p: any) => `${p.y},${p.x}`).join(';');
-    const url = `https://router.project-osrm.org/route/v1/driving/${coordsString}?geometries=geojson&overview=full`;
-    console.log('Llamando a OSRM', url);
-
-    this.http.get(url).subscribe((data: any) => {
-      const coordinates = data.routes[0].geometry.coordinates;
-      const latLngs = coordinates.map((coords: number[]) => [coords[1], coords[0]]);
-
-      if (this.routeLayer) this.map.removeLayer(this.routeLayer);
-
-      this.routeLayer = L.polyline(latLngs, {
-        color: '#68a357',
-        weight: 6,
-        opacity: 0.9,
-      }).addTo(this.map);
-
-      this.map.fitBounds(this.routeLayer.getBounds());
-    });
+  prepareAddLocalPoint(): void {
+    if (!this.isBuildingLocalRoute()) {
+      alert('Crea una ruta local primero con "Crear ruta local"');
+      return;
+    }
+    this.awaitingLocalPoint.set(true);
+    alert('Selecciona un punto en el mapa para añadirlo a la ruta local.');
   }
 
-    // Crear una nueva ruta en memoria (no se guarda en Firebase)
-    createLocalRoute() {
-      console.log('Iniciando ruta local');
-      this.isBuildingLocalRoute = true;
-      this.localRoutePoints = [];
-      this.awaitingLocalPoint = false;
-      // Deseleccionar cualquier ruta cargada
-      this.selectedRouteId = '';
-      if (this.routeLayer) {
-        this.map.removeLayer(this.routeLayer);
-      }
-      this.markers.forEach((m) => m.remove());
-      this.markers = [];
-      console.log('Ruta local creada', { localRoutePoints: this.localRoutePoints });
-      alert('Ruta local creada. Pulsa "Agregar punto" y luego selecciona un punto en el mapa.');
+  private async addLocalPoint(lat: number, lng: number): Promise<void> {
+    const updatedPoints = [...this.localRoutePoints(), { x: lat, y: lng }];
+    this.localRoutePoints.set(updatedPoints);
+    this.awaitingLocalPoint.set(false);
+
+    this.mapaComponent.renderLocalMarkers(updatedPoints);
+
+    if (updatedPoints.length >= 2) {
+      const coordinates = await this.routesService.getOSRMRouteCoordinates(updatedPoints);
+      this.mapaComponent.drawRoute(coordinates);
     }
+  }
 
-    // Preparar el siguiente clic en el mapa para añadir un punto local
-    prepareAddLocalPoint() {
-      console.log('Preparando para agregar punto local');
-      if (!this.isBuildingLocalRoute) {
-        alert('Crea una ruta local primero con "Crear ruta local"');
-        return;
-      }
-      this.awaitingLocalPoint = true;
-      console.log('Modo Agregar punto activado', { awaitingLocalPoint: this.awaitingLocalPoint });
-      alert('Selecciona un punto en el mapa para añadirlo a la ruta local.');
-    }
-
-    private addLocalPoint(lat: number, lng: number) {
-      console.log('Añadiendo punto local', { lat, lng });
-      // Añadimos el punto al array local
-      this.localRoutePoints.push({ x: lat, y: lng });
-      this.awaitingLocalPoint = false;
-      console.log('Estado de localRoutePoints', this.localRoutePoints);
-      this.updateLocalRouteOnMap();
-    }
-
-    private updateLocalRouteOnMap() {
-      console.log('Actualizando ruta local en el mapa', { localRoutePoints: this.localRoutePoints });
-      // Limpiar marcador antiguo
-      this.markers.forEach((m) => m.remove());
-      this.markers = [];
-
-      const validPoints = this.localRoutePoints.filter((p) => p && p.x !== null && p.y !== null) as any[];
-      console.log('Puntos válidos para dibujar', validPoints);
-
-      if (validPoints.length === 0) return;
-
-      // Añadir marcadores
-      validPoints.forEach((p) => {
-        const m = L.marker([p.x, p.y], { icon: localPointIcon }).addTo(this.map);
-        this.markers.push(m);
-      });
-
-      // Si hay 2 o más puntos, intentamos trazar la ruta con OSRM como la versión original
-      if (validPoints.length >= 2) {
-        this.trazarRutaReal(validPoints);
-      } else {
-        // Si sólo hay 1 punto, centramos el mapa en ese punto
-        const p = validPoints[0];
-        this.map.flyTo([p.x, p.y], 15);
-      }
-    }
-
-  saveLocalRouteToFirebase() {
-    console.log('Guardando ruta local en Firebase', { isBuildingLocalRoute: this.isBuildingLocalRoute, localRoutePoints: this.localRoutePoints });
-    if (!this.isBuildingLocalRoute || this.localRoutePoints.length === 0) {
-      alert('No hay ruta local para guardar. Crea una ruta local y agrega puntos primero.');
+  async saveLocalRouteToFirebase(): Promise<void> {
+    const points = this.localRoutePoints();
+    if (!this.isBuildingLocalRoute() || points.length === 0) {
+      alert('No hay ruta local para guardar.');
       return;
     }
 
-    const pointsObject: Record<string, { x: number; y: number }> = {};
-    this.localRoutePoints.forEach((point, index) => {
-      if (point.x !== null && point.y !== null) {
-        pointsObject[`p${index + 1}`] = { x: point.x, y: point.y };
-      }
-    });
-    console.log('Objeto a guardar en Firebase', pointsObject);
-
-    if (Object.keys(pointsObject).length === 0) {
-      alert('La ruta local no contiene puntos válidos. Agrega al menos un punto.');
-      return;
+    try {
+      const routeKey = await this.routesService.saveRoute(points, this.availableRoutes().length);
+      this.isBuildingLocalRoute.set(false);
+      this.awaitingLocalPoint.set(false);
+      this.localRoutePoints.set([]);
+      
+      await this.loadRoutes();
+      alert(`Ruta guardada exitosamente con la clave: ${routeKey}`);
+    } catch (error) {
+      console.error('Error al guardar la ruta:', error);
+      alert('Error al guardar la ruta.');
     }
-
-    const routeNumber = this.availableRoutes.length + 1;
-    const routeKey = `route${routeNumber}`;
-    const newRouteRef = ref(this.database, `routes/${routeKey}`);
-
-    set(newRouteRef, pointsObject)
-      .then(() => {
-        console.log('Ruta guardada en Firebase correctamente', { routeKey });
-        this.isBuildingLocalRoute = false;
-        this.awaitingLocalPoint = false;
-        this.localRoutePoints = [];
-        this.loadRoutesFromFirebase();
-        alert('Ruta guardada en Firebase con llave: ' + routeKey);
-      })
-      .catch((error) => {
-        console.error('Error guardando ruta local en Firebase:', error);
-        alert('Ocurrió un error al guardar la ruta en Firebase. Revisa la consola.');
-      });
   }
 
-  // Guardar nuevo punto en la ruta actual de Firebase
-  private addPointToCurrentRoute(lat: number, lng: number) {
-    console.log('Añadiendo punto a ruta existente en Firebase', { selectedRouteId: this.selectedRouteId, lat, lng });
-    if (!this.selectedRouteId) {
-      alert('Por favor, selecciona o crea una ruta primero en el desplegable');
-      return;
+  private async addPointToCurrentRoute(lat: number, lng: number): Promise<void> {
+    const routeId = this.selectedRouteId();
+    if (!routeId) return;
+
+    try {
+      await this.routesService.addPointToRoute(routeId, { x: lat, y: lng });
+      await this.loadRoutes();
+      alert('Punto agregado a la ruta actual');
+    } catch (error) {
+      console.error('Error al agregar punto:', error);
     }
-
-    // Buscamos el siguiente índice (p1, p2, p3...)
-    const routeRef = ref(this.database, `routes/${this.selectedRouteId}`);
-    const newPointRef = push(routeRef); // Firebase genera un ID único o puedes manejar pN manualmente
-
-    set(newPointRef, { x: lat, y: lng }).then(() => {
-      console.log('Punto guardado en Firebase', { routeId: this.selectedRouteId, lat, lng });
-      alert('Punto guardado en la ruta existente');
-      // El onValue de loadRoutesFromFirebase se encargará de refrescar la vista automáticamente
-    });
   }
 
-  resetView() {
-    if (this.map && this.routeLayer) {
-      this.map.fitBounds(this.routeLayer.getBounds());
-    } else {
-      this.map.flyTo([10.6447, -71.6106], 13);
-    }
+  resetView(): void {
+    this.mapaComponent.resetView();
+  }
+
+  trackByRouteId(_index: number, route: RouteData): string {
+    return route.id;
   }
 
   ngOnDestroy(): void {
-    if (this.map) this.map.remove();
+    if (this.mapaComponent) {
+      this.mapaComponent.destroyMap();
+    }
+  }
+
+  getSelectedRouteName(): string {
+    const selectedId = this.selectedRouteId();
+    if (!selectedId) return '';
+  
+    const route = this.availableRoutes().find((r) => r.id === selectedId);
+    return route?.nombreRuta || selectedId;
   }
 }

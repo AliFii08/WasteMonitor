@@ -13,33 +13,35 @@
     <div class="route-actions">
       <select class="route-selector" (change)="onRouteSelect($event)">
         <option value="">-- Selecciona una ruta --</option>
-        <option *ngFor="let route of availableRoutes; trackBy: trackByRouteId" [value]="route.id">
+        <option *ngFor="let route of availableRoutes(); trackBy: trackByRouteId" [value]="route.id">
           {{ route.id }}
         </option>
       </select>
+
       <button type="button" class="btn-create" (click)="createLocalRoute()">
         <i class="pi pi-plus"></i> Crear ruta local
       </button>
-      <button type="button" class="btn-add" (click)="prepareAddLocalPoint()" [disabled]="!isBuildingLocalRoute">
+
+      <!-- Invocación de Signals con () en [disabled] -->
+      <button type="button" class="btn-add" (click)="prepareAddLocalPoint()" [disabled]="!isBuildingLocalRoute()">
         <i class="pi pi-map-marker"></i> Agregar punto
       </button>
-      <button type="button" class="btn-save" (click)="saveLocalRouteToFirebase()" [disabled]="!isBuildingLocalRoute || localRoutePoints.length === 0">
+
+      <button type="button" class="btn-save" (click)="saveLocalRouteToFirebase()" [disabled]="!isBuildingLocalRoute() || localRoutePoints().length === 0">
         <i class="pi pi-save"></i> Guardar ruta
       </button>
     </div>
   </div>
 
-  <div id="map" ngNonBindable></div>
+  <app-mapa></app-mapa>
 
   <div class="footer-info">
     <div class="status-badge success">
-      <i class="pi pi-info-circle"></i> {{ selectedRouteId ? 'Editando: ' + selectedRouteId : 'Seleccione una ruta' }}
+      <!-- Invocación de Signal en la interpolación -->
+      <i class="pi pi-info-circle"></i> {{ selectedRouteId() ? 'Editando: ' + selectedRouteId() : 'Seleccione una ruta' }}
     </div>
     <button (click)="resetView()" class="btn-center">
       <i class="pi pi-search-plus"></i> Reajustar Vista
     </button>
   </div>
 </div>
-
-
-
