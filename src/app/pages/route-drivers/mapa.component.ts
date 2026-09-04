@@ -1,40 +1,101 @@
+import { Component, OnDestroy } from '@angular/core';
 import * as L from 'leaflet';
 
-// Definimos la ruta del camión (esto vendría de tu backend)
-const coordenadasRuta: [number, number][] = [
-  [10.6695, -71.6133], // Punto A (Ej: Av. 4 Bella Vista)
-  [10.672, -71.615], // Punto B
-  [10.675, -71.618], // Punto C
-];
+export interface PointWithLabel {
+  x: number;
+  y: number;
+  label: string | number;
+}
 
-export class MapaComponent {
-  map!: L.Map;
+@Component({
+  selector: 'app-mapa',
+  standalone: true,
+  template: `<div
+    id="map"
+    style="height: 400px; width: 100%; border-radius: 12px; z-index: 1;"
+  ></div>`,
+})
+export class MapaComponent implements OnDestroy {
+  private map!: L.Map;
+  private routeLayer!: L.Polyline;
+  private markersGroup: L.LayerGroup = L.layerGroup();
 
-  initMap() {
-    // 1. Inicializar el mapa centrado en Maracaibo
-    this.map = L.map('map').setView([10.6447, -71.6106], 13);
+  initMap(onMapClick: (lat: number, lng: number) => void): void {
+    if (this.map) return;
 
-    // 2. Cargar los cuadros de OpenStreetMap (Gratis)
+    this.map = L.map('map').setView([10.667, -71.622], 14);
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
+      attribution: '&copy; OpenStreetMap contributors',
     }).addTo(this.map);
 
-    // 3. Dibujar la ruta (Polyline)
-    const polyline = L.polyline(coordenadasRuta, {
-      color: 'green',
-      weight: 5,
-      opacity: 0.7,
-      smoothFactor: 1,
-    }).addTo(this.map);
+    this.markersGroup.addTo(this.map);
 
-    // Ajustar el zoom para que se vea toda la ruta
-    this.map.fitBounds(polyline.getBounds());
-
-    // 4. Agregar marcador del camión (Posición actual)
-    const iconoCamion = L.icon({
-      iconUrl: 'assets/camion-basura.png',
-      iconSize: [38, 38],
+    this.map.on('click', (e: L.LeafletMouseEvent) => {
+      onMapClick(e.latlng.lat, e.latlng.lng);
     });
-    L.marker([10.675, -71.618], { icon: iconoCamion }).addTo(this.map);
+  }
+
+  private createNumberedIcon(label: string | number): L.DivIcon {
+    return L.divIcon({
+      className: 'custom-numbered-marker',
+      html: `<div class="marker-pin"><span>${label}</span></div>`,
+      iconSize: [30, 42],
+      iconAnchor: [15, 42],
+    });
+  }
+
+  renderNumberedMarkers(points: PointWithLabel[]): void {
+    this.markersGroup.clearLayers();
+
+    points.forEach((pt) => {
+      const marker = L.marker([pt.x, pt.y], {
+        icon: this.createNumberedIcon(pt.label),
+      });
+      this.markersGroup.addLayer(marker);
+    });
+  }
+
+  drawRoute(coordinates: [number, number][]): void {
+    if (this.routeLayer) {
+      this.map.removeLayer(this.routeLayer);
+    }
+
+    if (coordinates.length === 0) return;
+
+    this.routeLayer = L.polyline(coordinates, {
+      color: '#2e7d32',
+      weight: 5,
+      opacity: 0.8,
+    }).addTo(this.map);
+
+    this.map.fitBounds(this.routeLayer.getBounds(), { padding: [50, 50] });
+  }
+
+  clearRoute(): void {
+    if (this.routeLayer) {
+      this.map.removeLayer(this.routeLayer);
+    }
+  }
+
+  clearAll(): void {
+    this.clearRoute();
+    this.markersGroup.clearLayers();
+  }
+
+  resetView(): void {
+    if (this.routeLayer) {
+      this.map.fitBounds(this.routeLayer.getBounds(), { padding: [50, 50] });
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.destroyMap();
+  }
+
+  destroyMap(): void {
+    if (this.map) {
+      this.map.remove();
+    }
   }
 }

@@ -5,41 +5,84 @@
     <span>Cree, edite o asigne rutas.</span>
   </div>
 
-<div class="map-container card">
-  <div class="header-map">
-    <h2 class="title"><i class="pi pi-map-marker"></i> Gestión de Rutas</h2>
-    <p class="subtitle">Haz clic en el mapa para añadir puntos a la ruta seleccionada</p>
+  <div class="map-container card">
+    <div class="header-map">
+      <h2 class="title"><i class="pi pi-map-marker"></i> Gestión de Rutas</h2>
+      <p class="subtitle">Haz clic en el mapa para añadir puntos a la ruta seleccionada</p>
 
-    <div class="route-actions">
-      <select class="route-selector" (change)="onRouteSelect($event)">
-        <option value="">-- Selecciona una ruta --</option>
-        <option *ngFor="let route of availableRoutes; trackBy: trackByRouteId" [value]="route.id">
-          {{ route.id }}
-        </option>
-      </select>
-      <button type="button" class="btn-create" (click)="createLocalRoute()">
-        <i class="pi pi-plus"></i> Crear ruta local
-      </button>
-      <button type="button" class="btn-add" (click)="prepareAddLocalPoint()" [disabled]="!isBuildingLocalRoute">
-        <i class="pi pi-map-marker"></i> Agregar punto
-      </button>
-      <button type="button" class="btn-save" (click)="saveLocalRouteToFirebase()" [disabled]="!isBuildingLocalRoute || localRoutePoints.length === 0">
-        <i class="pi pi-save"></i> Guardar ruta
-      </button>
+      <div class="route-actions">
+        <select class="route-selector" (change)="onRouteSelect($event)">
+          <option value="">-- Selecciona una ruta --</option>
+          <option *ngFor="let route of availableRoutes(); trackBy: trackByRouteId" [value]="route.id">
+            {{ route.nombreRuta || route.id }}
+          </option>
+        </select>
+
+        <button type="button" class="btn-create" (click)="createLocalRoute()">
+          <i class="pi pi-plus"></i> Crear ruta local
+        </button>
+
+        <button type="button" class="btn-add" (click)="prepareAddLocalPoint()" [disabled]="!isBuildingLocalRoute()">
+          <i class="pi pi-map-marker"></i> Agregar punto
+        </button>
+
+        <button type="button" class="btn-save" (click)="saveLocalRouteToFirebase()" [disabled]="!isBuildingLocalRoute() || localRoutePoints().length === 0">
+          <i class="pi pi-save"></i> Guardar ruta
+        </button>
+      </div>
     </div>
-  </div>
 
-  <div id="map" ngNonBindable></div>
+    <!-- Se añade la etiqueta del selector del mapa -->
+    <app-mapa></app-mapa>
 
-  <div class="footer-info">
-    <div class="status-badge success">
-      <i class="pi pi-info-circle"></i> {{ selectedRouteId ? 'Editando: ' + selectedRouteId : 'Seleccione una ruta' }}
-    </div>
-    <button (click)="resetView()" class="btn-center">
-      <i class="pi pi-search-plus"></i> Reajustar Vista
-    </button>
-  </div>
+    <!-- Tabla de puntos numerados -->
+    <!-- route-drivers.html -->
+<div class="points-table-container" *ngIf="currentPoints().length > 0">
+  <h3 class="table-title">Puntos de la ruta ({{ currentPoints().length }})</h3>
+  <table class="points-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Ubicación / Calle</th>
+        <th>Latitud (X)</th>
+        <th>Longitud (Y)</th>
+        <th class="text-center">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let point of currentPoints(); let i = index; trackBy: trackByPointKey">
+        <td class="point-number">
+          <span class="badge-number">{{ point.index }}</span>
+        </td>
+
+        <!-- AQUÍ SE REEMPLAZA ESTA CELDA -->
+        <td class="point-address">
+          <i class="pi pi-map-marker text-emerald-600"></i>
+          {{ point.address || 'Buscando dirección...' }}
+        </td>
+
+        <td>{{ point.lat }}</td>
+        <td>{{ point.lng }}</td>
+        <td class="actions-cell">
+          <button type="button" class="btn-tbl-action edit" (click)="editPoint(point, i)" title="Editar punto">
+            <i class="pi pi-pencil"></i>
+          </button>
+          <button type="button" class="btn-tbl-action delete" (click)="deletePoint(point, i)" title="Eliminar punto">
+            <i class="pi pi-trash"></i>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
 </div>
 
-
-
+    <div class="footer-info">
+      <div class="status-badge success">
+        <i class="pi pi-info-circle"></i> {{ selectedRouteId() ? 'Editando: ' + getSelectedRouteName() : 'Seleccione una ruta' }}
+      </div>
+      <button (click)="resetView()" class="btn-center">
+        <i class="pi pi-search-plus"></i> Reajustar Vista
+      </button>
+    </div>
+  </div>
+</body>
