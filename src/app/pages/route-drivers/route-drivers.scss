@@ -105,3 +105,197 @@ body{
   // color: #68a357 !important;
   // fill: #68a357 !important;
 }
+
+/* Agregar al final de route-drivers.scss */
+
+.points-table-container {
+  margin-top: 20px;
+  background-color: #f8faf9;
+  border: 1px solid #e0ebd8;
+  border-radius: 10px;
+  padding: 15px;
+
+  .table-title {
+    font-size: 1rem;
+    color: #0b3d2f;
+    margin: 0 0 10px 0;
+    font-weight: 700;
+  }
+
+  .points-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+
+    th, td {
+      padding: 8px 12px;
+      text-align: left;
+      border-bottom: 1px solid #e2ece9;
+    }
+
+    th {
+      background-color: #eaf3e7;
+      color: #0b3d2f;
+      font-weight: 700;
+    }
+
+    td {
+      color: #2c4c3e;
+    }
+
+    .point-key {
+      font-weight: 700;
+      color: #68a357;
+    }
+
+    tbody tr:hover {
+      background-color: #f0f7ee;
+    }
+  }
+}
+
+.text-center {
+  text-align: center !important;
+}
+
+.actions-cell {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.btn-tbl-action {
+  background: transparent;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s, color 0.2s;
+  margin: 0 2px;
+
+  &.edit {
+    color: #2b78e4;
+    &:hover {
+      background-color: #e8f1fd;
+    }
+  }
+
+  &.delete {
+    color: #d9381e;
+    &:hover {
+      background-color: #fde8e8;
+    }
+  }
+}
+
+/* Estilos para el PIN numerado de Leaflet en el mapa */
+:host ::ng-deep {
+  .custom-numbered-marker {
+    background: transparent;
+    border: none;
+
+    .marker-pin {
+      width: 28px;
+      height: 28px;
+      border-radius: 50% 50% 50% 0;
+      background: #0b3d2f;
+      position: absolute;
+      transform: rotate(-45deg);
+      left: 50%;
+      top: 50%;
+      margin: -20px 0 0 -14px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #ffffff;
+
+      span {
+        transform: rotate(45deg);
+        color: #ffffff;
+        font-weight: bold;
+        font-size: 12px;
+        line-height: 1;
+      }
+    }
+  }
+}
+
+/* Estilo para el número de orden en la tabla */
+.badge-number {
+  background-color: #0b3d2f;
+  color: #ffffff;
+  font-weight: bold;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+}
+
+.add-point-row {
+  background-color: #f0fdf4;
+
+  .tbl-input {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid #a7f3d0;
+    border-radius: 6px;
+    font-size: 0.85rem;
+
+    &:focus {
+      outline: none;
+      border-color: #059669;
+      box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
+    }
+  }
+
+  .btn-tbl-save {
+    background-color: #059669;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: background-color 0.2s;
+
+    &:hover:not(:disabled) {
+      background-color: #047857;
+    }
+
+    &:disabled {
+      background-color: #9ca3af;
+      cursor: not-allowed;
+    }
+  }
+}
+
+:host ::ng-deep {
+  .custom-temp-marker .marker-pin-temp {
+    width: 28px;
+    height: 28px;
+    border-radius: 50% 50% 50% 0;
+    background: #e11d48; /* Rojo destacado para previsualizar */
+    position: absolute;
+    transform: rotate(-45deg);
+    left: 50%;
+    top: 50%;
+    margin: -20px 0 0 -14px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #ffffff;
+
+    span {
+      transform: rotate(45deg);
+      color: #ffffff;
+      font-weight: bold;
+      font-size: 14px;
+    }
+  }
+}
