@@ -241,8 +241,8 @@
               <td>{{ driver.driverId }}</td>
               <td>{{ driver.nombreCompleto }}</td>
               <td>
-                <span 
-                  class="role-chip" 
+                <span
+                  class="role-chip"
                   [ngClass]="{ 'supervisor': driver.cargo === 'supervisor', 'crew': driver.cargo === 'crew' }">
                   {{ driver.cargo | titlecase }}
                 </span>
