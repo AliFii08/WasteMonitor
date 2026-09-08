@@ -73,6 +73,7 @@
         <th>Tipo</th>
         <th>Capacidad (toneladas)</th>
         <th>Placa</th>
+        <th>Ruta</th>
         <th>Estado</th>
         <th class="options-header">Opciones</th>
       </tr>
@@ -84,7 +85,21 @@
         <td>{{ vehicle.type | titlecase }}</td>
         <td>{{ vehicle.weight | number: '1.0-0' }} t</td>
         <td>{{ vehicle.plate }}</td>
-        <td> AcaEstadoDelVehiculo</td>
+        <td>{{vehicle.route}}</td>
+        <!-- En vehicles.html -->
+
+<td>
+  <span 
+    class="status-chip"
+    [ngClass]="{
+      'active': vehicle.status === 'disponible',
+      'maintenance': vehicle.status === 'mantenimiento',
+      'inactive': vehicle.status === 'en ruta'
+    }"
+  >
+    {{ vehicle.status | titlecase }}
+  </span>
+</td>
         <td>
           <div class="option-actions">
             <p-tableCheckbox [value]="vehicle"></p-tableCheckbox>
@@ -115,72 +130,19 @@
       </tr>
     </ng-template>
   </p-table>
-
-  <!-- COMO SE VERAN LAS TABLAS -->
-
-  <!-- <section class="preview-section" aria-label="Vista previa de estilo de tabla">
-
-    <div class="preview-table-wrap">
-      <table class="preview-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Tipo</th>
-            <th>Capacidad (toneladas)</th>
-            <th>Placa</th>
-            <th>Estado</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>VEH-001</td>
-            <td>Compactador</td>
-            <td>12 t</td>
-            <td>AB123CD</td>
-            <td><span class="status-chip active">Operativo</span></td>
-          </tr>
-          <tr>
-            <td>VEH-002</td>
-            <td>Volteo</td>
-            <td>9 t</td>
-            <td>EF456GH</td>
-            <td><span class="status-chip maintenance">Mantenimiento</span></td>
-          </tr>
-          <tr>
-            <td>VEH-003</td>
-            <td>Recolector lateral</td>
-            <td>10 t</td>
-            <td>IJ789KL</td>
-            <td><span class="status-chip active">Operativo</span></td>
-          </tr>
-          <tr>
-            <td>VEH-004</td>
-            <td>Camión ligero</td>
-            <td>4 t</td>
-            <td>MN012OP</td>
-            <td><span class="status-chip inactive">Fuera de servicio</span></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section> -->
-
-  <!-- COMO SE VERAN LAS TABLAS -->
-
-
 </div>
 
 <app-create-vehicle
   [(visible)]="isCreateModalOpen"
   [existingPlates]="existingPlates"
-  (visibleChange)="onCreateModalVisibleChange($event)"
-  (saveVehicle)="onCreateVehicle($event)"
+  [routes]="availableRoutes"
+  (saveVehicle)="handleSaveVehicle($event)"
 ></app-create-vehicle>
 
 <app-update-vehicle
   [(visible)]="isUpdateModalOpen"
   [vehicle]="editingVehicle"
   [existingPlates]="existingPlates"
-  (visibleChange)="onUpdateModalVisibleChange($event)"
+  [routes]="availableRoutes"
   (updateVehicle)="onUpdateVehicle($event)"
 ></app-update-vehicle>

@@ -1,6 +1,6 @@
 import { Component, OnDestroy } from '@angular/core';
 import * as L from 'leaflet';
-import { RoutesService, RouteData, RoutePoint } from '../../@core/services/routes.service';
+import { RoutePoint } from '../../@core/services/routes.service';
 
 export interface PointWithLabel {
   x: number;
@@ -18,7 +18,8 @@ export interface PointWithLabel {
 })
 export class MapaComponent implements OnDestroy {
   private map!: L.Map;
-  private routeLayer!: L.Polyline;
+  private routeLayer?: L.Polyline;
+  private tempMarker?: L.Marker;
   private markersGroup: L.LayerGroup = L.layerGroup();
 
   initMap(onMapClick: (lat: number, lng: number) => void): void {
@@ -37,68 +38,48 @@ export class MapaComponent implements OnDestroy {
     });
   }
 
-  private createNumberedIcon(label: string | number): L.DivIcon {
+  // --- Manejo de Iconos y Marcadores ---
+
+  private createCustomIcon(className: string, content: string): L.DivIcon {
     return L.divIcon({
-      className: 'custom-numbered-marker',
-      html: `<div class="marker-pin"><span>${label}</span></div>`,
+      className,
+      html: `<div class="marker-pin"><span>${content}</span></div>`,
       iconSize: [30, 42],
       iconAnchor: [15, 42],
     });
   }
 
   renderNumberedMarkers(points: PointWithLabel[]): void {
-    this.markersGroup.clearLayers();
+    this.clearMarkers();
 
     points.forEach((pt) => {
-      const marker = L.marker([pt.x, pt.y], {
-        icon: this.createNumberedIcon(pt.label),
-      });
+      const icon = this.createCustomIcon('custom-numbered-marker', String(pt.label));
+      const marker = L.marker([pt.x, pt.y], { icon });
       this.markersGroup.addLayer(marker);
     });
   }
 
-  drawRoute(coordinates: [number, number][]): void {
-    if (this.routeLayer) {
-      this.map.removeLayer(this.routeLayer);
-    }
+  renderLocalMarkers(points: RoutePoint[]): void {
+    this.clearMarkers();
 
-    if (coordinates.length === 0) return;
-
-    this.routeLayer = L.polyline(coordinates, {
-      color: '#2e7d32',
-      weight: 5,
-      opacity: 0.8,
-    }).addTo(this.map);
-
-    this.map.fitBounds(this.routeLayer.getBounds(), { padding: [50, 50] });
-  }
-
-  clearRoute(): void {
-    if (this.routeLayer) {
-      this.map.removeLayer(this.routeLayer);
-    }
-  }
-
-  // Agrega esta propiedad a MapaComponent:
-  private tempMarker?: L.Marker;
-
-  // Método para colocar un marcador temporal de selección
-  showTemporaryMarker(lat: number, lng: number): void {
-    if (this.tempMarker) {
-      this.map.removeLayer(this.tempMarker);
-    }
-
-    const tempIcon = L.divIcon({
-      className: 'custom-temp-marker',
-      html: `<div class="marker-pin-temp"><span>+</span></div>`,
-      iconSize: [30, 42],
-      iconAnchor: [15, 42],
+    points.forEach((p, index) => {
+      const icon = this.createCustomIcon('custom-local-marker', String(index + 1));
+      const marker = L.marker([p.x, p.y], { icon });
+      this.markersGroup.addLayer(marker);
     });
 
-    this.tempMarker = L.marker([lat, lng], { icon: tempIcon }).addTo(this.map);
+    if (points.length === 1 && this.map) {
+      this.map.flyTo([points[0].x, points[0].y], 15);
+    }
   }
 
-  // Método para remover el marcador temporal tras guardar
+  showTemporaryMarker(lat: number, lng: number): void {
+    this.clearTemporaryMarker();
+
+    const icon = this.createCustomIcon('custom-temp-marker', '+');
+    this.tempMarker = L.marker([lat, lng], { icon }).addTo(this.map);
+  }
+
   clearTemporaryMarker(): void {
     if (this.tempMarker) {
       this.map.removeLayer(this.tempMarker);
@@ -106,54 +87,24 @@ export class MapaComponent implements OnDestroy {
     }
   }
 
-  clearAll(): void {
-    this.clearRoute();
+  clearMarkers(): void {
     this.markersGroup.clearLayers();
   }
 
-  resetView(): void {
-    if (this.routeLayer) {
-      this.map.fitBounds(this.routeLayer.getBounds(), { padding: [50, 50] });
-    }
-  }
+  // --- Manejo de Rutas y Capas ---
 
-  ngOnDestroy(): void {
-    this.destroyMap();
-  }
-
-  destroyMap(): void {
-    if (this.map) {
-      this.map.remove();
-    }
-  }
-
-  // Dibujar la polínea que retorna OSRM en el mapa
-  drawRoute(latLngs: [number, number][]): void {
+  drawRoute(coordinates: [number, number][]): void {
     this.clearRoute();
 
-    if (latLngs.length === 0) return;
+    if (!coordinates || coordinates.length === 0) return;
 
-    this.routeLayer = L.polyline(latLngs, {
+    this.routeLayer = L.polyline(coordinates, {
       color: '#68a357',
       weight: 6,
       opacity: 0.9,
     }).addTo(this.map);
 
-    this.map.fitBounds(this.routeLayer.getBounds());
-  }
-
-  // Renderizar los marcadores de puntos locales
-  renderLocalMarkers(points: RoutePoint[]): void {
-    this.clearMarkers();
-
-    points.forEach((p) => {
-      const m = L.marker([p.x, p.y], { icon: localPointIcon }).addTo(this.map);
-      this.markers.push(m);
-    });
-
-    if (points.length === 1) {
-      this.map.flyTo([points[0].x, points[0].y], 15);
-    }
+    this.map.fitBounds(this.routeLayer.getBounds(), { padding: [50, 50] });
   }
 
   clearRoute(): void {
@@ -163,27 +114,29 @@ export class MapaComponent implements OnDestroy {
     }
   }
 
-  clearMarkers(): void {
-    this.markers.forEach((m) => m.remove());
-    this.markers = [];
-  }
-
   clearAll(): void {
     this.clearRoute();
     this.clearMarkers();
+    this.clearTemporaryMarker();
   }
 
   resetView(): void {
     if (this.routeLayer) {
-      this.map.fitBounds(this.routeLayer.getBounds());
-    } else {
-      this.map.flyTo([10.6447, -71.6106], 13);
+      this.map.fitBounds(this.routeLayer.getBounds(), { padding: [50, 50] });
+    } else if (this.map) {
+      this.map.flyTo([10.667, -71.622], 14);
     }
   }
+
+  // --- Ciclo de Vida ---
 
   destroyMap(): void {
     if (this.map) {
       this.map.remove();
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroyMap();
   }
 }

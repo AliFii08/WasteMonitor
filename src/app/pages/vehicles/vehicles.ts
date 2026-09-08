@@ -1,13 +1,13 @@
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
 import { Table, TableModule } from 'primeng/table';
-import { Vehicle, VEHICLE_TYPES } from '../../@core/interfaces/vehicle.model';
-import { VehiculoService } from '../../@core/services/vehiculos.service';
-import { CreateVehicleComponent } from './components/create-vehicle/create-vehicle';
+import { ButtonModule } from 'primeng/button';
+import { Vehicle, VEHICLE_TYPES, VehicleType } from '../../@core/interfaces/vehicle.model';
+import { CreateVehicleComponent, RouteOption } from './components/create-vehicle/create-vehicle';
 import { UpdateVehicleComponent } from './components/update-vehicle/update-vehicle';
+import { RoutesService } from '../../@core/services/routes.service';
+import { VehiculoService } from '../../@core/services/vehiculos.service';
 
 @Component({
   selector: 'app-vehicles',
@@ -17,30 +17,48 @@ import { UpdateVehicleComponent } from './components/update-vehicle/update-vehic
     FormsModule,
     TableModule,
     ButtonModule,
-    InputTextModule,
     CreateVehicleComponent,
     UpdateVehicleComponent,
   ],
   templateUrl: './vehicles.html',
-  styleUrl: './vehicles.scss',
+  styleUrls: ['./vehicles.scss'],
 })
 export class Vehicles implements OnInit {
   private vehiculoService = inject(VehiculoService);
-  private cdr = inject(ChangeDetectorRef);
+  private routesService = inject(RoutesService);
 
   vehicles: Vehicle[] = [];
-  loading: boolean = false;
-
-  selectedVehicleType = '';
   selectedVehicles: Vehicle[] = [];
-  allVehiclesSelected = false;
   isCreateModalOpen = false;
   isUpdateModalOpen = false;
   editingVehicle: Vehicle | null = null;
-  vehicleTypes = [...VEHICLE_TYPES];
+  loading = false;
 
-  ngOnInit(): void {
-    this.loadVehicles();
+  vehicleTypes = [...VEHICLE_TYPES];
+  selectedVehicleType: VehicleType | '' = '';
+  allVehiclesSelected = false;
+
+  availableRoutes: RouteOption[] = [];
+
+  get existingPlates(): string[] {
+    return this.vehicles.map((v) => v.plate);
+  }
+
+  async ngOnInit(): Promise<void> {
+    await this.loadVehicles();
+    await this.loadRoutes();
+  }
+
+  async loadRoutes(): Promise<void> {
+    try {
+      const routesData = await this.routesService.getRoutes();
+      this.availableRoutes = routesData.map((r) => ({
+        id: r.id,
+        nombreRuta: r.nombreRuta || r.id,
+      }));
+    } catch (error) {
+      console.error('Error al obtener rutas:', error);
+    }
   }
 
   async loadVehicles(): Promise<void> {
@@ -48,19 +66,10 @@ export class Vehicles implements OnInit {
     try {
       this.vehicles = await this.vehiculoService.getVehicles();
     } catch (error) {
-      console.error('Error al cargar vehículos:', error);
+      console.error('Error al cargar vehículos desde Firebase:', error);
     } finally {
       this.loading = false;
-      this.cdr.detectChanges();
     }
-  }
-
-  get existingIds(): string[] {
-    return this.vehicles.map(vehicle => vehicle.id);
-  }
-
-  get existingPlates(): string[] {
-    return this.vehicles.map(vehicle => vehicle.plate);
   }
 
   openCreateModal(): void {
@@ -72,96 +81,71 @@ export class Vehicles implements OnInit {
     this.isUpdateModalOpen = true;
   }
 
-  onCreateModalVisibleChange(isVisible: boolean): void {
-    this.isCreateModalOpen = isVisible;
-  }
-
-  onUpdateModalVisibleChange(isVisible: boolean): void {
-    this.isUpdateModalOpen = isVisible;
-    if (!isVisible) {
-      this.editingVehicle = null;
-    }
-  }
-
-  private getVisibleVehicles(table: Table): Vehicle[] {
-    return (table.filteredValue as Vehicle[] | null) ?? this.vehicles;
-  }
+  // --- MÉTODOS DE LA TABLA Y SELECCIÓN ---
 
   onVehiclesSelectionChange(table: Table): void {
-    const visibleVehicles = this.getVisibleVehicles(table);
-    this.allVehiclesSelected =
-      visibleVehicles.length > 0 &&
-      visibleVehicles.every((vehicle) => this.selectedVehicles.some((selected) => selected.id === vehicle.id));
+    const currentList = table.filteredValue || this.vehicles;
+    const totalRecords = currentList.length;
+
+    this.allVehiclesSelected = totalRecords > 0 && this.selectedVehicles.length === totalRecords;
   }
 
   toggleSelectAllVehicles(table: Table, checked: boolean): void {
-    const visibleVehicles = this.getVisibleVehicles(table);
-    const selectedIds = new Set(this.selectedVehicles.map((vehicle) => vehicle.id));
-
-    if (checked) {
-      this.selectedVehicles = [
-        ...this.selectedVehicles,
-        ...visibleVehicles.filter((vehicle) => !selectedIds.has(vehicle.id)),
-      ];
-    } else {
-      const visibleIds = new Set(visibleVehicles.map((vehicle) => vehicle.id));
-      this.selectedVehicles = this.selectedVehicles.filter((vehicle) => !visibleIds.has(vehicle.id));
-    }
-
+    const currentList = table.filteredValue || this.vehicles;
+    this.selectedVehicles = checked ? [...currentList] : [];
     this.allVehiclesSelected = checked;
   }
 
-  async onDeleteSelectedVehicles(): Promise<void> {
-    if (!this.selectedVehicles.length) return;
-
-    const canDelete = window.confirm(
-      `Se eliminarán ${this.selectedVehicles.length} vehículo(s). Esta acción no se puede deshacer.`,
-    );
-
-    if (!canDelete) return;
-
+  async onDeleteVehicle(vehicle: Vehicle): Promise<void> {
     try {
-      await Promise.all(
-        this.selectedVehicles.map((vehicle) => this.vehiculoService.deleteVehicle(vehicle.id)),
-      );
+      await this.vehiculoService.deleteVehicle(vehicle.id);
+      await this.loadVehicles();
+      this.selectedVehicles = this.selectedVehicles.filter((v) => v.id !== vehicle.id);
+    } catch (error) {
+      console.error('Error al eliminar vehículo:', error);
+    }
+  }
+
+  async onDeleteSelectedVehicles(): Promise<void> {
+    try {
+      for (const vehicle of this.selectedVehicles) {
+        await this.vehiculoService.deleteVehicle(vehicle.id);
+      }
+      await this.loadVehicles();
       this.selectedVehicles = [];
       this.allVehiclesSelected = false;
-      await this.loadVehicles();
     } catch (error) {
       console.error('Error al eliminar vehículos seleccionados:', error);
     }
   }
 
-  async onCreateVehicle(vehicleData: Omit<Vehicle, 'id'>): Promise<void> {
+  // --- MÉTODOS DE MODALES ---
+
+  async handleSaveVehicle(newVehicleData: Omit<Vehicle, 'id'>): Promise<void> {
     try {
-      await this.vehiculoService.createVehicle(vehicleData);
+      await this.vehiculoService.createVehicle(newVehicleData);
       await this.loadVehicles();
+      this.isCreateModalOpen = false;
     } catch (error) {
       console.error('Error al guardar vehículo:', error);
     }
   }
 
-  async onUpdateVehicle(vehicle: Vehicle): Promise<void> {
-    try {
-      await this.vehiculoService.updateVehicle(vehicle);
-      await this.loadVehicles();
-    } catch (error) {
-      console.error('Error al actualizar vehículo:', error);
+  onUpdateModalVisibleChange(visible: boolean): void {
+    this.isUpdateModalOpen = visible;
+    if (!visible) {
+      this.editingVehicle = null;
     }
   }
 
-  async onDeleteVehicle(vehicle: Vehicle): Promise<void> {
-    const canDelete = window.confirm(
-      `Se eliminará el vehículo ${vehicle.id}. Esta acción no se puede deshacer.`,
-    );
-
-    if (!canDelete) return;
-
+  async onUpdateVehicle(updatedVehicle: Vehicle): Promise<void> {
     try {
-      await this.vehiculoService.deleteVehicle(vehicle.id);
+      await this.vehiculoService.updateVehicle(updatedVehicle);
       await this.loadVehicles();
+      this.isUpdateModalOpen = false;
+      this.editingVehicle = null;
     } catch (error) {
-      console.error('Error al eliminar vehículo:', error);
+      console.error('Error al actualizar vehículo:', error);
     }
   }
 }

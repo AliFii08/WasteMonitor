@@ -1,11 +1,29 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
+  inject,
+} from '@angular/core';
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { Vehicle, VEHICLE_TYPES, VehicleType } from '../../../../@core/interfaces/vehicle.model';
-import { VehicleForm } from '../../../../@core/interfaces/forms/form_vehicle';
+
+export interface RouteOption {
+  id: string;
+  nombreRuta?: string;
+}
 
 @Component({
   selector: 'app-create-vehicle',
@@ -19,6 +37,7 @@ export class CreateVehicleComponent implements OnChanges {
 
   @Input() visible = false;
   @Input() existingPlates: string[] = [];
+  @Input() routes: RouteOption[] = []; // Lista de rutas para el select
 
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() saveVehicle = new EventEmitter<Omit<Vehicle, 'id'>>();
@@ -26,7 +45,7 @@ export class CreateVehicleComponent implements OnChanges {
   vehicleTypes = [...VEHICLE_TYPES];
   formError = '';
 
-  vehicleForm: FormGroup<VehicleForm> = this.fb.group({
+  vehicleForm = this.fb.group({
     type: new FormControl<VehicleType | ''>('', {
       nonNullable: true,
       validators: [Validators.required],
@@ -37,6 +56,10 @@ export class CreateVehicleComponent implements OnChanges {
     plate: new FormControl<string>('', {
       nonNullable: true,
       validators: [Validators.required, Validators.maxLength(15)],
+    }),
+    route: new FormControl<string>('', {
+      nonNullable: true,
+      validators: [Validators.required],
     }),
   });
 
@@ -62,6 +85,10 @@ export class CreateVehicleComponent implements OnChanges {
     return this.vehicleForm.controls.plate;
   }
 
+  get routeControl() {
+    return this.vehicleForm.controls.route;
+  }
+
   onCancel(): void {
     this.visible = false;
     this.visibleChange.emit(false);
@@ -78,6 +105,7 @@ export class CreateVehicleComponent implements OnChanges {
     const plate = this.plateControl.value.trim().toUpperCase();
     const type = this.typeControl.value as VehicleType;
     const weight = Number(this.weightControl.value);
+    const route = this.routeControl.value;
 
     if (this.isDuplicatedPlate(plate)) {
       this.formError = 'La placa ya se encuentra registrada.';
@@ -88,13 +116,16 @@ export class CreateVehicleComponent implements OnChanges {
       type,
       weight,
       plate,
-    });
+      route,
+    } as Omit<Vehicle, 'id'>);
 
     this.onCancel();
   }
 
   private isDuplicatedPlate(plate: string): boolean {
-    return this.existingPlates.some(existingPlate => existingPlate.toLowerCase() === plate.toLowerCase());
+    return this.existingPlates.some(
+      (existingPlate) => existingPlate.toLowerCase() === plate.toLowerCase(),
+    );
   }
 
   private resetFormState(): void {
@@ -104,7 +135,7 @@ export class CreateVehicleComponent implements OnChanges {
       type: '',
       weight: null,
       plate: '',
+      route: '',
     });
   }
-
 }

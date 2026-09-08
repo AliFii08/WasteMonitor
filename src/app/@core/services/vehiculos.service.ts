@@ -28,57 +28,51 @@ export class VehiculoService {
         id: child.key || '',
         type: data.tipo || '',
         weight: data.capacidad || 0,
+        route: data.ruta || '',
         plate: data.placa || '',
+        status: data.estado || 'disponible', // <--- LEER ESTADO DESDE FIREBASE
       });
     });
 
     return vehicles;
   }
 
-    /**
+  /**
    * Crea un nuevo camión utilizando un ID autoincrementable con formato VEH-001.
    */
   async createVehicle(vehicleData: Omit<Vehicle, 'id'>): Promise<string> {
     if (!isPlatformBrowser(this.platformId)) throw new Error('platform-not-supported');
 
-    // 1. Obtener los vehículos actuales para calcular el siguiente ID
     const camionesRef = ref(this.database, 'camiones');
     const snapshot = await get(camionesRef);
 
     let maxNum = 0;
-
     if (snapshot.exists()) {
       snapshot.forEach((child) => {
-        const key = child.key || ''; // Ej: "VEH-001"
+        const key = child.key || '';
         const match = /^VEH-(\d+)$/i.exec(key.trim());
         if (match) {
           const num = parseInt(match[1], 10);
-          if (num > maxNum) {
-            maxNum = num;
-          }
+          if (num > maxNum) maxNum = num;
         }
       });
     }
 
-    // 2. Generar el siguiente código con ceros a la izquierda (VEH-001, VEH-002, ...)
     const nextNum = maxNum + 1;
     const customId = `VEH-${String(nextNum).padStart(3, '0')}`;
 
-    // 3. Guardar directamente en la clave personalizada
     const newVehicleRef = ref(this.database, `camiones/${customId}`);
     await set(newVehicleRef, {
       tipo: vehicleData.type,
       capacidad: vehicleData.weight,
       placa: vehicleData.plate,
-      disponible: true,
+      ruta: vehicleData.route || '',
+      estado: vehicleData.status || 'disponible', // <--- GUARDAR ESTADO
     });
 
     return customId;
   }
 
-  /**
-   * Actualiza un camión existente.
-   */
   async updateVehicle(vehicle: Vehicle): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
 
@@ -87,7 +81,8 @@ export class VehiculoService {
       tipo: vehicle.type,
       capacidad: vehicle.weight,
       placa: vehicle.plate,
-      disponible: true,
+      ruta: vehicle.route || '',
+      estado: vehicle.status || 'disponible', // <--- ACTUALIZAR ESTADO
     });
   }
 

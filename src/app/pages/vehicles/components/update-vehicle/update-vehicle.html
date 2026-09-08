@@ -1,3 +1,5 @@
+<!-- En update-vehicle.html -->
+
 <p-dialog
   [(visible)]="visible"
   header="Modificar vehículo"
@@ -41,6 +43,17 @@
         <small class="field-error">Ingresa una placa válida.</small>
       }
     </div>
+
+    <!-- SELECT DE RUTAS -->
+    <div class="field">
+  <label for="vehicle-route">Asignar Ruta</label>
+  <select id="vehicle-route" class="p-inputtext" formControlName="route">
+    <option value="">Selecciona una ruta</option>
+    @for (r of routes; track r.id) {
+      <option [value]="r.nombreRuta || r.id">{{ r.nombreRuta || r.id }}</option>
+    }
+  </select>
+</div>
 
     @if (formError) {
       <p class="form-error">{{ formError }}</p>

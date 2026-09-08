@@ -1,11 +1,32 @@
+// En update-vehicle.ts
+
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
+  inject,
+} from '@angular/core';
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { Vehicle, VEHICLE_TYPES, VehicleType } from '../../../../@core/interfaces/vehicle.model';
 import { VehicleForm } from '../../../../@core/interfaces/forms/form_vehicle';
+
+export interface RouteOption {
+  id: string;
+  nombreRuta?: string;
+}
 
 @Component({
   selector: 'app-update-vehicle',
@@ -20,6 +41,7 @@ export class UpdateVehicleComponent implements OnChanges {
   @Input() visible = false;
   @Input() vehicle: Vehicle | null = null;
   @Input() existingPlates: string[] = [];
+  @Input() routes: RouteOption[] = []; // <--- AGREGADO: Lista de rutas para el select
 
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() updateVehicle = new EventEmitter<Vehicle>();
@@ -34,6 +56,10 @@ export class UpdateVehicleComponent implements OnChanges {
     }),
     weight: new FormControl<number | null>(null, {
       validators: [Validators.required, Validators.min(1)],
+    }),
+    route: new FormControl<string>('', {
+      nonNullable: true,
+      validators: [Validators.required],
     }),
     plate: new FormControl<string>('', {
       nonNullable: true,
@@ -53,6 +79,10 @@ export class UpdateVehicleComponent implements OnChanges {
 
   get weightControl() {
     return this.vehicleForm.controls.weight;
+  }
+
+  get routeControl() {
+    return this.vehicleForm.controls.route;
   }
 
   get plateControl() {
@@ -79,6 +109,7 @@ export class UpdateVehicleComponent implements OnChanges {
     const plate = this.plateControl.value.trim().toUpperCase();
     const type = this.typeControl.value as VehicleType;
     const weight = Number(this.weightControl.value);
+    const route = this.routeControl.value;
 
     if (this.isDuplicatedPlate(plate)) {
       this.formError = 'La placa ya se encuentra registrada.';
@@ -89,7 +120,9 @@ export class UpdateVehicleComponent implements OnChanges {
       id: this.vehicle.id,
       type,
       weight,
+      route,
       plate,
+      status: this.vehicle.status,
     });
 
     this.onCancel();
@@ -100,7 +133,9 @@ export class UpdateVehicleComponent implements OnChanges {
       return false;
     }
 
-    return this.existingPlates.some(existingPlate => existingPlate.toLowerCase() === plate.toLowerCase());
+    return this.existingPlates.some(
+      (existingPlate) => existingPlate.toLowerCase() === plate.toLowerCase(),
+    );
   }
 
   private resetFormState(): void {
@@ -110,6 +145,7 @@ export class UpdateVehicleComponent implements OnChanges {
       this.vehicleForm.reset({
         type: '',
         weight: null,
+        route: '',
         plate: '',
       });
       return;
@@ -118,6 +154,7 @@ export class UpdateVehicleComponent implements OnChanges {
     this.vehicleForm.reset({
       type: this.vehicle.type,
       weight: this.vehicle.weight,
+      route: this.vehicle.route || '', // <--- ASIGNAR RUTA DEL VEHÍCULO ACTUAL
       plate: this.vehicle.plate,
     });
   }
