@@ -1,5 +1,8 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { DashboardService } from '../../@core/services/dashboard.service';
+import { HistorialOperaciones } from './components/historial-operaciones/historial-operaciones';
+import { Employees } from "./components/employees/employees";
+import { Vehicles } from './components/vehicles/vehicles';
 
 type DashboardTab = 'vehicles' | 'employees' | 'operations';
 
@@ -13,7 +16,7 @@ interface DashboardNotification {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [],
+  imports: [HistorialOperaciones, Employees, Vehicles],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
@@ -47,7 +50,10 @@ export class Dashboard implements OnInit {
     const stats = await this.dashboardService.obtenerEstadisticas();
 
     if (stats) {
-      console.group('%c📊 ESTADÍSTICAS DEL DASHBOARD', 'color: #0d5c3a; font-size: 14px; font-weight: bold;');
+      console.group(
+        '%c📊 ESTADÍSTICAS DEL DASHBOARD',
+        'color: #0d5c3a; font-size: 14px; font-weight: bold;',
+      );
       console.log('👷 Empleados:', stats.empleados);
       console.log('🚛 Vehículos:', stats.vehiculos);
       console.log('🗺️ Operaciones y Rutas:', stats.operaciones);

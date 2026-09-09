@@ -15,26 +15,12 @@ export interface User{
   Turno: string;
   fotografia: any;
   idTurno: number;
+  activo: boolean;
 }
 
 export interface UserLogin extends User{
   access_token:string
 }
-
-// export interface FirebaseUser {
-//   uid: string;
-//   email: string;
-//   name: string;
-//   lastName: string;
-//   phone: string;
-//   rol: string;
-//   address?: {
-//     houseNumber: string;
-//     postalCode: number;
-//     sector: string;
-//     street: string;
-//   };
-// }
 
 export interface FirebaseUser {
   uid: string;
@@ -54,4 +40,5 @@ export interface FirebaseUser {
      lat: number;
      lng: number;
    };
+   activo: boolean;
 }

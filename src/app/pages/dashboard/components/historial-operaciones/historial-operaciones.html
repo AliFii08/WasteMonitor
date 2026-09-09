@@ -1,0 +1,44 @@
+<div class="operaciones-container">
+  <div class="header-operaciones">
+    <h3>Historial de Operaciones del Sistema</h3>
+    <span class="total-badge">{{ historial.length }} registros</span>
+  </div>
+
+  <div class="table-responsive">
+    <table class="operaciones-table">
+      <thead>
+        <tr>
+          <th>Fecha y Hora</th>
+          <th>Usuario</th>
+          <th>Acción</th>
+          <th>Módulo</th>
+          <th>Detalle de la Operación</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of historial; track item.id) {
+          <tr>
+            <td class="col-fecha">{{ item.fechaHora }}</td>
+            <td class="col-usuario">
+              <strong>{{ item.usuario }}</strong>
+              <small>{{ item.rol }}</small>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="item.accion">
+                {{ item.accion | uppercase }}
+              </span>
+            </td>
+            <td>
+              <span class="modulo-tag">{{ item.modulo }}</span>
+            </td>
+            <td class="col-detalle">{{ item.detalle }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="empty-state">No hay operaciones registradas.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -79,7 +79,6 @@ export class Login {
     const { email, password } = this.loginForm.getRawValue();
 
     try {
-      // Toda la complejidad de Firebase Auth y DB ahora se reduce a esta llamada
       await this.authService.login(email, password);
 
       this.sessionTimeoutService.startTracking();
@@ -102,6 +101,9 @@ export class Login {
         errorMessage = 'Correo o contraseña incorrectos.';
       } else if (error.message === 'user-data-not-found') {
         errorMessage = 'El usuario no posee información asociada en el sistema.';
+      } else if (error.message === 'user-disabled') {
+        errorMessage =
+          'El usuario no existe';
       }
 
       this.messageService.add({

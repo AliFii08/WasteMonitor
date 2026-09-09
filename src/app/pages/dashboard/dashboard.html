@@ -43,18 +43,15 @@
 
       <div class="tab-content" role="tabpanel">
         @if (activeTab === 'vehicles') {
-          <h2>Vehículos</h2>
-          <p>Aquí irá el contenido de la sección de vehículos.</p>
+          <app-dashboard-vehicles></app-dashboard-vehicles>
         }
 
         @if (activeTab === 'employees') {
-          <h2>Empleados</h2>
-          <p>Aquí irá el contenido de la sección de empleados.</p>
+          <app-dashboard-employees></app-dashboard-employees>
         }
 
         @if (activeTab === 'operations') {
-          <h2>Operaciones</h2>
-          <p>Aquí irá el contenido de la sección de operaciones.</p>
+          <app-historial-operaciones></app-historial-operaciones>
         }
       </div>
     </section>
