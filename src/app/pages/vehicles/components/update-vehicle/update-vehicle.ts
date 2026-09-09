@@ -1,5 +1,3 @@
-// En update-vehicle.ts
-
 import { CommonModule } from '@angular/common';
 import {
   Component,
@@ -28,6 +26,10 @@ export interface RouteOption {
   nombreRuta?: string;
 }
 
+export const VEHICLE_STATUSES = ['disponible', 'en taller', 'en ruta', 'no disponible'] as const;
+
+export type VehicleStatus = (typeof VEHICLE_STATUSES)[number];
+
 @Component({
   selector: 'app-update-vehicle',
   standalone: true,
@@ -41,15 +43,16 @@ export class UpdateVehicleComponent implements OnChanges {
   @Input() visible = false;
   @Input() vehicle: Vehicle | null = null;
   @Input() existingPlates: string[] = [];
-  @Input() routes: RouteOption[] = []; // <--- AGREGADO: Lista de rutas para el select
+  @Input() routes: RouteOption[] = [];
 
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() updateVehicle = new EventEmitter<Vehicle>();
 
   vehicleTypes = [...VEHICLE_TYPES];
+  vehicleStatuses = [...VEHICLE_STATUSES];
   formError = '';
 
-  vehicleForm: FormGroup<VehicleForm> = this.fb.group({
+  vehicleForm = this.fb.group({
     type: new FormControl<VehicleType | ''>('', {
       nonNullable: true,
       validators: [Validators.required],
@@ -65,6 +68,10 @@ export class UpdateVehicleComponent implements OnChanges {
       nonNullable: true,
       validators: [Validators.required, Validators.maxLength(15)],
     }),
+    status: new FormControl<VehicleStatus | ''>('', {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
   });
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -76,17 +83,17 @@ export class UpdateVehicleComponent implements OnChanges {
   get typeControl() {
     return this.vehicleForm.controls.type;
   }
-
   get weightControl() {
     return this.vehicleForm.controls.weight;
   }
-
   get routeControl() {
     return this.vehicleForm.controls.route;
   }
-
   get plateControl() {
     return this.vehicleForm.controls.plate;
+  }
+  get statusControl() {
+    return this.vehicleForm.controls.status;
   }
 
   onCancel(): void {
@@ -97,9 +104,7 @@ export class UpdateVehicleComponent implements OnChanges {
 
   onUpdate(): void {
     this.formError = '';
-    if (!this.vehicle) {
-      return;
-    }
+    if (!this.vehicle) return;
 
     if (this.vehicleForm.invalid) {
       this.vehicleForm.markAllAsTouched();
@@ -110,6 +115,7 @@ export class UpdateVehicleComponent implements OnChanges {
     const type = this.typeControl.value as VehicleType;
     const weight = Number(this.weightControl.value);
     const route = this.routeControl.value;
+    const status = this.statusControl.value as VehicleStatus;
 
     if (this.isDuplicatedPlate(plate)) {
       this.formError = 'La placa ya se encuentra registrada.';
@@ -122,7 +128,7 @@ export class UpdateVehicleComponent implements OnChanges {
       weight,
       route,
       plate,
-      status: this.vehicle.status,
+      status,
     });
 
     this.onCancel();
@@ -132,7 +138,6 @@ export class UpdateVehicleComponent implements OnChanges {
     if (this.vehicle?.plate.toLowerCase() === plate.toLowerCase()) {
       return false;
     }
-
     return this.existingPlates.some(
       (existingPlate) => existingPlate.toLowerCase() === plate.toLowerCase(),
     );
@@ -147,6 +152,7 @@ export class UpdateVehicleComponent implements OnChanges {
         weight: null,
         route: '',
         plate: '',
+        status: '',
       });
       return;
     }
@@ -154,8 +160,9 @@ export class UpdateVehicleComponent implements OnChanges {
     this.vehicleForm.reset({
       type: this.vehicle.type,
       weight: this.vehicle.weight,
-      route: this.vehicle.route || '', // <--- ASIGNAR RUTA DEL VEHÍCULO ACTUAL
+      route: this.vehicle.route || '',
       plate: this.vehicle.plate,
+      status: (this.vehicle.status as VehicleStatus) || 'disponible',
     });
   }
 }

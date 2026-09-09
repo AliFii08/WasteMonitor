@@ -44,16 +44,32 @@
       }
     </div>
 
-    <!-- SELECT DE RUTAS -->
     <div class="field">
-  <label for="vehicle-route">Asignar Ruta</label>
-  <select id="vehicle-route" class="p-inputtext" formControlName="route">
-    <option value="">Selecciona una ruta</option>
-    @for (r of routes; track r.id) {
-      <option [value]="r.nombreRuta || r.id">{{ r.nombreRuta || r.id }}</option>
-    }
-  </select>
-</div>
+      <label for="vehicle-route">Asignar Ruta</label>
+      <select id="vehicle-route" class="p-inputtext" formControlName="route">
+        <option value="">Selecciona una ruta</option>
+        @for (r of routes; track r.id) {
+          <option [value]="r.nombreRuta || r.id">{{ r.nombreRuta || r.id }}</option>
+        }
+      </select>
+      @if (routeControl.invalid && (routeControl.touched || routeControl.dirty)) {
+        <small class="field-error">Selecciona una ruta.</small>
+      }
+    </div>
+
+    <!-- SELECT DE ESTADO -->
+    <div class="field">
+      <label for="vehicle-status">Estado del vehículo</label>
+      <select id="vehicle-status" class="p-inputtext" formControlName="status">
+        <option value="">Selecciona un estado</option>
+        @for (st of vehicleStatuses; track st) {
+          <option [value]="st">{{ st | titlecase }}</option>
+        }
+      </select>
+      @if (statusControl.invalid && (statusControl.touched || statusControl.dirty)) {
+        <small class="field-error">Selecciona un estado válido.</small>
+      }
+    </div>
 
     @if (formError) {
       <p class="form-error">{{ formError }}</p>

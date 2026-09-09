@@ -40,7 +40,7 @@
       @if (selectedVehicles.length) {
         <button type="button" class="bulk-delete-btn" (click)="onDeleteSelectedVehicles()">
           <i class="pi pi-trash"></i>
-          Eliminar seleccionados
+          Desactivar seleccionados
         </button>
       }
     </div>
@@ -63,10 +63,9 @@
     [showCurrentPageReport]="true"
     [rowsPerPageOptions]="[8, 15, 30]"
     currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} vehículos"
-    [globalFilterFields]="['id', 'type', 'weight', 'plate']"
+    [globalFilterFields]="['id', 'type', 'weight', 'plate', 'route']"
     styleClass="vehicles-table"
   >
-
     <ng-template pTemplate="header">
       <tr>
         <th>ID</th>
@@ -85,21 +84,20 @@
         <td>{{ vehicle.type | titlecase }}</td>
         <td>{{ vehicle.weight | number: '1.0-0' }} t</td>
         <td>{{ vehicle.plate }}</td>
-        <td>{{vehicle.route}}</td>
-        <!-- En vehicles.html -->
-
-<td>
-  <span 
-    class="status-chip"
-    [ngClass]="{
-      'active': vehicle.status === 'disponible',
-      'maintenance': vehicle.status === 'mantenimiento',
-      'inactive': vehicle.status === 'en ruta'
-    }"
-  >
-    {{ vehicle.status | titlecase }}
-  </span>
-</td>
+        <td>{{ vehicle.route }}</td>
+        <td>
+          <span
+            class="status-chip"
+            [ngClass]="{
+              'disponible': vehicle.status === 'disponible',
+              'taller': vehicle.status === 'en taller',
+              'en-ruta': vehicle.status === 'en ruta',
+              'no-disponible': vehicle.status === 'no disponible'
+            }"
+          >
+            {{ vehicle.status | titlecase }}
+          </span>
+        </td>
         <td>
           <div class="option-actions">
             <p-tableCheckbox [value]="vehicle"></p-tableCheckbox>
@@ -116,8 +114,8 @@
               type="button"
               icon="pi pi-trash"
               class="p-button-rounded p-button-text p-button-danger"
-              title="Eliminar"
-              (click)="onDeleteVehicle(vehicle)"
+              title="Desactivar"
+              (click)="openDeleteModalForSingle(vehicle)"
             ></button>
           </div>
         </td>
@@ -126,10 +124,36 @@
 
     <ng-template pTemplate="emptymessage">
       <tr>
-        <td colspan="6">No hay vehículos registrados.</td>
+        <td colspan="7">No hay vehículos registrados o activos.</td>
       </tr>
     </ng-template>
   </p-table>
+</div>
+
+<!-- Modal de Confirmación de Desactivación (Borrado Lógico) -->
+<div class="modal-backdrop" *ngIf="isDeleteModalOpen">
+  <div class="modal-content">
+    <h2>Confirmar desactivación</h2>
+
+    <p *ngIf="vehiclesToDelete.length === 1">
+      ¿Estás seguro de que deseas desactivar el vehículo con placa
+      <strong>{{ vehiclesToDelete[0].plate }}</strong>?
+    </p>
+
+    <p *ngIf="vehiclesToDelete.length > 1">
+      ¿Estás seguro de que deseas desactivar los
+      <strong>{{ vehiclesToDelete.length }}</strong> vehículos seleccionados?
+    </p>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel" (click)="closeDeleteModal()">
+        Cancelar
+      </button>
+      <button type="button" class="btn-danger" (click)="confirmDelete()">
+        Desactivar
+      </button>
+    </div>
+  </div>
 </div>
 
 <app-create-vehicle

@@ -31,6 +31,7 @@ export class VehiculoService {
         route: data.ruta || '',
         plate: data.placa || '',
         status: data.estado || 'disponible', // <--- LEER ESTADO DESDE FIREBASE
+        activo: data.activo
       });
     });
 
@@ -68,6 +69,7 @@ export class VehiculoService {
       placa: vehicleData.plate,
       ruta: vehicleData.route || '',
       estado: vehicleData.status || 'disponible', // <--- GUARDAR ESTADO
+      activo: true,
     });
 
     return customId;
@@ -83,6 +85,7 @@ export class VehiculoService {
       placa: vehicle.plate,
       ruta: vehicle.route || '',
       estado: vehicle.status || 'disponible', // <--- ACTUALIZAR ESTADO
+      activo: vehicle.activo ?? true,
     });
   }
 

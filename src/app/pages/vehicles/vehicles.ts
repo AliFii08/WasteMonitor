@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Table, TableModule } from 'primeng/table';
@@ -26,6 +26,7 @@ import { VehiculoService } from '../../@core/services/vehiculos.service';
 export class Vehicles implements OnInit {
   private vehiculoService = inject(VehiculoService);
   private routesService = inject(RoutesService);
+  private cdr = inject(ChangeDetectorRef); // Inyección del ChangeDetectorRef
 
   vehicles: Vehicle[] = [];
   selectedVehicles: Vehicle[] = [];
@@ -39,6 +40,9 @@ export class Vehicles implements OnInit {
   allVehiclesSelected = false;
 
   availableRoutes: RouteOption[] = [];
+
+  isDeleteModalOpen = false;
+  vehiclesToDelete: Vehicle[] = [];
 
   get existingPlates(): string[] {
     return this.vehicles.map((v) => v.plate);
@@ -56,6 +60,7 @@ export class Vehicles implements OnInit {
         id: r.id,
         nombreRuta: r.nombreRuta || r.id,
       }));
+      this.cdr.detectChanges(); // Notifica cambios
     } catch (error) {
       console.error('Error al obtener rutas:', error);
     }
@@ -63,12 +68,15 @@ export class Vehicles implements OnInit {
 
   async loadVehicles(): Promise<void> {
     this.loading = true;
+    this.cdr.detectChanges(); // Fuerza el loader visual inmediatamente
     try {
-      this.vehicles = await this.vehiculoService.getVehicles();
+      const allVehicles = await this.vehiculoService.getVehicles();
+      this.vehicles = allVehicles.filter((v) => v.activo !== false);
     } catch (error) {
       console.error('Error al cargar vehículos desde Firebase:', error);
     } finally {
       this.loading = false;
+      this.cdr.detectChanges(); // Fuerza a Angular a pintar la tabla cuando se quita el spinner
     }
   }
 
@@ -96,36 +104,52 @@ export class Vehicles implements OnInit {
     this.allVehiclesSelected = checked;
   }
 
-  async onDeleteVehicle(vehicle: Vehicle): Promise<void> {
-    try {
-      await this.vehiculoService.deleteVehicle(vehicle.id);
-      await this.loadVehicles();
-      this.selectedVehicles = this.selectedVehicles.filter((v) => v.id !== vehicle.id);
-    } catch (error) {
-      console.error('Error al eliminar vehículo:', error);
-    }
+  // --- MODAL DE BORRADO LÓGICO ---
+
+  openDeleteModalForSingle(vehicle: Vehicle): void {
+    this.vehiclesToDelete = [vehicle];
+    this.isDeleteModalOpen = true;
   }
 
-  async onDeleteSelectedVehicles(): Promise<void> {
+  onDeleteSelectedVehicles(): void {
+    if (this.selectedVehicles.length === 0) return;
+    this.vehiclesToDelete = [...this.selectedVehicles];
+    this.isDeleteModalOpen = true;
+  }
+
+  closeDeleteModal(): void {
+    this.isDeleteModalOpen = false;
+    this.vehiclesToDelete = [];
+  }
+
+  async confirmDelete(): Promise<void> {
     try {
-      for (const vehicle of this.selectedVehicles) {
-        await this.vehiculoService.deleteVehicle(vehicle.id);
+      for (const vehicle of this.vehiclesToDelete) {
+        await this.vehiculoService.updateVehicle({
+          ...vehicle,
+          activo: false,
+        });
       }
       await this.loadVehicles();
       this.selectedVehicles = [];
       this.allVehiclesSelected = false;
+      this.closeDeleteModal();
     } catch (error) {
-      console.error('Error al eliminar vehículos seleccionados:', error);
+      console.error('Error al desactivar vehículos:', error);
     }
   }
 
-  // --- MÉTODOS DE MODALES ---
+  // --- MÉTODOS DE CREACIÓN Y EDICIÓN ---
 
   async handleSaveVehicle(newVehicleData: Omit<Vehicle, 'id'>): Promise<void> {
     try {
-      await this.vehiculoService.createVehicle(newVehicleData);
+      await this.vehiculoService.createVehicle({
+        ...newVehicleData,
+        activo: true,
+      });
       await this.loadVehicles();
       this.isCreateModalOpen = false;
+      this.cdr.detectChanges();
     } catch (error) {
       console.error('Error al guardar vehículo:', error);
     }
@@ -144,6 +168,7 @@ export class Vehicles implements OnInit {
       await this.loadVehicles();
       this.isUpdateModalOpen = false;
       this.editingVehicle = null;
+      this.cdr.detectChanges();
     } catch (error) {
       console.error('Error al actualizar vehículo:', error);
     }

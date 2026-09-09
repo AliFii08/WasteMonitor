@@ -198,25 +198,31 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.2rem 0.6rem;
+  padding: 0.25rem 0.65rem;
   border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 800;
-}
+  text-transform: capitalize;
 
-.status-chip.active {
-  background: #d5f0df;
-  color: #1b7a45;
-}
+  &.disponible {
+    background: #d5f0df;
+    color: #1b7a45;
+  }
 
-.status-chip.maintenance {
-  background: #ffe8bf;
-  color: #8a5b00;
-}
+  &.taller {
+    background: #ffe8bf;
+    color: #8a5b00;
+  }
 
-.status-chip.inactive {
-  background: #f6d5d5;
-  color: #8d1f1f;
+  &.en-ruta {
+    background: #d0e1fd;
+    color: #1a56db;
+  }
+
+  &.no-disponible {
+    background: #f6d5d5;
+    color: #8d1f1f;
+  }
 }
 
 // ESTILO DE LAS TABLAS AQUI, USAR PARA TODAS
@@ -239,4 +245,72 @@
     min-width: 0;
   }
 
+}
+
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+}
+
+.modal-content {
+  background: #ffffff;
+  padding: 1.5rem;
+  border-radius: 12px;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+
+  h2 {
+    margin-top: 0;
+    color: #003628;
+    font-size: 1.25rem;
+  }
+
+  p {
+    color: #173d32;
+    margin: 1rem 0;
+  }
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+
+  button {
+    height: 38px;
+    padding: 0 16px;
+    border-radius: 6px;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .btn-cancel {
+    background: #e2e8f0;
+    color: #475569;
+
+    &:hover {
+      background: #cbd5e1;
+    }
+  }
+
+  .btn-danger {
+    background: #d62828;
+    color: #ffffff;
+
+    &:hover {
+      background: #b51f1f;
+    }
+  }
 }

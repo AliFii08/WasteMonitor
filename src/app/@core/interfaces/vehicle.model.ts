@@ -16,4 +16,5 @@ export interface Vehicle {
   plate: string;
   route?: string;
   status: string;
+  activo?: boolean;
 }
