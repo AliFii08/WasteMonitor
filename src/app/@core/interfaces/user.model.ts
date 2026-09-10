@@ -29,7 +29,7 @@ export interface FirebaseUser {
   lastName: string;
   email: string;
   phone?: string;
-  rol: 'admin' | 'user' | 'supervisor' | 'crew' | 'conductor' | 'empleado';
+  rol: 'admin' | 'user' | 'supervisor' | 'crew' | 'conductor' | 'empleado' | 'mecanico';
   camionId?: string; // Formato VEH-001
   rutaAsignada?: string; // Opcional si se calcula dinámicamente desde la ruta del camión
   address?: {

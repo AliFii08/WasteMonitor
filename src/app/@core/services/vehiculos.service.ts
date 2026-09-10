@@ -10,9 +10,7 @@ export class VehiculoService {
   private database = inject(Database);
   private platformId = inject(PLATFORM_ID);
 
-  /**
-   * Obtiene todos los camiones registrados en Realtime Database.
-   */
+  // --- OBTENER TODOS LOS VEHÍCULOS ---
   async getVehicles(): Promise<Vehicle[]> {
     if (!isPlatformBrowser(this.platformId)) return [];
 
@@ -30,18 +28,19 @@ export class VehiculoService {
         weight: data.capacidad || 0,
         route: data.ruta || '',
         plate: data.placa || '',
-        status: data.estado || 'disponible', // <--- LEER ESTADO DESDE FIREBASE
-        activo: data.activo
+        status: data.estado || 'disponible',
+        activo: data.activo,
       });
     });
 
     return vehicles;
   }
 
-  /**
-   * Crea un nuevo camión utilizando un ID autoincrementable con formato VEH-001.
-   */
-  async createVehicle(vehicleData: Omit<Vehicle, 'id'>): Promise<string> {
+  // --- CREAR VEHÍCULO Y REGISTRAR EN HISTORIAL ---
+  async createVehicle(
+    vehicleData: Omit<Vehicle, 'id'>,
+    userContext?: { nombre: string; rol: string },
+  ): Promise<string> {
     if (!isPlatformBrowser(this.platformId)) throw new Error('platform-not-supported');
 
     const camionesRef = ref(this.database, 'camiones');
@@ -62,19 +61,38 @@ export class VehiculoService {
     const nextNum = maxNum + 1;
     const customId = `VEH-${String(nextNum).padStart(3, '0')}`;
 
+    // 1. Guardar el nuevo camión
     const newVehicleRef = ref(this.database, `camiones/${customId}`);
     await set(newVehicleRef, {
       tipo: vehicleData.type,
       capacidad: vehicleData.weight,
       placa: vehicleData.plate,
       ruta: vehicleData.route || '',
-      estado: vehicleData.status || 'disponible', // <--- GUARDAR ESTADO
+      estado: vehicleData.status || 'disponible',
       activo: true,
+    });
+
+    // 2. Insertar entrada en el nodo 'operaciones'
+    const now = new Date();
+    const opsRef = ref(this.database, 'operaciones');
+    const newOpRef = push(opsRef);
+
+    await set(newOpRef, {
+      id: newOpRef.key,
+      accion: 'crear',
+      modulo: 'Vehículos',
+      detalle: `Registró la unidad ${customId} con placa ${vehicleData.plate}.`,
+      entidadId: customId,
+      fechaFormateada: now.toLocaleString('es-ES'),
+      timestamp: now.getTime(),
+      usuarioNombre: userContext?.nombre || 'Usuario del Sistema',
+      usuarioRol: userContext?.rol || 'admin',
     });
 
     return customId;
   }
 
+  // --- ACTUALIZAR VEHÍCULO ---
   async updateVehicle(vehicle: Vehicle): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
 
@@ -84,18 +102,44 @@ export class VehiculoService {
       capacidad: vehicle.weight,
       placa: vehicle.plate,
       ruta: vehicle.route || '',
-      estado: vehicle.status || 'disponible', // <--- ACTUALIZAR ESTADO
+      estado: vehicle.status || 'disponible',
       activo: vehicle.activo ?? true,
     });
   }
 
-  /**
-   * Elimina un camión según su ID en Realtime Database.
-   */
-  async deleteVehicle(id: string): Promise<void> {
+  // --- DESACTIVAR (ELIMINAR LÓGICAMENTE) Y REGISTRAR EN HISTORIAL ---
+  async deactivateVehicle(
+    vehicle: Vehicle,
+    userContext?: { nombre: string; rol: string },
+  ): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
 
-    const vehicleRef = ref(this.database, `camiones/${id}`);
-    await remove(vehicleRef);
+    // 1. Marcar el camión como inactivo (borrado lógico)
+    const vehicleRef = ref(this.database, `camiones/${vehicle.id}`);
+    await set(vehicleRef, {
+      tipo: vehicle.type,
+      capacidad: vehicle.weight,
+      placa: vehicle.plate,
+      ruta: vehicle.route || '',
+      estado: vehicle.status || 'disponible',
+      activo: false,
+    });
+
+    // 2. Insertar entrada de eliminación en 'operaciones'
+    const now = new Date();
+    const opsRef = ref(this.database, 'operaciones');
+    const newOpRef = push(opsRef);
+
+    await set(newOpRef, {
+      id: newOpRef.key,
+      accion: 'eliminar',
+      modulo: 'Vehículos',
+      detalle: `Desactivó el vehículo ${vehicle.id} (${vehicle.plate}).`,
+      entidadId: vehicle.id,
+      fechaFormateada: now.toLocaleString('es-ES'),
+      timestamp: now.getTime(),
+      usuarioNombre: userContext?.nombre || 'Usuario del Sistema',
+      usuarioRol: userContext?.rol || 'admin',
+    });
   }
 }

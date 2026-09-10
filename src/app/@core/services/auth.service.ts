@@ -28,7 +28,7 @@ export interface RegisterData {
   lng?: number;
 }
 
-export type UserRole = 'admin' | 'supervisor' | 'crew' | 'conductor' | 'user';
+export type UserRole = 'admin' | 'supervisor' | 'crew' | 'conductor' | 'user' | 'mecanico';
 
 @Injectable({
   providedIn: 'root',

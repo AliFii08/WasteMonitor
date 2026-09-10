@@ -125,10 +125,7 @@ export class Vehicles implements OnInit {
   async confirmDelete(): Promise<void> {
     try {
       for (const vehicle of this.vehiclesToDelete) {
-        await this.vehiculoService.updateVehicle({
-          ...vehicle,
-          activo: false,
-        });
+        await this.vehiculoService.deactivateVehicle(vehicle);
       }
       await this.loadVehicles();
       this.selectedVehicles = [];

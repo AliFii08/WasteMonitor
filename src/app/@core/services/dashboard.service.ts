@@ -1,6 +1,19 @@
 import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { Database, ref, get } from '@angular/fire/database';
+import { Database, ref, push, set, onValue, get } from '@angular/fire/database';
+import { BehaviorSubject, Observable } from 'rxjs';
+
+
+export interface OperacionHistorial {
+  id: string;
+  usuario: string;
+  rol: string;
+  accion: 'crear' | 'actualizar' | 'eliminar';
+  modulo: 'Usuarios' | 'Vehículos' | 'Rutas' | 'Informes' | 'Quejas';
+  detalle: string;
+  fechaHora: string;
+  timestamp?: number;
+}
 
 export interface EstadisticasDashboard {
   empleados: {
@@ -31,6 +44,74 @@ export class DashboardService {
   private database = inject(Database);
   private platformId = inject(PLATFORM_ID);
 
+  private operacionesSubject = new BehaviorSubject<OperacionHistorial[]>([]);
+  public operaciones$: Observable<OperacionHistorial[]> = this.operacionesSubject.asObservable();
+
+  /**
+   * Registra una acción ejecutada por un usuario en el nodo 'operaciones'
+   */
+  async registrarOperacion(operacion: Omit<OperacionHistorial, 'id'>): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    try {
+      const opsRef = ref(this.database, 'operaciones');
+      const newOpRef = push(opsRef);
+
+      await set(newOpRef, {
+        id: newOpRef.key,
+        usuarioNombre: operacion.usuario,
+        usuarioRol: operacion.rol,
+        accion: operacion.accion,
+        modulo: operacion.modulo,
+        detalle: operacion.detalle,
+        fechaFormateada: operacion.fechaHora,
+        timestamp: operacion.timestamp || Date.now(),
+      });
+    } catch (error) {
+      console.error('Error al registrar la operación:', error);
+    }
+  }
+
+  /**
+   * Escucha el nodo 'operaciones' en tiempo real
+   */
+  obtenerOperacionesEnTiempoReal(): Observable<OperacionHistorial[]> {
+    if (isPlatformBrowser(this.platformId)) {
+      const opsRef = ref(this.database, 'operaciones');
+
+      onValue(
+        opsRef,
+        (snapshot) => {
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            const lista: OperacionHistorial[] = Object.entries<any>(data)
+              .map(([key, item]) => ({
+                id: item.id || key,
+                usuario: item.usuarioNombre || 'Usuario Desconocido',
+                rol: item.usuarioRol || 'Sin Rol',
+                accion: item.accion || 'actualizar',
+                modulo: item.modulo || 'Sistema',
+                detalle: item.detalle || '',
+                fechaHora: item.fechaFormateada || '',
+                timestamp: item.timestamp || 0,
+              }))
+              .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+            this.operacionesSubject.next(lista);
+          } else {
+            this.operacionesSubject.next([]);
+          }
+        },
+        (error) => console.error('Error al escuchar operaciones:', error),
+      );
+    }
+
+    return this.operaciones$;
+  }
+
+  /**
+   * Obtiene las estadísticas generales del dashboard
+   */
   async obtenerEstadisticas(): Promise<EstadisticasDashboard | null> {
     if (!isPlatformBrowser(this.platformId)) return null;
 
@@ -45,7 +126,6 @@ export class DashboardService {
       const camionesData = camionesSnap.exists() ? camionesSnap.val() : {};
       const routesData = routesSnap.exists() ? routesSnap.val() : {};
 
-      // 1. Estadísticas de Empleados
       let supervisores = 0;
       let crew = 0;
       let conductores = 0;
@@ -60,7 +140,6 @@ export class DashboardService {
         else if (rol === 'empleado') otrosEmpleados++;
       });
 
-      // 2. Estadísticas de Vehículos
       let disponibles = 0;
       let noDisponibles = 0;
       let camionesConConductor = 0;
@@ -79,11 +158,9 @@ export class DashboardService {
         if (c.conductorId) camionesConConductor++;
         else camionesSinConductor++;
 
-        // Conteo por tipo de vehículo
         const tipo = c.tipo || 'Sin Tipo';
         porTipo[tipo] = (porTipo[tipo] || 0) + 1;
 
-        // Conteo por capacidad (toneladas/volumen)
         const capKey = c.capacidad ? `${c.capacidad} Ton` : 'No especificada';
         porCapacidadTons[capKey] = (porCapacidadTons[capKey] || 0) + 1;
       });
