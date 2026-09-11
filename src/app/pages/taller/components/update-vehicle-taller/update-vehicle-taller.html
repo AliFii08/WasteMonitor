@@ -1,0 +1,133 @@
+@if (visible) {
+  <div class="modal-backdrop" (click)="close()">
+    <div class="modal-panel" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+      <header class="modal-header">
+        <div class="modal-title">
+          <i class="pi pi-pencil"></i>
+          <h2>Editar Registro de Taller</h2>
+        </div>
+        <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar">
+          <i class="pi pi-times"></i>
+        </button>
+      </header>
+
+      <form (ngSubmit)="onSubmit()" class="modal-body" #f="ngForm">
+        <!-- Info del vehículo (Lectura) -->
+        <div class="info-card">
+          <div class="info-item">
+            <span class="info-label">ID Vehículo:</span>
+            <span class="info-value">{{ form.idCamion }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Placa:</span>
+            <span class="info-value">{{ form.placa }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Tipo:</span>
+            <span class="info-value">{{ form.tipo }}</span>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="razon">Razón de ingreso <span class="req">*</span></label>
+          <select
+            id="razon"
+            name="razon"
+            [(ngModel)]="form.razon"
+            required
+            [disabled]="saving"
+          >
+            <option value="" disabled>Seleccione motivo de ingreso</option>
+            @for (r of razonesOpciones; track r) {
+              <option [value]="r">{{ r }}</option>
+            }
+          </select>
+        </div>
+
+        @if (form.razon === 'Otro') {
+          <div class="form-field">
+            <label for="razonPersonalizada">Especifique la razón <span class="req">*</span></label>
+            <input
+              id="razonPersonalizada"
+              name="razonPersonalizada"
+              type="text"
+              [(ngModel)]="razonPersonalizada"
+              required
+              [disabled]="saving"
+              placeholder="Describa el motivo de ingreso..."
+            />
+          </div>
+        }
+
+        <div class="form-field">
+          <label for="descripcion">Descripción / Avances</label>
+          <textarea
+            id="descripcion"
+            name="descripcion"
+            rows="3"
+            [(ngModel)]="form.descripcion"
+            [disabled]="saving"
+            placeholder="Detalles sobre el progreso de las reparaciones..."
+          ></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label for="estado">Estado del vehículo</label>
+            <select id="estado" name="estado" [(ngModel)]="form.estado" [disabled]="saving">
+              <option value="en_reparacion">En reparación</option>
+              <option value="espera_repuesto">Espera repuesto</option>
+              <option value="listo">Listo (Liberar a disponible)</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label for="prioridad">Prioridad</label>
+            <select id="prioridad" name="prioridad" [(ngModel)]="form.prioridad" [disabled]="saving">
+              <option value="baja">Baja</option>
+              <option value="media">Media</option>
+              <option value="alta">Alta</option>
+            </select>
+          </div>
+        </div>
+
+        @if (form.estado === 'listo') {
+          <div class="status-notice">
+            <i class="pi pi-info-circle"></i>
+            <span>Al guardar como <strong>Listo</strong>, el vehículo volverá a estar <strong>disponible</strong> en la flota.</span>
+          </div>
+        }
+
+        @if (errorMsg) {
+          <div class="error-msg">
+            <i class="pi pi-exclamation-triangle"></i>
+            {{ errorMsg }}
+          </div>
+        }
+
+        <footer class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="close()" [disabled]="saving">
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="btn-submit"
+            [disabled]="
+              saving ||
+              !form.razon ||
+              (form.razon === 'Otro' && !razonPersonalizada.trim())
+            "
+          >
+            @if (saving) {
+              <i class="pi pi-spin pi-spinner"></i>
+              Guardando...
+            } @else {
+              <i class="pi pi-check"></i>
+              Actualizar
+            }
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+}

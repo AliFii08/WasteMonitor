@@ -1,1 +1,110 @@
-<p>taller works!</p>
+<div class="vehicles-page">
+  <div class="title">
+    <h1>Mantenimiento y Taller</h1>
+    <span>Control de entrada, reparación y salida de unidades de recolección</span>
+  </div>
+
+  <div class="table-toolbar">
+    <div class="search-row">
+      <span class="search-input-wrap">
+        <input
+          type="text"
+          placeholder="Buscar vehículo, razón o estado..."
+          class="search-input"
+          [(ngModel)]="tallerSearchTerm"
+          (input)="onTallerSearchChange()"
+        />
+        <i class="pi pi-search"></i>
+      </span>
+
+      <label class="select-all-wrap" for="selectAllTaller">
+        <input
+          id="selectAllTaller"
+          type="checkbox"
+          [checked]="allTallerSelected"
+          (change)="toggleSelectAll($any($event.target).checked)"
+        />
+        Seleccionar todos
+      </label>
+
+      @if (hasSelectedItems) {
+        <button type="button" class="bulk-delete-btn" (click)="deleteSelectedItems()">
+          <i class="pi pi-trash"></i>
+          Eliminar seleccionados
+        </button>
+      }
+    </div>
+
+    <button type="button" class="create-btn" (click)="createRegistro()">
+      <i class="pi pi-plus"></i>
+      Ingresar a taller
+    </button>
+  </div>
+
+  <section class="preview-section" aria-label="Tabla de mantenimientos de taller">
+    <div class="preview-table-wrap">
+      <table class="preview-table">
+        <thead>
+          <tr>
+            <th class="select-col">
+              <i class="pi pi-check-square"></i>
+            </th>
+            <th>Vehículo</th>
+            <th>Razón de ingreso</th>
+            <th>Descripción</th>
+            <th>Estado</th>
+            <th>Fecha Ingreso</th>
+            <th class="options-header">Opciones</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (item of tallerList; track item.idKey || $index; let i = $index) {
+            <tr [class.hidden-row]="!tallerRowVisible[i]">
+              <td class="select-col">
+                <input
+                  type="checkbox"
+                  [checked]="selectedTallerRows[i]"
+                  (change)="toggleRow(i, $any($event.target).checked)"
+                />
+              </td>
+              <td><strong>{{ item.idCamion }}</strong></td>
+              <td>{{ item.razon }}</td>
+              <td>{{ item.descripcion }}</td>
+              <td>
+                <span
+                  class="status-chip"
+                  [ngClass]="{
+                    'espera_repuesto': item.estado === 'espera_repuesto',
+                    'en_reparacion': item.estado === 'en_reparacion',
+                    'listo': item.estado === 'listo'
+                  }">
+                  {{ formatEstado(item.estado) }}
+                </span>
+              </td>
+              <td>{{ item.creadoEl || 'N/A' }}</td>
+              <td>
+                <div class="option-actions">
+                  <button type="button" class="icon-btn" title="Editar" (click)="editRegistro(item)">
+                    <i class="pi pi-pencil"></i>
+                  </button>
+                  <button type="button" class="icon-btn danger" title="Eliminar" (click)="deleteSingleItem(item.idKey)">
+                    <i class="pi pi-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<app-create-vehicle-taller 
+  (created)="handleCreated()">
+</app-create-vehicle-taller>
+
+<app-update-vehicle-taller 
+  (updated)="handleUpdated()">
+</app-update-vehicle-taller>
