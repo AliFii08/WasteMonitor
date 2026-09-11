@@ -8,6 +8,7 @@ import {
   TallerPrioridad,
 } from '../../../../@core/services/taller.service';
 import { DashboardService } from '../../../../@core/services/dashboard.service';
+import { UserService } from '../../../../@core/services/user.service';
 
 export const RAZONES_INGRESO = [
   'Mantenimiento preventivo',
@@ -33,6 +34,7 @@ export class CreateVehicleTaller {
   private tallerService = inject(TallerService);
   private cdr = inject(ChangeDetectorRef);
   private dashboardService = inject(DashboardService);
+  private userService = inject(UserService);
 
   @Output() created = new EventEmitter<void>();
 
@@ -106,10 +108,17 @@ export class CreateVehicleTaller {
       // 2) Actualizar la marca en /camiones
       await this.tallerService.marcarCamionEnTaller(this.form.idCamion, true);
 
-      // Guardado en el dashboard
+      // 3) Obtener usuario y rol dinámicamente
+      const currentUser = this.userService.currentUserSignal();
+      const usuarioNombre = currentUser
+        ? `${currentUser.name || ''} ${currentUser.lastName || ''}`.trim() || currentUser.email
+        : 'Usuario Anónimo';
+      const usuarioRol = currentUser?.rol || 'Sin Rol';
+
+      // 4) Registrar en el historial del Dashboard con datos reales
       await this.dashboardService.registrarOperacion({
-        usuario: 'Usuario Actual', // Puedes sustituirlo con el usuario en sesión
-        rol: 'Administrador', // Puedes sustituirlo con el rol en sesión
+        usuario: usuarioNombre,
+        rol: usuarioRol,
         accion: 'crear',
         modulo: 'Vehículos',
         detalle: `Vehículo ${this.form.idCamion} ingresado al taller (${razonFinal})`,

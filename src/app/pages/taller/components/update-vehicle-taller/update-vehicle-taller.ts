@@ -9,6 +9,7 @@ import {
 } from '../../../../@core/services/taller.service';
 import { RAZONES_INGRESO } from '../create-vehicle-taller/create-vehicle-taller';
 import { DashboardService } from '../../../../@core/services/dashboard.service';
+import { UserService } from '../../../../@core/services/user.service';
 
 @Component({
   selector: 'app-update-vehicle-taller',
@@ -21,6 +22,7 @@ export class UpdateVehicleTaller {
   private tallerService = inject(TallerService);
   private cdr = inject(ChangeDetectorRef);
   private dashboardService = inject(DashboardService);
+  private userService = inject(UserService);
 
   @Output() updated = new EventEmitter<void>();
 
@@ -99,10 +101,17 @@ export class UpdateVehicleTaller {
       const estaListo = this.form.estado === 'listo';
       await this.tallerService.marcarCamionEnTaller(this.form.idCamion, !estaListo);
 
-      // 3) Registrar en el historial del Dashboard
+      // 3) Obtener usuario y rol dinámicamente
+      const currentUser = this.userService.currentUserSignal();
+      const usuarioNombre = currentUser
+        ? `${currentUser.name || ''} ${currentUser.lastName || ''}`.trim() || currentUser.email
+        : 'Usuario Anónimo';
+      const usuarioRol = currentUser?.rol || 'Sin Rol';
+
+      // 4) Registrar en el historial del Dashboard con datos reales
       await this.dashboardService.registrarOperacion({
-        usuario: 'Usuario Actual',
-        rol: 'Administrador',
+        usuario: usuarioNombre,
+        rol: usuarioRol,
         accion: 'actualizar',
         modulo: 'Vehículos',
         detalle: `Mantenimiento del vehículo ${this.form.idCamion} actualizado a estado '${this.form.estado}'`,

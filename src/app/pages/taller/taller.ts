@@ -5,6 +5,7 @@ import { TallerService, TallerRegistro } from '../../@core/services/taller.servi
 import { CreateVehicleTaller } from './components/create-vehicle-taller/create-vehicle-taller';
 import { UpdateVehicleTaller } from './components/update-vehicle-taller/update-vehicle-taller';
 import { DashboardService } from '../../@core/services/dashboard.service';
+import { UserService } from '../../@core/services/user.service';
 
 @Component({
   selector: 'app-taller',
@@ -17,6 +18,7 @@ export class Taller implements OnInit {
   private tallerService = inject(TallerService);
   private cdr = inject(ChangeDetectorRef);
   private dashboardService = inject(DashboardService);
+  private userService = inject(UserService);
 
   @ViewChild(CreateVehicleTaller) createModal!: CreateVehicleTaller;
   @ViewChild(UpdateVehicleTaller) updateModal!: UpdateVehicleTaller;
@@ -125,6 +127,13 @@ export class Taller implements OnInit {
 
   async processDelete(): Promise<void> {
     this.deleting = true;
+
+    const currentUser = this.userService.currentUserSignal();
+    const usuarioNombre = currentUser
+      ? `${currentUser.name || ''} ${currentUser.lastName || ''}`.trim() || currentUser.email
+      : 'Usuario Anónimo';
+    const usuarioRol = currentUser?.rol || 'Sin Rol';
+
     try {
       if (this.deleteMode === 'single' && this.itemToDeleteKey) {
         const item = this.tallerList.find((r) => r.idKey === this.itemToDeleteKey);
@@ -132,8 +141,8 @@ export class Taller implements OnInit {
 
         // Registrar eliminación individual
         await this.dashboardService.registrarOperacion({
-          usuario: 'Usuario Actual',
-          rol: 'Administrador',
+          usuario: usuarioNombre,
+          rol: usuarioRol,
           accion: 'eliminar',
           modulo: 'Vehículos',
           detalle: `Registro de taller para el vehículo ${item?.idCamion || this.itemToDeleteKey} eliminado/liberado`,
@@ -146,10 +155,10 @@ export class Taller implements OnInit {
 
         if (keysToDelete.length > 0) {
           await this.tallerService.eliminarMultiples(keysToDelete);
-        
+
           await this.dashboardService.registrarOperacion({
-            usuario: 'Usuario Actual',
-            rol: 'Administrador',
+            usuario: usuarioNombre,
+            rol: usuarioRol,
             accion: 'eliminar',
             modulo: 'Vehículos',
             detalle: `Se retiraron ${keysToDelete.length} vehículos del taller`,
