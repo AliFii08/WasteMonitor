@@ -7,6 +7,7 @@ import {
   TallerEstado,
   TallerPrioridad,
 } from '../../../../@core/services/taller.service';
+import { DashboardService } from '../../../../@core/services/dashboard.service';
 
 export const RAZONES_INGRESO = [
   'Mantenimiento preventivo',
@@ -31,6 +32,7 @@ export const RAZONES_INGRESO = [
 export class CreateVehicleTaller {
   private tallerService = inject(TallerService);
   private cdr = inject(ChangeDetectorRef);
+  private dashboardService = inject(DashboardService);
 
   @Output() created = new EventEmitter<void>();
 
@@ -98,10 +100,21 @@ export class CreateVehicleTaller {
         descripcion: this.form.descripcion.trim(),
         estado: this.form.estado,
         prioridad: this.form.prioridad,
+        activo: true,
       });
 
       // 2) Actualizar la marca en /camiones
       await this.tallerService.marcarCamionEnTaller(this.form.idCamion, true);
+
+      // Guardado en el dashboard
+      await this.dashboardService.registrarOperacion({
+        usuario: 'Usuario Actual', // Puedes sustituirlo con el usuario en sesión
+        rol: 'Administrador', // Puedes sustituirlo con el rol en sesión
+        accion: 'crear',
+        modulo: 'Vehículos',
+        detalle: `Vehículo ${this.form.idCamion} ingresado al taller (${razonFinal})`,
+        fechaHora: new Date().toLocaleString(),
+      });
 
       this.created.emit();
       this.close();

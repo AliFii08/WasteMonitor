@@ -217,10 +217,203 @@
     background: #f6d5d5;
     color: #8d1f1f;
   }
-
+  &.espera_entrega,
   &.listo {
     background: #d5f0df;
     color: #1b7a45;
+  }
+}
+
+/* Desplegable de Vehículos Listos */
+.finished-collapsible {
+  margin-top: 1.5rem;
+  border-radius: 12px;
+  background: transparent;
+
+  &[open] .arrow-icon {
+    transform: rotate(180deg);
+  }
+}
+
+.collapsible-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1.2rem;
+  background: #e7f5ec;
+  border: 1px solid #cce5d7;
+  border-radius: 12px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+
+  &:hover {
+    background: #dbf0e2;
+    border-color: #b5dac3;
+  }
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+}
+
+.trigger-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: #1b7a45;
+  font-size: 0.95rem;
+  font-weight: 800;
+
+  i {
+    font-size: 1.1rem;
+  }
+}
+
+.arrow-icon {
+  color: #1b7a45;
+  font-weight: 700;
+  transition: transform 0.2s ease;
+}
+
+.finished-section {
+  margin-top: 0.75rem !important;
+  border-color: #cce5d7 !important;
+  opacity: 0.92;
+}
+
+.empty-row {
+  text-align: center;
+  padding: 1.5rem !important;
+  color: #5d7568;
+  font-weight: 600;
+  font-style: italic;
+}
+
+/* MODAL DE CONFIRMACIÓN DE ELIMINACIÓN */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.confirm-modal {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1.8rem;
+  width: 90%;
+  max-width: 420px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: scaleUp 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  .confirm-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+
+    &.danger {
+      background: #fde8e8;
+      color: #d62828;
+      i {
+        font-size: 1.8rem;
+      }
+    }
+  }
+
+  h2 {
+    font-size: 1.3rem;
+    color: #0f4b3a;
+    margin: 0 0 0.5rem 0;
+    font-weight: 800;
+  }
+
+  p {
+    font-size: 0.92rem;
+    color: #4a5568;
+    margin: 0 0 1.5rem 0;
+    line-height: 1.4;
+
+    strong {
+      color: #d62828;
+    }
+  }
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+
+  button {
+    flex: 1;
+    height: 42px;
+    border-radius: 8px;
+    font-family: 'Raleway', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  .btn-cancel {
+    background: #edf2f7;
+    color: #4a5568;
+
+    &:hover:not(:disabled) {
+      background: #e2e8f0;
+    }
+  }
+
+  .btn-confirm-danger {
+    background: #d62828;
+    color: #ffffff;
+
+    &:hover:not(:disabled) {
+      background: #b51f1f;
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 

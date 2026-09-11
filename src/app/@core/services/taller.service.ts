@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Database, ref, push, set, update, remove, get } from '@angular/fire/database';
 
-export type TallerEstado = 'en_reparacion' | 'espera_repuesto' | 'listo';
+export type TallerEstado = 'en_reparacion' | 'espera_repuesto' | 'espera_entrega' | 'listo';
 export type TallerPrioridad = 'baja' | 'media' | 'alta';
 
 export interface TallerRegistro {
@@ -18,6 +18,7 @@ export interface TallerRegistro {
   mecanicoId?: string;
   mecanicoNombre?: string;
   prioridad?: TallerPrioridad;
+  activo?: boolean;
 }
 
 export type TallerRegistroInput = Omit<TallerRegistro, 'idKey' | 'creadoEl' | 'modificadoEl'> & {
@@ -47,7 +48,7 @@ export class TallerService {
     const data = snapshot.val() ?? {};
     const lista: TallerRegistro[] = Object.entries(data)
       .map(([idKey, value]) => ({ idKey, ...(value as Omit<TallerRegistro, 'idKey'>) }))
-      .filter((r) => !!r.idCamion);
+      .filter((r) => !!r.idCamion && r.activo !== false);
 
     lista.sort((a, b) => String(b.creadoEl ?? '').localeCompare(String(a.creadoEl ?? '')));
     return lista;
@@ -93,13 +94,36 @@ export class TallerService {
   }
 
   async eliminarRegistro(idKey: string, idCamion?: string): Promise<void> {
-    await remove(ref(this.db, `taller/${idKey}`));
+    await update(ref(this.db, `taller/${idKey}`), {
+      activo: false,
+      modificadoEl: new Date().toISOString(),
+    });
+
     if (idCamion) {
       await this.marcarCamionEnTaller(idCamion, false);
     }
   }
 
+  /** Borrado lógico masivo */
   async eliminarMultiples(keys: string[]): Promise<void> {
-    await Promise.all(keys.map((k) => remove(ref(this.db, `taller/${k}`))));
+    const actualizaciones: Record<string, any> = {};
+    const ahora = new Date().toISOString();
+
+    for (const idKey of keys) {
+      actualizaciones[`taller/${idKey}/activo`] = false;
+      actualizaciones[`taller/${idKey}/modificadoEl`] = ahora;
+    }
+
+    await update(ref(this.db), actualizaciones);
+
+    // Liberamos el estado en taller de los camiones afectados
+    const snapshot = await get(this.tallerRef);
+    const data = snapshot.val() ?? {};
+    for (const idKey of keys) {
+      const camionId = data[idKey]?.idCamion;
+      if (camionId) {
+        await this.marcarCamionEnTaller(camionId, false);
+      }
+    }
   }
 }

@@ -87,16 +87,16 @@
         <td>{{ vehicle.route }}</td>
         <td>
           <span
-            class="status-chip"
-            [ngClass]="{
-              'disponible': vehicle.status === 'disponible',
-              'taller': vehicle.status === 'en taller',
-              'en-ruta': vehicle.status === 'en ruta',
-              'no-disponible': vehicle.status === 'no disponible'
-            }"
-          >
-            {{ vehicle.status | titlecase }}
-          </span>
+  class="status-chip"
+  [ngClass]="{
+    'disponible': vehicle.status === 'disponible',
+    'en_taller': vehicle.status === 'en_taller',
+    'en-ruta': vehicle.status === 'en ruta',
+    'no-disponible': vehicle.status === 'no disponible'
+  }"
+>
+  {{ vehicle.status === 'en_taller' ? 'En Taller' : (vehicle.status | titlecase) }}
+</span>
         </td>
         <td>
           <div class="option-actions">

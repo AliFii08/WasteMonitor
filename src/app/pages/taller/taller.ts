@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { TallerService, TallerRegistro } from '../../@core/services/taller.service';
 import { CreateVehicleTaller } from './components/create-vehicle-taller/create-vehicle-taller';
 import { UpdateVehicleTaller } from './components/update-vehicle-taller/update-vehicle-taller';
+import { DashboardService } from '../../@core/services/dashboard.service';
 
 @Component({
   selector: 'app-taller',
@@ -14,7 +15,8 @@ import { UpdateVehicleTaller } from './components/update-vehicle-taller/update-v
 })
 export class Taller implements OnInit {
   private tallerService = inject(TallerService);
-  private cdr = inject(ChangeDetectorRef); // Inyección directa del ChangeDetectorRef
+  private cdr = inject(ChangeDetectorRef);
+  private dashboardService = inject(DashboardService);
 
   @ViewChild(CreateVehicleTaller) createModal!: CreateVehicleTaller;
   @ViewChild(UpdateVehicleTaller) updateModal!: UpdateVehicleTaller;
@@ -26,6 +28,13 @@ export class Taller implements OnInit {
   tallerSearchTerm = '';
   allTallerSelected = false;
   loading = false;
+  desplegableListosAbierto = false;
+
+  // Estado del modal de confirmación de eliminación
+  showConfirmModal = false;
+  deleting = false;
+  deleteMode: 'single' | 'bulk' = 'single';
+  itemToDeleteKey?: string;
 
   async ngOnInit(): Promise<void> {
     await this.loadTaller();
@@ -33,7 +42,7 @@ export class Taller implements OnInit {
 
   async loadTaller(): Promise<void> {
     this.loading = true;
-    this.cdr.detectChanges(); // Fuerza visualización de estado de carga
+    this.cdr.detectChanges();
 
     try {
       this.tallerList = await this.tallerService.getRegistrosTaller();
@@ -45,8 +54,16 @@ export class Taller implements OnInit {
       console.error('Error al cargar la lista del taller:', error);
     } finally {
       this.loading = false;
-      this.cdr.detectChanges(); // Fuerza el refresco completo de la vista
+      this.cdr.detectChanges();
     }
+  }
+
+  get registrosActivos(): TallerRegistro[] {
+    return this.tallerList.filter((item) => item.estado !== 'listo');
+  }
+
+  get registrosListos(): TallerRegistro[] {
+    return this.tallerList.filter((item) => item.estado === 'listo');
   }
 
   onTallerSearchChange(): void {
@@ -81,22 +98,73 @@ export class Taller implements OnInit {
     return this.selectedTallerRows.some((selected) => selected);
   }
 
-  async deleteSelectedItems(): Promise<void> {
-    const keysToDelete = this.tallerList
-      .filter((_, i) => this.selectedTallerRows[i] && this.tallerList[i].idKey)
-      .map((item) => item.idKey as string);
-
-    if (keysToDelete.length > 0) {
-      await this.tallerService.eliminarMultiples(keysToDelete);
-      await this.loadTaller();
-    }
+  get selectedCount(): number {
+    return this.selectedTallerRows.filter(Boolean).length;
   }
 
-  async deleteSingleItem(idKey?: string): Promise<void> {
-    if (idKey) {
-      const item = this.tallerList.find((r) => r.idKey === idKey);
-      await this.tallerService.eliminarRegistro(idKey, item?.idCamion);
+  // Muestra modal para eliminación individual
+  confirmDeleteSingle(idKey?: string): void {
+    if (!idKey) return;
+    this.itemToDeleteKey = idKey;
+    this.deleteMode = 'single';
+    this.showConfirmModal = true;
+  }
+
+  // Muestra modal para eliminación masiva
+  confirmDeleteSelected(): void {
+    if (!this.hasSelectedItems) return;
+    this.deleteMode = 'bulk';
+    this.showConfirmModal = true;
+  }
+
+  closeConfirmModal(): void {
+    if (this.deleting) return;
+    this.showConfirmModal = false;
+    this.itemToDeleteKey = undefined;
+  }
+
+  async processDelete(): Promise<void> {
+    this.deleting = true;
+    try {
+      if (this.deleteMode === 'single' && this.itemToDeleteKey) {
+        const item = this.tallerList.find((r) => r.idKey === this.itemToDeleteKey);
+        await this.tallerService.eliminarRegistro(this.itemToDeleteKey, item?.idCamion);
+
+        // Registrar eliminación individual
+        await this.dashboardService.registrarOperacion({
+          usuario: 'Usuario Actual',
+          rol: 'Administrador',
+          accion: 'eliminar',
+          modulo: 'Vehículos',
+          detalle: `Registro de taller para el vehículo ${item?.idCamion || this.itemToDeleteKey} eliminado/liberado`,
+          fechaHora: new Date().toLocaleString(),
+        });
+      } else if (this.deleteMode === 'bulk') {
+        const keysToDelete = this.tallerList
+          .filter((_, i) => this.selectedTallerRows[i] && this.tallerList[i].idKey)
+          .map((item) => item.idKey as string);
+
+        if (keysToDelete.length > 0) {
+          await this.tallerService.eliminarMultiples(keysToDelete);
+        
+          await this.dashboardService.registrarOperacion({
+            usuario: 'Usuario Actual',
+            rol: 'Administrador',
+            accion: 'eliminar',
+            modulo: 'Vehículos',
+            detalle: `Se retiraron ${keysToDelete.length} vehículos del taller`,
+            fechaHora: new Date().toLocaleString(),
+          });
+        }
+      }
+      this.showConfirmModal = false;
       await this.loadTaller();
+    } catch (error) {
+      console.error('Error al eliminar registro(s):', error);
+    } finally {
+      this.deleting = false;
+      this.itemToDeleteKey = undefined;
+      this.cdr.detectChanges();
     }
   }
 
@@ -108,7 +176,6 @@ export class Taller implements OnInit {
     this.updateModal?.open?.(item);
   }
 
-  /** Se invoca al emitir el evento (created) del modal de creación */
   async handleCreated(): Promise<void> {
     await this.loadTaller();
   }
@@ -120,5 +187,9 @@ export class Taller implements OnInit {
   formatEstado(estado: string): string {
     if (!estado) return '';
     return estado.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+  }
+
+  getRealIndex(item: TallerRegistro): number {
+    return this.tallerList.findIndex((r) => r.idKey === item.idKey);
   }
 }

@@ -28,9 +28,9 @@
       </label>
 
       @if (hasSelectedItems) {
-        <button type="button" class="bulk-delete-btn" (click)="deleteSelectedItems()">
+        <button type="button" class="bulk-delete-btn" (click)="confirmDeleteSelected()">
           <i class="pi pi-trash"></i>
-          Eliminar seleccionados
+          Eliminar seleccionados ({{ selectedCount }})
         </button>
       }
     </div>
@@ -41,6 +41,7 @@
     </button>
   </div>
 
+  <!-- TABLA PRINCIPAL: VEHÍCULOS EN PROCESO / EN ESPERA -->
   <section class="preview-section" aria-label="Tabla de mantenimientos de taller">
     <div class="preview-table-wrap">
       <table class="preview-table">
@@ -59,7 +60,8 @@
         </thead>
 
         <tbody>
-          @for (item of tallerList; track item.idKey || $index; let i = $index) {
+          @for (item of registrosActivos; track item.idKey || $index) {
+            @let i = getRealIndex(item);
             <tr [class.hidden-row]="!tallerRowVisible[i]">
               <td class="select-col">
                 <input
@@ -77,6 +79,7 @@
                   [ngClass]="{
                     'espera_repuesto': item.estado === 'espera_repuesto',
                     'en_reparacion': item.estado === 'en_reparacion',
+                    'espera_entrega': item.estado === 'espera_entrega',
                     'listo': item.estado === 'listo'
                   }">
                   {{ formatEstado(item.estado) }}
@@ -88,23 +91,123 @@
                   <button type="button" class="icon-btn" title="Editar" (click)="editRegistro(item)">
                     <i class="pi pi-pencil"></i>
                   </button>
-                  <button type="button" class="icon-btn danger" title="Eliminar" (click)="deleteSingleItem(item.idKey)">
+                  <button type="button" class="icon-btn danger" title="Eliminar" (click)="confirmDeleteSingle(item.idKey)">
                     <i class="pi pi-trash"></i>
                   </button>
                 </div>
               </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="empty-row">No hay vehículos activos en taller.</td>
             </tr>
           }
         </tbody>
       </table>
     </div>
   </section>
+
+  <!-- DESPLEGABLE: VEHÍCULOS LISTOS / FINALIZADOS -->
+  @if (registrosListos.length > 0) {
+    <details class="finished-collapsible">
+      <summary class="collapsible-trigger">
+        <div class="trigger-title">
+          <i class="pi pi-check-circle"></i>
+          <span>Vehículos Listos y entregados ({{ registrosListos.length }})</span>
+        </div>
+        <i class="pi pi-chevron-down arrow-icon"></i>
+      </summary>
+
+      <div class="preview-section finished-section">
+        <div class="preview-table-wrap">
+          <table class="preview-table">
+            <thead>
+              <tr>
+                <th class="select-col">
+                  <i class="pi pi-check-square"></i>
+                </th>
+                <th>Vehículo</th>
+                <th>Razón de ingreso</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+                <th>Fecha Ingreso</th>
+                <th class="options-header">Opciones</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (item of registrosListos; track item.idKey || $index) {
+                @let i = getRealIndex(item);
+                <tr [class.hidden-row]="!tallerRowVisible[i]">
+                  <td class="select-col">
+                    <input
+                      type="checkbox"
+                      [checked]="selectedTallerRows[i]"
+                      (change)="toggleRow(i, $any($event.target).checked)"
+                    />
+                  </td>
+                  <td><strong>{{ item.idCamion }}</strong></td>
+                  <td>{{ item.razon }}</td>
+                  <td>{{ item.descripcion }}</td>
+                  <td>
+                    <span class="status-chip listo">
+                      {{ formatEstado(item.estado) }}
+                    </span>
+                  </td>
+                  <td>{{ item.creadoEl || 'N/A' }}</td>
+                  <td>
+                    <div class="option-actions">
+                      <button type="button" class="icon-btn" title="Editar" (click)="editRegistro(item)">
+                        <i class="pi pi-pencil"></i>
+                      </button>
+                      <button type="button" class="icon-btn danger" title="Eliminar" (click)="confirmDeleteSingle(item.idKey)">
+                        <i class="pi pi-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+  }
 </div>
 
-<app-create-vehicle-taller 
-  (created)="handleCreated()">
-</app-create-vehicle-taller>
+<!-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN -->
+@if (showConfirmModal) {
+  <div class="modal-backdrop" (click)="closeConfirmModal()">
+    <div class="confirm-modal" (click)="$event.stopPropagation()">
+      <div class="confirm-icon danger">
+        <i class="pi pi-exclamation-triangle"></i>
+      </div>
+      
+      <h2>¿Confirmar eliminación?</h2>
+      
+      <p>
+        @if (deleteMode === 'single') {
+          ¿Estás seguro de que deseas retirar este vehículo del taller? El registro pasará a inactivo y la unidad quedará liberada.
+        } @else {
+          ¿Estás seguro de que deseas retirar los <strong>{{ selectedCount }}</strong> vehículos seleccionados del taller?
+        }
+      </p>
 
-<app-update-vehicle-taller 
-  (updated)="handleUpdated()">
-</app-update-vehicle-taller>
+      <div class="confirm-actions">
+        <button type="button" class="btn-cancel" [disabled]="deleting" (click)="closeConfirmModal()">
+          Cancelar
+        </button>
+        <button type="button" class="btn-confirm-danger" [disabled]="deleting" (click)="processDelete()">
+          @if (deleting) {
+            <i class="pi pi-spin pi-spinner"></i> Procesando...
+          } @else {
+            Sí, eliminar
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<app-create-vehicle-taller (created)="handleCreated()"></app-create-vehicle-taller>
+<app-update-vehicle-taller (updated)="handleUpdated()"></app-update-vehicle-taller>

@@ -8,6 +8,7 @@ import {
   TallerPrioridad,
 } from '../../../../@core/services/taller.service';
 import { RAZONES_INGRESO } from '../create-vehicle-taller/create-vehicle-taller';
+import { DashboardService } from '../../../../@core/services/dashboard.service';
 
 @Component({
   selector: 'app-update-vehicle-taller',
@@ -19,6 +20,7 @@ import { RAZONES_INGRESO } from '../create-vehicle-taller/create-vehicle-taller'
 export class UpdateVehicleTaller {
   private tallerService = inject(TallerService);
   private cdr = inject(ChangeDetectorRef);
+  private dashboardService = inject(DashboardService);
 
   @Output() updated = new EventEmitter<void>();
 
@@ -96,6 +98,16 @@ export class UpdateVehicleTaller {
       // 2) Sincronizar estado del camión si cambió a "listo" o volvió a reparación/espera
       const estaListo = this.form.estado === 'listo';
       await this.tallerService.marcarCamionEnTaller(this.form.idCamion, !estaListo);
+
+      // 3) Registrar en el historial del Dashboard
+      await this.dashboardService.registrarOperacion({
+        usuario: 'Usuario Actual',
+        rol: 'Administrador',
+        accion: 'actualizar',
+        modulo: 'Vehículos',
+        detalle: `Mantenimiento del vehículo ${this.form.idCamion} actualizado a estado '${this.form.estado}'`,
+        fechaHora: new Date().toLocaleString(),
+      });
 
       this.updated.emit();
       this.close();
