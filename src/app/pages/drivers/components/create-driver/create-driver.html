@@ -1,1 +1,91 @@
-<p>create-driver works!</p>
+@if (visible) {
+    <div class="modal-backdrop" (click)="cerrarModal()">
+      <div class="modal-panel" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+        <header class="modal-header">
+          <div class="modal-title">
+            <i class="pi pi-user-plus"></i>
+            <h2>Asignar Conductor</h2>
+          </div>
+          <button type="button" class="close-btn" (click)="cerrarModal()" aria-label="Cerrar">
+            <i class="pi pi-times"></i>
+          </button>
+        </header>
+  
+        <form (ngSubmit)="onSubmit()" class="modal-body" #f="ngForm">
+          <!-- Selección de Usuario con Rol 'user' -->
+          <div class="form-field">
+            <label for="uidUsuario">Usuario <span class="req">*</span></label>
+            <select
+              id="uidUsuario"
+              name="uidUsuario"
+              [(ngModel)]="form.uidUsuario"
+              required
+              [disabled]="saving || loadingData"
+            >
+              <option value="" disabled selected>
+                {{ loadingData ? 'Cargando usuarios...' : 'Seleccione un usuario' }}
+              </option>
+              @for (u of usuariosDisponibles; track u.uid) {
+                <option [value]="u.uid">
+                  {{ u.nombreCompleto }} ({{ u.email }})
+                </option>
+              }
+            </select>
+            @if (!loadingData && usuariosDisponibles.length === 0) {
+              <small class="hint">No hay usuarios disponibles con rol 'user'.</small>
+            }
+          </div>
+  
+          <!-- Selección de Camión Disponible -->
+          <div class="form-field">
+            <label for="idCamion">Vehículo / Camión <span class="req">*</span></label>
+            <select
+              id="idCamion"
+              name="idCamion"
+              [(ngModel)]="form.idCamion"
+              required
+              [disabled]="saving || loadingData"
+            >
+              <option value="" disabled selected>
+                {{ loadingData ? 'Cargando vehículos...' : 'Seleccione un vehículo' }}
+              </option>
+              @for (c of camionesDisponibles; track c.idKey) {
+                <option [value]="c.idKey">
+                  {{ c.idKey }} — {{ c.placa || 'Sin placa' }} ({{ c.tipo || 'N/A' }})
+                </option>
+              }
+            </select>
+            @if (!loadingData && camionesDisponibles.length === 0) {
+              <small class="hint">No hay vehículos disponibles fuera de taller.</small>
+            }
+          </div>
+  
+          @if (errorMsg) {
+            <div class="error-msg">
+              <i class="pi pi-exclamation-triangle"></i>
+              {{ errorMsg }}
+            </div>
+          }
+  
+          <footer class="modal-footer">
+            <button type="button" class="btn-cancel" (click)="cerrarModal()" [disabled]="saving">
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="btn-submit"
+              [disabled]="saving || !form.uidUsuario || !form.idCamion"
+            >
+              @if (saving) {
+                <i class="pi pi-spin pi-spinner"></i>
+                Guardando...
+              } @else {
+                <i class="pi pi-check"></i>
+                Asignar Conductor
+              }
+            </button>
+          </footer>
+        </form>
+      </div>
+    </div>
+  }

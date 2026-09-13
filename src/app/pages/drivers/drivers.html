@@ -35,7 +35,7 @@
       }
     </div>
 
-    <button type="button" class="create-btn" (click)="createDriver()">
+    <button type="button" class="create-btn" (click)="openCreateModal()">
       <i class="pi pi-plus"></i>
       Crear conductor
     </button>
@@ -91,3 +91,9 @@
     </div>
   </section>
 </div>
+
+<app-create-driver
+[(visible)]="isCreateModalOpen"
+(created)="loadDrivers()"
+></app-create-driver>
+
