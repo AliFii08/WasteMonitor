@@ -1,0 +1,53 @@
+@if (visible) {
+    <div class="modal-backdrop" (click)="cerrarModal()">
+      <div class="modal-panel danger-theme" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+        <header class="modal-header">
+          <div class="modal-title">
+            <i class="pi pi-exclamation-triangle"></i>
+            <h2>Confirmar Eliminación</h2>
+          </div>
+          <button type="button" class="close-btn" (click)="cerrarModal()" aria-label="Cerrar">
+            <i class="pi pi-times"></i>
+          </button>
+        </header>
+  
+        <div class="modal-body">
+          @if (targetUids.length === 1) {
+            <p class="confirm-text">
+              ¿Estás seguro de remover al conductor <strong>{{ driverName }}</strong>?
+            </p>
+          } @else {
+            <p class="confirm-text">
+              ¿Estás seguro de remover a los <strong>{{ targetUids.length }} conductores</strong> seleccionados?
+            </p>
+          }
+  
+          <p class="sub-text">
+            El usuario no será borrado del sistema, solo cambiará su rol de vuelta a <strong>'Usuario'</strong> y se liberará su vehículo.
+          </p>
+  
+          @if (errorMsg) {
+            <div class="error-msg">
+              <i class="pi pi-exclamation-circle"></i>
+              {{ errorMsg }}
+            </div>
+          }
+        </div>
+  
+        <footer class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="cerrarModal()" [disabled]="deleting">
+            Cancelar
+          </button>
+          <button type="button" class="btn-danger" (click)="confirmDelete()" [disabled]="deleting">
+            @if (deleting) {
+              <i class="pi pi-spin pi-spinner"></i>
+              Procesando...
+            } @else {
+              <i class="pi pi-trash"></i>
+              Sí, remover
+            }
+          </button>
+        </footer>
+      </div>
+    </div>
+  }

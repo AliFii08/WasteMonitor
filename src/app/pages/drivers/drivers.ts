@@ -5,16 +5,18 @@ import { ConductoresService, ConductorTabla } from '../../@core/services/conduct
 import { CreateDriver } from './components/create-driver/create-driver';
 import { UpdateDriver } from './components/update-driver/update-driver';
 import { VehiculoService } from '../../@core/services/vehiculos.service';
+import { DeleteDriverModal } from './components/delete-driver-modal/delete-driver-modal';
 
 @Component({
   selector: 'app-drivers',
   standalone: true,
   imports: [
-    CommonModule, 
+    CommonModule,
     FormsModule,
     CreateDriver,
-    // UpdateDriver,
-  ],
+    UpdateDriver,
+    DeleteDriverModal
+],
   templateUrl: './drivers.html',
   styleUrl: './drivers.scss',
 })
@@ -32,6 +34,10 @@ export class Drivers implements OnInit {
 
   isCreateModalOpen = false;
 
+  isDeleteModalOpen = false;
+  uidsToDelete: string[] = [];
+  deleteDriverName = '';
+
   ngOnInit(): void {
     this.loadDrivers();
   }
@@ -41,11 +47,11 @@ export class Drivers implements OnInit {
   async loadDrivers(): Promise<void> {
     this.cdr.detectChanges();
     this.driversList = await this.conductoresService.getConductores();
-    
+
     // Mantenemos el estado de selección e visibilidad idéntico al código de tu equipo
     this.selectedDriverRows = new Array(this.driversList.length).fill(false);
     this.driverRowVisible = new Array(this.driversList.length).fill(true);
-    
+
     this.cdr.detectChanges();
   }
 
@@ -84,14 +90,28 @@ export class Drivers implements OnInit {
     this.syncDriversSelection();
   }
 
+  openSingleDeleteModal(driver: ConductorTabla): void {
+    this.uidsToDelete = [driver.uid];
+    this.deleteDriverName = driver.nombreCompleto;
+    this.isDeleteModalOpen = true;
+  }
+
   deleteSelectedDrivers(): void {
     if (!this.hasSelectedDrivers) return;
 
-    const canDelete = window.confirm('Se eliminarán los conductores seleccionados.');
-    if (!canDelete) return;
+    // Extraer los UIDs de las filas seleccionadas y visibles
+    this.uidsToDelete = this.driversList
+      .filter((_, index) => this.selectedDriverRows[index] && this.driverRowVisible[index])
+      .map((driver) => driver.uid);
 
-    this.selectedDriverRows = this.selectedDriverRows.map(() => false);
-    this.syncDriversSelection();
+    this.deleteDriverName = '';
+    this.isDeleteModalOpen = true;
+  }
+
+  onDriversDeleted(): void {
+    this.loadDrivers();
+    this.selectedDriverRows = new Array(this.driversList.length).fill(false);
+    this.allDriversSelected = false;
   }
 
   createDriver(): void {
@@ -106,4 +126,15 @@ export class Drivers implements OnInit {
     this.allDriversSelected =
       visibleIndexes.length > 0 && visibleIndexes.every((index) => this.selectedDriverRows[index]);
   }
+
+  // Agregar propiedad y método para abrir el modal de edición
+  selectedDriverForUpdate: ConductorTabla | null = null;
+  isUpdateModalOpen = false;
+
+  openUpdateModal(driver: ConductorTabla): void {
+    this.selectedDriverForUpdate = driver;
+    this.isUpdateModalOpen = true;
+  }
+
+  
 }
