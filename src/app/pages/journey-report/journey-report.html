@@ -1,9 +1,75 @@
-<body>
-
+<div class="report-page">
   <div class="title">
     <h1>Informe de Jornada</h1>
     <span>Reporte detallado del desempeño de su jornada laboral</span>
   </div>
 
-  
-</body>
+  <div class="table-card">
+    <div class="table-wrap">
+      <p-table 
+        [value]="reportes" 
+        [paginator]="true" 
+        [rows]="10" 
+        styleClass="custom-report-table">
+        
+        <ng-template pTemplate="header">
+          <tr>
+            <th>ID Reporte</th>
+            <th>Usuario</th>
+            <th>Vehículo</th>
+            <th>Ruta</th>
+            <th>Ton. Recogidas</th>
+            <th>Estado Firma</th>
+            <th>Usuario Firma</th>
+            <th>Fecha Creación</th>
+            <th>Estado</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-reporte>
+          <tr>
+            <td>
+              <span class="font-bold">{{ reporte.id }}</span>
+            </td>
+            <td>
+              <span class="user-name">{{ reporte.nombreUsuario }}</span>
+            </td>
+            <td>
+              <span [class]="reporte.camionId ? 'badge-info' : 'text-muted'">
+                {{ reporte.camionId || 'N/A' }}
+              </span>
+            </td>
+            <td>
+              <span class="route-name">{{ reporte.nombreRuta }}</span>
+            </td>
+            <td>
+              <span class="font-bold">{{ reporte.tonRecogidas }} ton</span>
+            </td>
+            <td>
+              <span [class]="reporte.firmado ? 'badge-success' : 'badge-warning'">
+                {{ reporte.firmado ? 'Firmado' : 'Pendiente' }}
+              </span>
+            </td>
+            <td>
+              <span class="user-name">{{ reporte.nombreUsuarioFirma }}</span>
+            </td>
+            <td>{{ reporte.creadoEn | date:'dd/MM/yyyy, hh:mm a' }}</td>
+            <td>
+              <span [class]="reporte.activo ? 'badge-active' : 'badge-inactive'">
+                {{ reporte.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="9" class="empty-message">
+              No se encontraron reportes de viaje registrados.
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</div>
