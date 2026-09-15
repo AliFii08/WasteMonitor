@@ -1,0 +1,53 @@
+@if (visible && reporte) {
+  <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal-panel" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <div class="modal-title">
+          <i class="pi pi-eye"></i>
+          <h2>Detalles del Informe</h2>
+        </div>
+        <button type="button" class="close-btn" (click)="closeModal()" aria-label="Cerrar">
+          <i class="pi pi-times"></i>
+        </button>
+      </header>
+
+      <div class="modal-body">
+        <div class="detail-group">
+          <label>Vehículo / Camión</label>
+          <p class="detail-value">{{ reporte.camionId || 'Sin vehículo asignado' }}</p>
+        </div>
+
+        <div class="detail-group">
+          <label>Ruta</label>
+          <p class="detail-value">{{ reporte.nombreRuta || 'N/A' }}</p>
+        </div>
+
+        <div class="detail-group">
+          <label>Toneladas Recogidas</label>
+          <p class="detail-value font-bold">{{ reporte.tonRecogidas }} ton</p>
+        </div>
+
+        <div class="detail-group">
+          <label>Observaciones / Descripción</label>
+          <p class="detail-value text-box">{{ reporte.observaciones || 'Sin observaciones registradas.' }}</p>
+        </div>
+
+        <div class="detail-group">
+          <label>Aprobacion</label>
+          <div class="signature-box">
+            <span [class]="reporte.firmado ? 'badge-success' : 'badge-warning'">
+              {{ reporte.firmado ? 'Firmado' : 'Pendiente de firma' }}
+            </span>
+            @if (reporte.firmado && reporte.nombreUsuarioFirma) {
+              <small class="signer-name">Por: {{ reporte.nombreUsuarioFirma }}</small>
+            }
+          </div>
+        </div>
+      </div>
+
+      <footer class="modal-footer">
+        <button type="button" class="btn-close" (click)="closeModal()">Cerrar</button>
+      </footer>
+    </div>
+  </div>
+}

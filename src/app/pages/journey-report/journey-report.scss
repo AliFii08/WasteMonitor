@@ -23,6 +23,108 @@
   }
 }
 
+/* Estilos para la barra superior (Toolbar) */
+.table-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 20px 20px 20px;
+  gap: 15px;
+  flex-wrap: wrap;
+
+  .search-row {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+
+    .search-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+
+      .search-input {
+        padding: 10px 38px 10px 14px;
+        border: 1px solid #c2dbce;
+        border-radius: 8px;
+        outline: none;
+        font-size: 14px;
+        color: #0f4b3a;
+        background-color: #ffffff;
+        transition: border-color 0.2s;
+
+        &:focus {
+          border-color: #06523f;
+        }
+      }
+
+      .pi-search {
+        position: absolute;
+        right: 12px;
+        color: #06523f;
+        font-size: 14px;
+        pointer-events: none;
+      }
+    }
+
+    .select-all-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: #0f4b3a;
+      cursor: pointer;
+      font-weight: 600;
+
+      input[type='checkbox'] {
+        accent-color: #06523f;
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+      }
+    }
+
+    .bulk-delete-btn {
+      background-color: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+      padding: 9px 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      transition: background-color 0.2s;
+
+      &:hover {
+        background-color: #fca5a5;
+      }
+    }
+  }
+
+  /* Cambios en .table-toolbar .create-btn dentro de journey-report.scss */
+.create-btn {
+  background-color: #68a357 !important;
+  color: #ffffff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #4f8e43 !important;
+  }
+}
+}
+
 .table-card {
   border: 1px solid #d8e4de;
   border-radius: 14px;

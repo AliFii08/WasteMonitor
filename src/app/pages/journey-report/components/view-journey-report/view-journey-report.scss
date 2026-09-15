@@ -13,7 +13,7 @@
 
 .modal-panel {
   width: 100%;
-  max-width: 560px;
+  max-width: 520px;
   background: #ffffff;
   border-radius: 16px;
   box-shadow: 0 24px 60px rgba(0, 54, 40, 0.28);
@@ -71,106 +71,95 @@
   padding: 1.4rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.1rem;
 }
 
-.form-field {
+.detail-group {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.3rem;
 
   label {
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     font-weight: 800;
     color: #0f4b3a;
     text-transform: uppercase;
     letter-spacing: 0.02em;
   }
 
-  .req {
-    color: #d62828;
-  }
+  .detail-value {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #173d32;
+    font-weight: 600;
 
-  input,
-  select,
-  textarea {
-    width: 100%;
-    border: 1px solid #c9d9c6;
-    border-radius: 8px;
-    padding: 0.6rem 0.75rem;
-    font: 600 14px 'Raleway', sans-serif;
-    color: #123f32;
-    background: #fff;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-    box-sizing: border-box;
+    &.text-box {
+      background: #f4f8f5;
+      border: 1px solid #dbe7e0;
+      border-radius: 8px;
+      padding: 0.65rem 0.8rem;
+      min-height: 50px;
+      white-space: pre-wrap;
+    }
 
-    &:focus {
-      outline: none;
-      border-color: #68a357;
-      box-shadow: 0 0 0 3px rgba(104, 163, 87, 0.18);
+    &.font-bold {
+      font-weight: 700;
     }
   }
+}
 
-  textarea {
-    resize: vertical;
+.signature-box {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.2rem;
+
+  .signer-name {
+    color: #0f4b3a;
+    font-weight: 600;
   }
+}
+
+.badge-success {
+  background-color: #d5f0df;
+  color: #1b7a45;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  display: inline-flex;
+}
+
+.badge-warning {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  display: inline-flex;
 }
 
 .modal-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 0.6rem;
-  padding-top: 0.5rem;
+  padding: 0.9rem 1.4rem;
   border-top: 1px solid #e5efe9;
-  margin-top: 0.4rem;
 
-  button {
-    height: 42px;
+  .btn-close {
+    height: 38px;
     border: 0;
     border-radius: 8px;
-    padding: 0 18px;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
+    padding: 0 20px;
+    background: #eef3f0;
+    color: #0f4b3a;
     font: 800 13px 'Raleway', sans-serif;
     cursor: pointer;
     transition: background-color 0.15s ease;
 
-    &:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
+    &:hover {
+      background: #dde8e1;
     }
-  }
-}
-
-.btn-cancel {
-  background: #eef3f0;
-  color: #0f4b3a;
-
-  &:hover:not(:disabled) {
-    background: #dde8e1;
-  }
-}
-
-.btn-submit {
-  background: #68a357;
-  color: #fff;
-
-  &:hover:not(:disabled) {
-    background: #4f8e43;
-  }
-}
-/* Agrega esto dentro de .modal-body o al final de create-journey-report.scss */
-.trip-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 0.2rem;
-
-  .trip-title {
-    font-size: 1.25rem;
-    font-weight: 800;
-    color: #06523f;
-    letter-spacing: -0.01em;
   }
 }
 

@@ -4,6 +4,34 @@
     <span>Reporte detallado del desempeño de su jornada laboral</span>
   </div>
 
+  <div class="table-toolbar">
+    <div class="search-row">
+      <span class="search-input-wrap">
+        <input type="text" placeholder="Buscar" class="search-input" [(ngModel)]="reportSearchTerm"
+          (input)="onReportSearchChange()" />
+        <i class="pi pi-search"></i>
+      </span>
+
+      <label class="select-all-wrap" for="selectAllDrivers">
+        <input id="selectAllDrivers" type="checkbox" [checked]="allReportsSelected"
+          (change)="toggleSelectedAllInformes()" />
+        Seleccionar todos
+      </label>
+
+      @if (hasSelectedReport) {
+      <button type="button" class="bulk-delete-btn" (click)="deleteSelectedReport()">
+        <i class="pi pi-trash"></i>
+        Eliminar seleccionados
+      </button>
+      }
+    </div>
+
+    <button type="button" class="create-btn" (click)="openCreateModal()">
+      <i class="pi pi-plus"></i>
+      Crear informe
+    </button>
+  </div>
+
   <div class="table-card">
     <div class="table-wrap">
       <p-table 
@@ -14,23 +42,16 @@
         
         <ng-template pTemplate="header">
           <tr>
-            <th>ID Reporte</th>
             <th>Usuario</th>
             <th>Vehículo</th>
-            <th>Ruta</th>
-            <th>Ton. Recogidas</th>
             <th>Estado Firma</th>
-            <th>Usuario Firma</th>
             <th>Fecha Creación</th>
-            <th>Estado</th>
+            <th class="options-header">Opciones</th>
           </tr>
         </ng-template>
 
-        <ng-template pTemplate="body" let-reporte>
+        <ng-template pTemplate="body" let-reporte let-i="rowIndex">
           <tr>
-            <td>
-              <span class="font-bold">{{ reporte.id }}</span>
-            </td>
             <td>
               <span class="user-name">{{ reporte.nombreUsuario }}</span>
             </td>
@@ -40,31 +61,32 @@
               </span>
             </td>
             <td>
-              <span class="route-name">{{ reporte.nombreRuta }}</span>
-            </td>
-            <td>
-              <span class="font-bold">{{ reporte.tonRecogidas }} ton</span>
-            </td>
-            <td>
               <span [class]="reporte.firmado ? 'badge-success' : 'badge-warning'">
                 {{ reporte.firmado ? 'Firmado' : 'Pendiente' }}
               </span>
             </td>
-            <td>
-              <span class="user-name">{{ reporte.nombreUsuarioFirma }}</span>
-            </td>
             <td>{{ reporte.creadoEn | date:'dd/MM/yyyy, hh:mm a' }}</td>
             <td>
-              <span [class]="reporte.activo ? 'badge-active' : 'badge-inactive'">
-                {{ reporte.activo ? 'Activo' : 'Inactivo' }}
-              </span>
+              <div class="option-actions">
+                <input type="checkbox" [checked]="selectedReportRows[i]"
+                  (change)="toggleReportrRow(i, $any($event.target).checked)" />
+                <button type="button" class="icon-btn" title="Ver Reporte" (click)="openViewModal(reporte)">
+                  <i class="pi pi-eye"></i>
+                </button>
+                <button type="button" class="icon-btn" title="Editar" (click)="openUpdateModal(reporte)">
+                  <i class="pi pi-pencil"></i>
+                </button>
+                <button type="button" class="icon-btn danger" title="Eliminar" (click)="openSingleDeleteModal(reporte)">
+                  <i class="pi pi-trash"></i>
+                </button>
+              </div>
             </td>
           </tr>
         </ng-template>
 
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td colspan="9" class="empty-message">
+            <td colspan="5" class="empty-message">
               No se encontraron reportes de viaje registrados.
             </td>
           </tr>
@@ -73,3 +95,10 @@
     </div>
   </div>
 </div>
+
+<app-create-journey-report [(visible)]="isCreateModalOpen"></app-create-journey-report>
+
+<app-view-journey-report
+  [(visible)]="isViewModalOpen"
+  [reporte]="selectedReport"
+></app-view-journey-report>
