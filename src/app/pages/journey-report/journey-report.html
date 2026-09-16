@@ -69,7 +69,7 @@
             <td>
               <div class="option-actions">
                 <input type="checkbox" [checked]="selectedReportRows[i]"
-                  (change)="toggleReportrRow(i, $any($event.target).checked)" />
+                  (change)="toggleReportRow(i, $any($event.target).checked)" />
                 <button type="button" class="icon-btn" title="Ver Reporte" (click)="openViewModal(reporte)">
                   <i class="pi pi-eye"></i>
                 </button>
@@ -96,9 +96,16 @@
   </div>
 </div>
 
-<app-create-journey-report [(visible)]="isCreateModalOpen"></app-create-journey-report>
+<app-create-journey-report
+  [(visible)]="isCreateModalOpen">
+</app-create-journey-report>
 
 <app-view-journey-report
   [(visible)]="isViewModalOpen"
+  [reporte]="selectedReport">
+</app-view-journey-report>
+
+<app-update-journey-report
+  [(visible)]="isUpdateModalOpen"
   [reporte]="selectedReport"
-></app-view-journey-report>
+></app-update-journey-report>

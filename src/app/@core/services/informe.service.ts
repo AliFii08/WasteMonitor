@@ -1,73 +1,186 @@
 import { Injectable, inject } from '@angular/core';
-import { Database, ref, objectVal } from '@angular/fire/database';
-import { Observable, combineLatest, map } from 'rxjs';
+import { Auth } from '@angular/fire/auth';
+import { Database, ref, child, get, push, set, listVal, objectVal } from '@angular/fire/database';
+import { Observable, combineLatest, from, map } from 'rxjs';
+
+export interface DatosViajeInput {
+  tonRecogidas: number | null;
+  direccionLlenado: string;
+  observaciones: string;
+}
 
 export interface InformeReporte {
-  id: string;
-  uidUsuario?: string;
+  id?: string;
+
+  // Datos normalizados para la tabla
   nombreUsuario?: string;
+  uidUsuario?: string;
+
   camionId?: string;
   rutaId?: string;
-  nombreRuta?: string;
-  tonRecogidas?: number;
+
   firmado?: boolean;
-  idUsuarioFirma?: string;
-  nombreUsuarioFirma?: string;
-  creadoEn?: string;
-  activo?: boolean;
-  descripcion?: string;
+  creadoEn?: string | number;
+
+  // Campos originales de la base de datos
+  usuario?: string;
+  camion?: string;
+  ruta?: string;
+
+  // Puede contener viaje1, viaje2, viaje3...
+  [key: string]: any;
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class InformeService {
+  private auth = inject(Auth);
   private db = inject(Database);
 
-  getInformesConDetalles(): Observable<InformeReporte[]> {
+  /**
+   * Obtiene los informes en tiempo real.
+   *
+   * No modifica la estructura de los informes.
+   *
+   * Soporta tanto la estructura antigua:
+   *
+   * {
+   *   usuario: 'UID',
+   *   camion: 'VEH-001',
+   *   ruta: 'NombreRuta7',
+   *   viaje1: {...}
+   * }
+   *
+   * como la estructura nueva:
+   *
+   * {
+   *   uidUsuario: 'UID',
+   *   camionId: 'VEH-001',
+   *   rutaId: '...',
+   *   viaje1: {...}
+   * }
+   */
+  getInformes(): Observable<[any[], Record<string, any>]> {
     const informesRef = ref(this.db, 'informe_de_viaje');
     const usuariosRef = ref(this.db, 'usuarios');
-    const rutasRef = ref(this.db, 'routes');
 
     return combineLatest([
-      objectVal<any>(informesRef),
-      objectVal<any>(usuariosRef),
-      objectVal<any>(rutasRef)
-    ]).pipe(
-      map(([informes, usuarios, rutas]) => {
-        if (!informes) return [];
+      listVal<any>(informesRef, { keyField: 'id' }),
+      objectVal<Record<string, any>>(usuariosRef),
+    ]);
+  }
 
-        const listaUsuarios = usuarios || {};
-        const listaRutas = rutas || {};
+  // Ver un solo informe
+  verInforme() {
+    
+  }
 
-        return Object.keys(informes).map(key => {
-          const item = informes[key];
+  /**
+   * Crea un nuevo informe.
+   *
+   * El informe comienza con viaje1.
+   *
+   * Los viajes posteriores NO deben crearse aquí;
+   * cuando se implemente la edición se agregarán
+   * viaje2, viaje3, etc. al mismo informe.
+   */
+  crearInforme(datosFormulario: DatosViajeInput, numeroViaje: number = 1): Observable<void> {
+    return from(this.ejecutarCreacionInforme(datosFormulario, numeroViaje));
+  }
 
-          // 1. Obtener datos del Creador (uidUsuario)
-          const creador = item.uidUsuario ? listaUsuarios[item.uidUsuario] : null;
-          const nombreUsuario = creador
-            ? `${creador.name || creador.nombreUsuario || ''} ${creador.lastName || ''}`.trim()
-            : (item.uidUsuario || 'N/A');
+  private async ejecutarCreacionInforme(
+    datos: DatosViajeInput,
+    numeroViaje: number,
+  ): Promise<void> {
+    const currentUser = this.auth.currentUser;
 
-          // 2. Obtener datos de quien Firma (idUsuarioFirma)
-          const firmante = item.idUsuarioFirma ? listaUsuarios[item.idUsuarioFirma] : null;
-          const nombreUsuarioFirma = firmante
-            ? `${firmante.name || firmante.nombreUsuario || ''} ${firmante.lastName || ''}`.trim()
-            : (item.idUsuarioFirma ? item.idUsuarioFirma : 'Sin firma');
+    if (!currentUser) {
+      throw new Error('No hay un usuario autenticado activo.');
+    }
 
-          // 3. Obtener nombre de la Ruta (rutaId)
-          const ruta = item.rutaId ? listaRutas[item.rutaId] : null;
-          const nombreRuta = ruta ? (ruta.nombreRuta || item.rutaId) : 'Sin Ruta';
+    const uidUsuario = currentUser.uid;
+    const dbRef = ref(this.db);
 
-          return {
-            id: key,
-            ...item,
-            nombreUsuario,
-            nombreUsuarioFirma,
-            nombreRuta
-          };
-        });
-      })
-    );
+    /*
+     * Obtener usuario actual
+     */
+    const userSnap = await get(child(dbRef, `usuarios/${uidUsuario}`));
+
+    if (!userSnap.exists()) {
+      throw new Error('El perfil del usuario no existe en la base de datos.');
+    }
+
+    const userData = userSnap.val();
+
+    /*
+     * Obtener camión del usuario
+     */
+    const camionId = userData?.camionId || '';
+
+    if (!camionId) {
+      throw new Error('El usuario no tiene un camión asignado.');
+    }
+
+    /*
+     * Obtener información del camión
+     */
+    const camionSnap = await get(child(dbRef, `camiones/${camionId}`));
+
+    const camionData = camionSnap.exists() ? camionSnap.val() : {};
+
+    const rutaId = camionData?.ruta || '';
+
+    /*
+     * Mantenemos los campos antiguos
+     * porque ya existen informes con esta estructura.
+     *
+     * También guardamos los nombres nuevos para
+     * facilitar futuras migraciones.
+     */
+    const payload = {
+      // Estructura existente
+      usuario: uidUsuario,
+      camion: camionId,
+      ruta: rutaId,
+
+      // Campos normalizados
+      uidUsuario,
+      camionId,
+      rutaId,
+
+      // Estado inicial
+      firmado: false,
+
+      // Fecha de creación
+      creadoEn: new Date().toISOString(),
+
+      /*
+       * Primer viaje.
+       *
+       * Si numeroViaje es 1:
+       * viaje1
+       *
+       * Si en el futuro se utiliza este método
+       * con otro número:
+       * viaje2, viaje3...
+       */
+      [`viaje${numeroViaje}`]: {
+        descripcion: datos.observaciones || '',
+
+        direccionDeLlenado: datos.direccionLlenado || '',
+
+        tonRecogidas: datos.tonRecogidas ?? 0,
+      },
+    };
+
+    /*
+     * Crear un nuevo informe
+     */
+    const informesRef = ref(this.db, 'informe_de_viaje');
+
+    const nuevoInformeRef = push(informesRef);
+
+    await set(nuevoInformeRef, payload);
   }
 }

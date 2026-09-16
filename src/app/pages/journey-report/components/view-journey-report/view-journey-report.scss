@@ -74,6 +74,36 @@
   gap: 1.1rem;
 }
 
+.modal-tabs {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+
+  .tab-btn {
+    padding: 0.75rem 1rem;
+    border: none;
+    background: transparent;
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: #6b7280;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: #111827;
+    }
+
+    &.active {
+      color: #16a34a; // O el color principal de tu tema
+      border-bottom-color: #16a34a;
+      font-weight: 600;
+    }
+  }
+}
+
 .detail-group {
   display: flex;
   flex-direction: column;

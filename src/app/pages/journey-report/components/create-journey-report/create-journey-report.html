@@ -65,3 +65,20 @@
     </div>
   </div>
 }
+
+@if (showErrorModal) {
+  <div class="modal-backdrop error-backdrop" (click)="closeErrorModal()">
+    <div class="error-panel" (click)="$event.stopPropagation()">
+      <div class="error-icon">
+        <i class="pi pi-exclamation-triangle"></i>
+      </div>
+      
+      <h3>Atención</h3>
+      <p>{{ errorMessage }}</p>
+
+      <button type="button" class="btn-error-close" (click)="closeErrorModal()">
+        Entendido
+      </button>
+    </div>
+  </div>
+}

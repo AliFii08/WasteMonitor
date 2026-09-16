@@ -1,6 +1,8 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { InformeService } from '../../../../@core/services/informe.service';
+
 
 @Component({
   selector: 'app-create-journey-report',
@@ -10,9 +12,16 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './create-journey-report.scss',
 })
 export class CreateJourneyReport {
+  private informeService = inject(InformeService);
+
   @Input() visible: boolean = false;
   @Input() numeroViaje: number = 1;
   @Output() visibleChange = new EventEmitter<boolean>();
+  @Output() reportCreated = new EventEmitter<void>();
+
+  // Manejo de modal de error
+  showErrorModal: boolean = false;
+  errorMessage: string = '';
 
   formData = {
     tonRecogidas: null as number | null,
@@ -21,9 +30,24 @@ export class CreateJourneyReport {
   };
 
   onSubmit(): void {
-    console.log(`Creando informe para Viaje ${this.numeroViaje}:`, this.formData);
-    this.closeModal();
-    this.resetForm();
+    this.informeService.crearInforme(this.formData, this.numeroViaje).subscribe({
+      next: () => {
+        console.log('Informe de viaje registrado con éxito');
+        this.closeModal();
+        this.resetForm();
+        this.reportCreated.emit();
+      },
+      error: (err) => {
+        // Capturamos el mensaje lanzado por el servicio
+        this.errorMessage = err.message || 'Ocurrió un error inesperado al guardar.';
+        this.showErrorModal = true;
+      },
+    });
+  }
+
+  closeErrorModal(): void {
+    this.showErrorModal = false;
+    this.errorMessage = '';
   }
 
   closeModal(): void {

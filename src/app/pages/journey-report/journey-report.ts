@@ -1,84 +1,126 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { TableModule } from 'primeng/table';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { InformeService, InformeReporte } from '../../@core/services/informe.service';
+import { InformeService } from '../../@core/services/informe.service';
 import { CreateJourneyReport } from './components/create-journey-report/create-journey-report';
+import { FormsModule } from '@angular/forms';
 import { ViewJourneyReport } from './components/view-journey-report/view-journey-report';
+import { CommonModule } from '@angular/common';
+import { TableModule } from 'primeng/table';
+import { UpdateJourneyReport } from './components/update-journey-report/update-journey-report';
+
 
 @Component({
   selector: 'app-journey-report',
-  standalone: true,
   imports: [
-    CommonModule,
-    FormsModule,
     TableModule,
-    DatePipe,
+    CommonModule,
     CreateJourneyReport,
+    FormsModule,
     ViewJourneyReport,
+    UpdateJourneyReport
   ],
   templateUrl: './journey-report.html',
-  styleUrl: './journey-report.scss',
+  styleUrls: ['./journey-report.scss'],
 })
 export class JourneyReport implements OnInit, OnDestroy {
-  private informeService = inject(InformeService);
-  private sub?: Subscription;
-
-  reportes: InformeReporte[] = [];
-
+  reportes: any[] = [];
   reportSearchTerm: string = '';
+
+  // Control de selección
+  selectedReportRows: boolean[] = [];
   allReportsSelected: boolean = false;
   hasSelectedReport: boolean = false;
-  selectedReportRows: boolean[] = [];
 
+  // Modales
   isCreateModalOpen: boolean = false;
   isViewModalOpen: boolean = false;
-  selectedReport: InformeReporte | null = null;
+  isUpdateModalOpen: boolean = false;
+  isDeleteModalOpen: boolean = false;
+
+  selectedReport: any = null;
+  private informesSub!: Subscription;
+
+  constructor(private informeService: InformeService) {}
 
   ngOnInit(): void {
-    this.sub = this.informeService.getInformesConDetalles().subscribe({
-      next: (data: InformeReporte[]) => {
-        this.reportes = data;
-        this.selectedReportRows = new Array(data.length).fill(false);
+    this.cargarInformes();
+  }
+
+  cargarInformes(): void {
+    this.informesSub = this.informeService.getInformes().subscribe({
+      next: ([informes, usuarios]) => {
+        this.reportes = (informes || []).map((informe) => {
+          const uidUsuario = informe.uidUsuario || informe.usuario || '';
+          const usuarioData = usuarios?.[uidUsuario] || null;
+
+          const nombre = usuarioData?.name || usuarioData?.nombre || '';
+          const apellido = usuarioData?.lastName || usuarioData?.apellido || '';
+          const nombreCompleto = usuarioData?.nombreUsuario || `${nombre} ${apellido}`.trim();
+          const creadoEn = informe?.creadoEl || "No agarra";
+
+          const camionId = informe.camionId || informe.camion || '';
+          const rutaId = informe.rutaId || informe.ruta || '';
+
+          return {
+            ...informe,
+            id: informe.id,
+            uidUsuario,
+            nombreUsuario: nombreCompleto || 'Usuario sin nombre',
+            creadoEn,
+            camionId,
+            rutaId,
+          };
+        });
+
+        this.selectedReportRows = new Array(this.reportes.length).fill(false);
       },
-      error: (err: unknown) => {
-        console.error('Error al cargar informes:', err);
-      },
+      error: (err) => console.error('Error al cargar informes:', err),
     });
   }
 
-  onReportSearchChange(): void {}
-
-  toggleSelectedAllInformes(): void {
-    this.allReportsSelected = !this.allReportsSelected;
-    this.selectedReportRows = this.selectedReportRows.map(() => this.allReportsSelected);
-    this.hasSelectedReport = this.allReportsSelected;
+  onReportSearchChange(): void {
+    // Lógica para filtrar reportes
   }
 
-  toggleReportrRow(index: number, checked: boolean): void {
-    this.selectedReportRows[index] = checked;
+  toggleReportRow(index: number, isChecked: boolean): void {
+    this.selectedReportRows[index] = isChecked;
     this.hasSelectedReport = this.selectedReportRows.some((val) => val);
     this.allReportsSelected = this.selectedReportRows.every((val) => val);
   }
 
-  deleteSelectedReport(): void {}
+  toggleSelectedAllInformes(): void {
+    this.allReportsSelected = !this.allReportsSelected;
+    this.selectedReportRows = new Array(this.reportes.length).fill(this.allReportsSelected);
+    this.hasSelectedReport = this.allReportsSelected && this.reportes.length > 0;
+  }
 
+  // Modales y Acciones
   openCreateModal(): void {
     this.isCreateModalOpen = true;
   }
 
-  openViewModal(reporte: InformeReporte): void {
+  openViewModal(reporte: any): void {
     this.selectedReport = reporte;
     this.isViewModalOpen = true;
   }
 
-  openUpdateModal(driver: any): void {}
-  openSingleDeleteModal(driver: any): void {}
+  openUpdateModal(reporte: any): void {
+    this.selectedReport = reporte;
+    this.isUpdateModalOpen = true;
+  }
+
+  openSingleDeleteModal(reporte: any): void {
+    this.selectedReport = reporte;
+    this.isDeleteModalOpen = true;
+  }
+
+  deleteSelectedReport(): void {
+    // Lógica para eliminar seleccionados
+  }
 
   ngOnDestroy(): void {
-    if (this.sub) {
-      this.sub.unsubscribe();
+    if (this.informesSub) {
+      this.informesSub.unsubscribe();
     }
   }
 }

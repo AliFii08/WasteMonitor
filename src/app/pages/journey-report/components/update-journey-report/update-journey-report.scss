@@ -1,1 +1,336 @@
-// algo
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 30, 22, 0.45);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.modal-panel {
+  width: 100%;
+  max-width: 580px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(0, 54, 40, 0.28);
+  overflow: hidden;
+  font-family: 'Raleway', sans-serif;
+  animation: slideUp 0.2s ease-out;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.4rem;
+  background: linear-gradient(180deg, #e7f3ec 0%, #dcefe4 100%);
+  border-bottom: 1px solid #cfe3d8;
+
+  .modal-title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: #06523f;
+
+    i {
+      font-size: 1.1rem;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 800;
+    }
+  }
+}
+
+.close-btn {
+  border: 0;
+  background: transparent;
+  color: #06523f;
+  cursor: pointer;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: rgba(6, 82, 63, 0.1);
+  }
+}
+
+/* Sistema de Pestañas */
+.modal-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 1rem 0 1rem;
+  background: #f4f9f6;
+  border-bottom: 1px solid #d2e3da;
+  overflow-x: auto;
+
+  .tab-btn-wrap {
+    display: flex;
+    align-items: center;
+    position: relative;
+
+    .tab-remove-btn {
+      border: none;
+      background: transparent;
+      color: #8d1f1f;
+      font-size: 0.7rem;
+      cursor: pointer;
+      padding: 2px 4px;
+      margin-left: -6px;
+      border-radius: 50%;
+
+      &:hover {
+        background: rgba(214, 40, 40, 0.15);
+      }
+    }
+  }
+
+  .tab-btn {
+    padding: 0.65rem 0.9rem;
+    border: none;
+    background: transparent;
+    font: 700 0.85rem 'Raleway', sans-serif;
+    color: #4b6358;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+
+    &:hover {
+      color: #06523f;
+    }
+
+    &.active {
+      color: #06523f;
+      border-bottom-color: #68a357;
+      background: #ffffff;
+      border-radius: 6px 6px 0 0;
+    }
+  }
+
+  .add-tab-btn {
+    width: 28px;
+    height: 28px;
+    border: 1px dashed #68a357;
+    background: transparent;
+    color: #06523f;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-left: 0.3rem;
+
+    &:hover {
+      background: #68a357;
+      color: #fff;
+    }
+  }
+}
+
+.modal-body {
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 65vh;
+  overflow-y: auto;
+}
+
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.trip-header {
+  .trip-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #06523f;
+  }
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+
+  label {
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: #0f4b3a;
+    text-transform: uppercase;
+
+    .req {
+      color: #d62828;
+    }
+  }
+
+  input,
+  textarea {
+    width: 100%;
+    border: 1px solid #c9d9c6;
+    border-radius: 8px;
+    padding: 0.6rem 0.75rem;
+    font: 600 14px 'Raleway', sans-serif;
+    color: #123f32;
+    background: #fff;
+    box-sizing: border-box;
+
+    &:focus {
+      outline: none;
+      border-color: #68a357;
+      box-shadow: 0 0 0 3px rgba(104, 163, 87, 0.18);
+    }
+  }
+
+  .input-disabled {
+    background-color: #f1f5f3;
+    color: #64748b;
+    cursor: not-allowed;
+  }
+}
+
+.detail-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+
+  label {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #0f4b3a;
+    text-transform: uppercase;
+  }
+
+  .detail-value {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #123f32;
+
+    &.font-bold {
+      font-weight: 800;
+    }
+  }
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  padding: 1rem 1.4rem;
+  border-top: 1px solid #e5efe9;
+
+  button {
+    height: 42px;
+    border: 0;
+    border-radius: 8px;
+    padding: 0 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font: 800 13px 'Raleway', sans-serif;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.btn-cancel {
+  background: #eef3f0;
+  color: #0f4b3a;
+
+  &:hover:not(:disabled) {
+    background: #dde8e1;
+  }
+}
+
+.btn-submit {
+  background: #68a357;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: #4f8e43;
+  }
+}
+
+.error-backdrop {
+  z-index: 1100;
+}
+
+.error-panel {
+  width: 100%;
+  max-width: 380px;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+
+  .error-icon {
+    width: 48px;
+    height: 48px;
+    background-color: #fee2e2;
+    color: #dc2626;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 0.8rem auto;
+
+    i {
+      font-size: 1.5rem;
+    }
+  }
+
+  h3 {
+    margin: 0 0 0.5rem 0;
+    color: #1f2937;
+    font-size: 1.15rem;
+    font-weight: 800;
+  }
+
+  p {
+    color: #4b5563;
+    font-size: 0.9rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .btn-error-close {
+    width: 100%;
+    height: 38px;
+    background-color: #dc2626;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #b91c1c;
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(12px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
