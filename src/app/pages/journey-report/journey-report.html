@@ -11,13 +11,13 @@
           (input)="onReportSearchChange()" />
         <i class="pi pi-search"></i>
       </span>
-
+      @if (isAdmin) {
       <label class="select-all-wrap" for="selectAllDrivers">
         <input id="selectAllDrivers" type="checkbox" [checked]="allReportsSelected"
           (change)="toggleSelectedAllInformes()" />
         Seleccionar todos
       </label>
-
+      }
       @if (hasSelectedReport) {
       <button type="button" class="bulk-delete-btn" (click)="deleteSelectedReport()">
         <i class="pi pi-trash"></i>
@@ -68,8 +68,10 @@
             <td>{{ reporte.creadoEn | date:'dd/MM/yyyy, hh:mm a' }}</td>
             <td>
               <div class="option-actions">
+                @if (isAdmin) {
                 <input type="checkbox" [checked]="selectedReportRows[i]"
                   (change)="toggleReportRow(i, $any($event.target).checked)" />
+                }
                 <button type="button" class="icon-btn" title="Ver Reporte" (click)="openViewModal(reporte)">
                   <i class="pi pi-eye"></i>
                 </button>
