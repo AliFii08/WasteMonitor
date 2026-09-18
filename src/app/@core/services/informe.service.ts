@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { Auth } from '@angular/fire/auth';
-import { Database, ref, child, get, push, set, listVal, objectVal } from '@angular/fire/database';
+import { Database, ref, child, get, push, set, listVal, objectVal, update } from '@angular/fire/database';
 import { Observable, combineLatest, from, map } from 'rxjs';
+import { ViajeItem } from '../../pages/journey-report/components/update-journey-report/update-journey-report';
 
 export interface DatosViajeInput {
   tonRecogidas: number | null;
@@ -72,9 +73,7 @@ export class InformeService {
   }
 
   // Ver un solo informe
-  verInforme() {
-    
-  }
+  verInforme() {}
 
   /**
    * Crea un nuevo informe.
@@ -182,5 +181,46 @@ export class InformeService {
     const nuevoInformeRef = push(informesRef);
 
     await set(nuevoInformeRef, payload);
+  }
+  async updateViajeIndividual(
+    viajeId: string,
+    data: { descripcion: string; direccionDelLlenado: string; tonRecogidas: number },
+  ): Promise<void> {
+    const viajeRef = ref(this.db, `viajes/${viajeId}`);
+
+    // Actualización atómica de un solo nodo sin referencias circulares
+    await update(viajeRef, {
+      descripcion: data.descripcion,
+      direccionDelLlenado: data.direccionDelLlenado,
+      tonRecogidas: data.tonRecogidas,
+    });
+  }
+
+  async updateInforme(
+    informeId: string,
+    camion: string,
+    ruta: string,
+    viajes: ViajeItem[],
+  ): Promise<void> {
+    const updatesPayload: Record<string, any> = {};
+
+    // 1. Campos simples del informe
+    updatesPayload[`informe_de_viaje/${informeId}/camion`] = String(camion || '');
+    updatesPayload[`informe_de_viaje/${informeId}/ruta`] = String(ruta || '');
+
+    // 2. Extraer ÚNICAMENTE las propiedades primitivas de cada viaje (evita referencias circulares)
+    viajes.forEach((viaje) => {
+      if (viaje.id) {
+        updatesPayload[`viajes/${viaje.id}/descripcion`] = String(viaje.descripcion || '');
+        updatesPayload[`viajes/${viaje.id}/direccionDelLlenado`] = String(
+          viaje.direccionDelLlenado || '',
+        );
+        updatesPayload[`viajes/${viaje.id}/tonRecogidas`] = Number(viaje.tonRecogidas) || 0;
+        updatesPayload[`viajes/${viaje.id}/informeId`] = String(informeId);
+      }
+    });
+
+    // 3. Ejecutar la actualización con un objeto totalmente plano
+    await update(ref(this.db), updatesPayload);
   }
 }

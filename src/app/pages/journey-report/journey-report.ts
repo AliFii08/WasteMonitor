@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { InformeService } from '../../@core/services/informe.service';
 import { CreateJourneyReport } from './components/create-journey-report/create-journey-report';
@@ -7,6 +7,7 @@ import { ViewJourneyReport } from './components/view-journey-report/view-journey
 import { CommonModule } from '@angular/common';
 import { TableModule } from 'primeng/table';
 import { UpdateJourneyReport } from './components/update-journey-report/update-journey-report';
+import { AuthService } from '../../@core/services/auth.service';
 
 
 @Component({
@@ -17,7 +18,7 @@ import { UpdateJourneyReport } from './components/update-journey-report/update-j
     CreateJourneyReport,
     FormsModule,
     ViewJourneyReport,
-    UpdateJourneyReport
+    UpdateJourneyReport,
   ],
   templateUrl: './journey-report.html',
   styleUrls: ['./journey-report.scss'],
@@ -40,10 +41,17 @@ export class JourneyReport implements OnInit, OnDestroy {
   selectedReport: any = null;
   private informesSub!: Subscription;
 
+  // private auth = inject(Auth);
+  private authService = inject(AuthService);
+
   constructor(private informeService: InformeService) {}
 
   ngOnInit(): void {
     this.cargarInformes();
+  }
+
+  get isAdmin(): boolean {
+    return this.authService.hasRole(['admin']);
   }
 
   cargarInformes(): void {
@@ -56,7 +64,7 @@ export class JourneyReport implements OnInit, OnDestroy {
           const nombre = usuarioData?.name || usuarioData?.nombre || '';
           const apellido = usuarioData?.lastName || usuarioData?.apellido || '';
           const nombreCompleto = usuarioData?.nombreUsuario || `${nombre} ${apellido}`.trim();
-          const creadoEn = informe?.creadoEl || "No agarra";
+          const creadoEn = informe?.creadoEl || 'No agarra';
 
           const camionId = informe.camionId || informe.camion || '';
           const rutaId = informe.rutaId || informe.ruta || '';
@@ -105,11 +113,28 @@ export class JourneyReport implements OnInit, OnDestroy {
   }
 
   openUpdateModal(reporte: any): void {
+    // 1. Obtener el UID del usuario en sesión
+    const currentUserId = this.authService.getCurrentUserId();
+
+    // 2. Extraer el UID del creador (tomando 'reporte.usuario' que es como está en Firebase)
+    const creadorId = reporte?.usuario || reporte?.usuarioId || reporte?.userId;
+
+    // 3. Validar coincidencia de IDs
+    if (!currentUserId || creadorId !== currentUserId) {
+      alert('no puedes actualizar un informe que no fue creado por ti');
+      return;
+    }
+
+    // 4. Abrir modal si coincide
     this.selectedReport = reporte;
     this.isUpdateModalOpen = true;
   }
 
   openSingleDeleteModal(reporte: any): void {
+    if (!this.isAdmin) {
+      alert('No tienes permisos de administrador para eliminar informes.');
+      return;
+    }
     this.selectedReport = reporte;
     this.isDeleteModalOpen = true;
   }

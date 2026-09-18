@@ -9,10 +9,11 @@ import {
   query,
   orderByChild,
   equalTo,
-  update,
   set,
   remove,
 } from '@angular/fire/database';
+
+import { InformeService } from '../../../../@core/services/informe.service';
 
 export interface ViajeItem {
   id: string;
@@ -56,7 +57,11 @@ export class UpdateJourneyReport implements OnChanges {
   showErrorModal: boolean = false;
   errorMessage: string = '';
 
-  constructor(private db: Database) {}
+  // Inyección de dependencias correcta para resolver TS2564
+  constructor(
+    private db: Database,
+    private informe: InformeService,
+  ) {}
 
   async ngOnChanges(changes: SimpleChanges): Promise<void> {
     if (changes['reporte'] && this.reporte?.id) {
@@ -123,10 +128,8 @@ export class UpdateJourneyReport implements OnChanges {
     this.isSavingTrip = true;
 
     try {
-      // 1. Crear una nueva referencia única en /viajes
       const newTripRef = push(ref(this.db, 'viajes'));
 
-      // 2. Construir objeto primitivo
       const payload = {
         informeId: String(targetInformeId),
         descripcion: String(this.nuevoViaje.descripcion || ''),
@@ -134,11 +137,10 @@ export class UpdateJourneyReport implements OnChanges {
         tonRecogidas: Number(this.nuevoViaje.tonRecogidas) || 0,
       };
 
-      // 3. Insertar de forma aislada
       await set(newTripRef, payload);
 
       this.cerrarModalNuevoViaje();
-      await this.cargarViajes(); // Recargar pestañas con el nuevo viaje registrado
+      await this.cargarViajes();
     } catch (error) {
       console.error('Error al agregar viaje:', error);
       this.errorMessage = 'No se pudo crear el nuevo viaje.';
@@ -148,31 +150,57 @@ export class UpdateJourneyReport implements OnChanges {
     }
   }
 
+  get viajeActivo(): ViajeItem | undefined {
+    return this.viajesList.find((v) => v.key === this.activeTab);
+  }
+
+  // Guarda únicamente el viaje de la pestaña abierta
+  async actualizarViajeActivo(): Promise<void> {
+    const viaje = this.viajeActivo;
+
+    if (!viaje || !viaje.id) {
+      this.errorMessage = 'No se encontró el viaje seleccionado para actualizar.';
+      this.showErrorModal = true;
+      return;
+    }
+
+    this.isSubmitting = true;
+
+    try {
+      // Llamada directa al servicio pasando solo el objeto plano del viaje
+      await this.informe.updateViajeIndividual(viaje.id, {
+        descripcion: String(viaje.descripcion || ''),
+        direccionDelLlenado: String(viaje.direccionDelLlenado || ''),
+        tonRecogidas: Number(viaje.tonRecogidas) || 0,
+      });
+
+      await this.cargarViajes(); // Recarga para sincronizar los cambios
+    } catch (error) {
+      console.error('Error al actualizar viaje:', error);
+      this.errorMessage = 'Ocurrió un error al actualizar el viaje.';
+      this.showErrorModal = true;
+    } finally {
+      this.isSubmitting = false;
+    }
+  }
+  // Método que delega la actualización al servicio para resolver TS2339
+  async updateInforme(
+    informeId: string,
+    camion: string,
+    ruta: string,
+    viajes: ViajeItem[],
+  ): Promise<void> {
+    return this.informe.updateInforme(informeId, camion, ruta, viajes);
+  }
+
   // --- GUARDAR EDICIONES DEL INFORME Y SUS VIAJES EXISTENTES ---
   async onSubmit(): Promise<void> {
     if (!this.reporte?.id) return;
     this.isSubmitting = true;
 
     try {
-      const updatesPayload: Record<string, any> = {};
+      await this.updateInforme(this.reporte.id, this.camion, this.ruta, this.viajesList);
 
-      // 1. Actualizar metadatos del informe
-      updatesPayload[`informe_de_viaje/${this.reporte.id}/camion`] = String(this.camion || '');
-      updatesPayload[`informe_de_viaje/${this.reporte.id}/ruta`] = String(this.ruta || '');
-
-      // 2. Actualizar los viajes que ya existen en la lista
-      this.viajesList.forEach((viaje) => {
-        if (viaje.id) {
-          updatesPayload[`viajes/${viaje.id}/descripcion`] = String(viaje.descripcion || '');
-          updatesPayload[`viajes/${viaje.id}/direccionDelLlenado`] = String(
-            viaje.direccionDelLlenado || '',
-          );
-          updatesPayload[`viajes/${viaje.id}/tonRecogidas`] = Number(viaje.tonRecogidas) || 0;
-        }
-      });
-
-      // 3. Guardar cambios en Firebase
-      await update(ref(this.db), updatesPayload);
       this.closeModal();
     } catch (error) {
       console.error('Error al actualizar informe:', error);
@@ -205,7 +233,7 @@ export class UpdateJourneyReport implements OnChanges {
   }
 
   async eliminarViaje(index: number, event: Event): Promise<void> {
-    event.stopPropagation(); // Evita cambiar a la pestaña al hacer clic en 'X'
+    event.stopPropagation();
 
     const viajeAEliminar = this.viajesList[index];
     if (!viajeAEliminar) return;
@@ -224,7 +252,7 @@ export class UpdateJourneyReport implements OnChanges {
     this.isLoading = true;
     try {
       await remove(ref(this.db, `viajes/${viajeId}`));
-      await this.cargarViajes(); // Recarga las pestañas sincronizadas
+      await this.cargarViajes();
     } catch (error) {
       console.error('Error al eliminar viaje:', error);
       this.errorMessage = 'No se pudo eliminar el viaje.';

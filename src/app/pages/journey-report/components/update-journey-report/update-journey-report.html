@@ -153,10 +153,14 @@
 
         <footer class="modal-footer">
           <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
-          <button type="submit" class="btn-submit" [disabled]="!f.valid || isSubmitting || isLoading">
-            <i class="pi pi-check"></i>
-            Actualizar
-          </button>
+          <button 
+  *ngIf="activeTab !== 'general'" 
+  type="button" 
+  class="btn btn-primary" 
+  [disabled]="isSubmitting"
+  (click)="actualizarViajeActivo()">
+  {{ isSubmitting ? 'Guardando...' : 'Actualizar Viaje' }}
+</button>
         </footer>
       </form>
     </div>

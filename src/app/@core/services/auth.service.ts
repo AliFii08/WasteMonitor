@@ -232,6 +232,29 @@ export class AuthService {
     await sendPasswordResetEmail(this.auth, cleanEmail);
   }
 
+  // auth.service.ts
+
+  getCurrentUserId(): string | null {
+    // 1. Intentar desde la Signal del UserService
+    const user = this.userService.currentUserSignal();
+    if (user?.uid) return user.uid;
+
+    // 2. Fallback a localStorage o Firebase Auth
+    if (isPlatformBrowser(this.platformId)) {
+      const stored = localStorage.getItem('currentUser');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (parsed.uid) return parsed.uid;
+        } catch {
+          // Manejo de error de parseo opcional
+        }
+      }
+    }
+
+    return this.auth.currentUser?.uid || null;
+  }
+
   getCurrentRole(): UserRole {
     const user = this.userService.currentUserSignal();
     if (user && user.rol) {
