@@ -1,0 +1,84 @@
+@if (visible) {
+  <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal-panel" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <div class="modal-title">
+          <i class="pi pi-file-plus"></i>
+          <h2>Crear Informe de Jornada</h2>
+        </div>
+        <button type="button" class="close-btn" (click)="closeModal()" aria-label="Cerrar">
+          <i class="pi pi-times"></i>
+        </button>
+      </header>
+
+      <form (ngSubmit)="onSubmit()" class="modal-body" #f="ngForm">
+        <!-- Indicador del Viaje Actual -->
+        <div class="trip-header">
+          <span class="trip-title">Viaje {{ numeroViaje }}</span>
+        </div>
+
+        <div class="form-field">
+          <label for="tonRecogidas">Toneladas Recogidas <span class="req">*</span></label>
+          <input 
+            type="number" 
+            id="tonRecogidas" 
+            [(ngModel)]="formData.tonRecogidas" 
+            name="tonRecogidas" 
+            step="0.01" 
+            min="0" 
+            placeholder="0.00" 
+            required 
+          />
+        </div>
+
+        <div class="form-field">
+          <label for="direccionLlenado">Dirección de Llenado <span class="req">*</span></label>
+          <input 
+            type="text" 
+            id="direccionLlenado" 
+            [(ngModel)]="formData.direccionLlenado" 
+            name="direccionLlenado" 
+            placeholder="Ej: Av. Principal, Sector El Milagro" 
+            required 
+          />
+        </div>
+
+        <div class="form-field">
+          <label for="observaciones">Descripción / Observaciones</label>
+          <textarea 
+            id="observaciones" 
+            [(ngModel)]="formData.observaciones" 
+            name="observaciones" 
+            rows="3" 
+            placeholder="Escriba la descripción o detalles de la jornada..."
+          ></textarea>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
+          <button type="submit" class="btn-submit" [disabled]="!f.valid">
+            <i class="pi pi-check"></i>
+            Guardar
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+}
+
+@if (showErrorModal) {
+  <div class="modal-backdrop error-backdrop" (click)="closeErrorModal()">
+    <div class="error-panel" (click)="$event.stopPropagation()">
+      <div class="error-icon">
+        <i class="pi pi-exclamation-triangle"></i>
+      </div>
+      
+      <h3>Atención</h3>
+      <p>{{ errorMessage }}</p>
+
+      <button type="button" class="btn-error-close" (click)="closeErrorModal()">
+        Entendido
+      </button>
+    </div>
+  </div>
+}

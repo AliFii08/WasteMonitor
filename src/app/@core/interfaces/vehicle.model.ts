@@ -14,4 +14,7 @@ export interface Vehicle {
   type: VehicleType;
   weight: number;
   plate: string;
+  route?: string;
+  status: string;
+  activo?: boolean;
 }

@@ -1,0 +1,134 @@
+@if (visible) {
+  <div class="modal-backdrop" (click)="close()">
+    <div class="modal-panel" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+      <header class="modal-header">
+        <div class="modal-title">
+          <i class="pi pi-wrench"></i>
+          <h2>Ingresar a taller</h2>
+        </div>
+        <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar">
+          <i class="pi pi-times"></i>
+        </button>
+      </header>
+
+      <form (ngSubmit)="onSubmit()" class="modal-body" #f="ngForm">
+        <div class="form-field">
+          <label for="idCamion">Vehículo <span class="req">*</span></label>
+          <select
+            id="idCamion"
+            name="idCamion"
+            [(ngModel)]="form.idCamion"
+            required
+            [disabled]="saving || loadingCamiones"
+          >
+            <option value="" disabled>
+              {{ loadingCamiones ? 'Cargando vehículos...' : 'Seleccione un vehículo' }}
+            </option>
+            @for (c of camiones; track c.idKey) {
+              <option [value]="c.idKey">
+                {{ c.idKey }} — {{ c.placa || 'Sin placa' }} ({{ c.tipo || 'N/A' }})
+              </option>
+            }
+          </select>
+          @if (!loadingCamiones && camiones.length === 0) {
+            <small class="hint">No hay vehículos disponibles (todos están en taller o inactivos).</small>
+          }
+        </div>
+
+        <div class="form-field">
+          <label for="razon">Razón de ingreso <span class="req">*</span></label>
+          <select
+            id="razon"
+            name="razon"
+            [(ngModel)]="form.razon"
+            required
+            [disabled]="saving"
+          >
+            <option value="" disabled>Seleccione motivo de ingreso</option>
+            @for (r of razonesOpciones; track r) {
+              <option [value]="r">{{ r }}</option>
+            }
+          </select>
+        </div>
+
+        @if (form.razon === 'Otro') {
+          <div class="form-field">
+            <label for="razonPersonalizada">Especifique la razón <span class="req">*</span></label>
+            <input
+              id="razonPersonalizada"
+              name="razonPersonalizada"
+              type="text"
+              [(ngModel)]="razonPersonalizada"
+              required
+              [disabled]="saving"
+              placeholder="Describa el motivo de ingreso..."
+            />
+          </div>
+        }
+
+        <div class="form-field">
+          <label for="descripcion">Descripción detallada</label>
+          <textarea
+            id="descripcion"
+            name="descripcion"
+            rows="3"
+            [(ngModel)]="form.descripcion"
+            [disabled]="saving"
+            placeholder="Detalles adicionales del diagnóstico preliminar o trabajo a realizar..."
+          ></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label for="estado">Estado inicial</label>
+            <select id="estado" name="estado" [(ngModel)]="form.estado" [disabled]="saving">
+              <option value="en_reparacion">En reparación</option>
+              <option value="espera_repuesto">Espera repuesto</option>
+              <option value="listo">Listo</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label for="prioridad">Prioridad</label>
+            <select id="prioridad" name="prioridad" [(ngModel)]="form.prioridad" [disabled]="saving">
+              <option value="baja">Baja</option>
+              <option value="media">Media</option>
+              <option value="alta">Alta</option>
+            </select>
+          </div>
+        </div>
+
+        @if (errorMsg) {
+          <div class="error-msg">
+            <i class="pi pi-exclamation-triangle"></i>
+            {{ errorMsg }}
+          </div>
+        }
+
+        <footer class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="close()" [disabled]="saving">
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="btn-submit"
+            [disabled]="
+              saving ||
+              !form.idCamion ||
+              !form.razon ||
+              (form.razon === 'Otro' && !razonPersonalizada.trim())
+            "
+          >
+            @if (saving) {
+              <i class="pi pi-spin pi-spinner"></i>
+              Guardando...
+            } @else {
+              <i class="pi pi-check"></i>
+              Ingresar a taller
+            }
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+}

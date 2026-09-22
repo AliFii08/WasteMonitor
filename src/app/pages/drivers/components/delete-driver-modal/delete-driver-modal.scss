@@ -1,0 +1,157 @@
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 30, 22, 0.45);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+    animation: fadeIn 0.15s ease-out;
+  }
+  
+  .modal-panel {
+    width: 100%;
+    max-width: 480px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 24px 60px rgba(0, 54, 40, 0.28);
+    overflow: hidden;
+    font-family: 'Raleway', sans-serif;
+    animation: slideUp 0.2s ease-out;
+  }
+  
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.1rem 1.4rem;
+    background: linear-gradient(180deg, #fde8e8 0%, #fbd5d5 100%);
+    border-bottom: 1px solid #f8b4b4;
+  
+    .modal-title {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: #9b1c1c;
+  
+      i {
+        font-size: 1.2rem;
+      }
+  
+      h2 {
+        margin: 0;
+        font-size: 1.15rem;
+        font-weight: 800;
+      }
+    }
+  }
+  
+  .close-btn {
+    border: 0;
+    background: transparent;
+    color: #9b1c1c;
+    cursor: pointer;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  
+    &:hover {
+      background: rgba(155, 28, 28, 0.1);
+    }
+  }
+  
+  .modal-body {
+    padding: 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  
+    .confirm-text {
+      margin: 0;
+      font-size: 1rem;
+      color: #1f2937;
+      line-height: 1.4;
+  
+      strong {
+        color: #9b1c1c;
+      }
+    }
+  
+    .sub-text {
+      margin: 0;
+      font-size: 0.85rem;
+      color: #6b7280;
+      line-height: 1.35;
+    }
+  }
+  
+  .error-msg {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.8rem;
+    background: #fde7e7;
+    color: #8d1f1f;
+    border-left: 4px solid #d62828;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+  
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    padding: 1rem 1.4rem;
+    border-top: 1px solid #e5efe9;
+  
+    button {
+      height: 42px;
+      border: 0;
+      border-radius: 8px;
+      padding: 0 18px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font: 800 13px 'Raleway', sans-serif;
+      cursor: pointer;
+  
+      &:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+    }
+  }
+  
+  .btn-cancel {
+    background: #eef3f0;
+    color: #0f4b3a;
+  
+    &:hover:not(:disabled) {
+      background: #dde8e1;
+    }
+  }
+  
+  .btn-danger {
+    background: #d62828;
+    color: #fff;
+  
+    &:hover:not(:disabled) {
+      background: #b51f1f;
+    }
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  
+  @keyframes slideUp {
+    from { transform: translateY(12px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }

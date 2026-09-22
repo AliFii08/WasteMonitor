@@ -37,6 +37,19 @@
 			}
 		</div>
 
+		<div class="field">
+		<label for="vehicle-route">Asignar Ruta</label>
+		<select id="vehicle-route" class="p-inputtext" formControlName="route">
+			<option value="">Selecciona una ruta</option>
+			@for (r of routes; track r.id) {
+			<option [value]="r.nombreRuta || r.id">{{ r.nombreRuta || r.id }}</option>
+			}
+		</select>
+		@if (routeControl.invalid && (routeControl.touched || routeControl.dirty)) {
+			<small class="field-error">Debe seleccionar una ruta.</small>
+		}
+		</div>
+
 		@if (formError) {
 			<p class="form-error">{{ formError }}</p>
 		}

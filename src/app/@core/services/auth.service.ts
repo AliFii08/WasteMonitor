@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 // import { isPlatformBrowser } from '@angular/common';
 // import {
@@ -251,6 +252,8 @@
 // }
 
 
+=======
+>>>>>>> 7e021c7dcb168a21d1ee001761a14342ef0d920d
 import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import {
@@ -278,7 +281,7 @@ export interface RegisterData {
   lng?: number;
 }
 
-export type UserRole = 'admin' | 'supervisor' | 'crew' | 'conductor' | 'user';
+export type UserRole = 'admin' | 'supervisor' | 'crew' | 'conductor' | 'user' | 'mecanico';
 
 @Injectable({
   providedIn: 'root',
@@ -300,7 +303,7 @@ export class AuthService {
     const userCredential = await createUserWithEmailAndPassword(
       this.auth,
       normalizedEmail,
-      data.password
+      data.password,
     );
     const user = userCredential.user;
 
@@ -317,6 +320,7 @@ export class AuthService {
         lng: data.lng ?? null,
       },
       rol: 'user',
+      activo: true,
     });
 
     await signOut(this.auth);
@@ -335,10 +339,21 @@ export class AuthService {
     const snapshot = await get(userRef);
 
     if (!snapshot.exists()) {
+      await signOut(this.auth);
       throw new Error('user-data-not-found');
     }
 
     const userData = snapshot.val();
+
+    // Evaluamos tanto 'activo' como 'active' por compatibilidad
+    const isUserActive = userData.activo ?? userData.active ?? true;
+
+    if (isUserActive === false) {
+      // Cerramos la sesión de Firebase para impedir accesos no autorizados
+      await signOut(this.auth);
+      throw new Error('user-disabled');
+    }
+
     const userToSave: FirebaseUser = {
       uid: uid,
       email: userData.email,
@@ -347,6 +362,7 @@ export class AuthService {
       phone: userData.phone,
       rol: userData.rol,
       address: userData.address,
+      activo: isUserActive,
     };
 
     this.userService.currentUserSignal.set(userToSave);
@@ -400,7 +416,7 @@ export class AuthService {
         this.EMAILJS_SERVICE_ID,
         this.EMAILJS_TEMPLATE_ID,
         templateParams,
-        this.EMAILJS_PUBLIC_KEY
+        this.EMAILJS_PUBLIC_KEY,
       );
     } catch (error) {
       console.error('Error al enviar EmailJS:', error);
@@ -464,6 +480,29 @@ export class AuthService {
     }
 
     await sendPasswordResetEmail(this.auth, cleanEmail);
+  }
+
+  // auth.service.ts
+
+  getCurrentUserId(): string | null {
+    // 1. Intentar desde la Signal del UserService
+    const user = this.userService.currentUserSignal();
+    if (user?.uid) return user.uid;
+
+    // 2. Fallback a localStorage o Firebase Auth
+    if (isPlatformBrowser(this.platformId)) {
+      const stored = localStorage.getItem('currentUser');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (parsed.uid) return parsed.uid;
+        } catch {
+          // Manejo de error de parseo opcional
+        }
+      }
+    }
+
+    return this.auth.currentUser?.uid || null;
   }
 
   getCurrentRole(): UserRole {

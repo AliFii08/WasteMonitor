@@ -1,0 +1,215 @@
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 30, 22, 0.45);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+    animation: fadeIn 0.15s ease-out;
+  }
+  
+  .modal-panel {
+    width: 100%;
+    max-width: 560px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 24px 60px rgba(0, 54, 40, 0.28);
+    overflow: hidden;
+    font-family: 'Raleway', sans-serif;
+    animation: slideUp 0.2s ease-out;
+  }
+  
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.1rem 1.4rem;
+    background: linear-gradient(180deg, #e7f3ec 0%, #dcefe4 100%);
+    border-bottom: 1px solid #cfe3d8;
+  
+    .modal-title {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: #06523f;
+  
+      i {
+        font-size: 1.1rem;
+      }
+  
+      h2 {
+        margin: 0;
+        font-size: 1.15rem;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+      }
+    }
+  }
+  
+  .close-btn {
+    border: 0;
+    background: transparent;
+    color: #06523f;
+    cursor: pointer;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.15s ease;
+  
+    &:hover {
+      background: rgba(6, 82, 63, 0.1);
+    }
+  }
+  
+  .modal-body {
+    padding: 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .driver-info-card {
+    display: flex;
+    flex-direction: column;
+    background: #f1f8f4;
+    border: 1px solid #d2e3da;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+  
+    .info-label {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: #0f4b3a;
+      text-transform: uppercase;
+    }
+  
+    strong {
+      color: #003628;
+      font-size: 1rem;
+    }
+  
+    small {
+      color: #64748b;
+      font-size: 0.78rem;
+    }
+  }
+  
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  
+    label {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #0f4b3a;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+  
+    .req {
+      color: #d62828;
+    }
+  
+    select {
+      width: 100%;
+      border: 1px solid #c9d9c6;
+      border-radius: 8px;
+      padding: 0.6rem 0.75rem;
+      font: 600 14px 'Raleway', sans-serif;
+      color: #123f32;
+      background: #fff;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      box-sizing: border-box;
+  
+      &:focus {
+        outline: none;
+        border-color: #68a357;
+        box-shadow: 0 0 0 3px rgba(104, 163, 87, 0.18);
+      }
+  
+      &:disabled {
+        background: #f1f5f2;
+        cursor: not-allowed;
+      }
+    }
+  
+    .hint {
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+  }
+  
+  .error-msg {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.8rem;
+    background: #fde7e7;
+    color: #8d1f1f;
+    border-left: 4px solid #d62828;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+  
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #e5efe9;
+    margin-top: 0.4rem;
+  
+    button {
+      height: 42px;
+      border: 0;
+      border-radius: 8px;
+      padding: 0 18px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font: 800 13px 'Raleway', sans-serif;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+  
+      &:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+    }
+  }
+  
+  .btn-cancel {
+    background: #eef3f0;
+    color: #0f4b3a;
+  
+    &:hover:not(:disabled) {
+      background: #dde8e1;
+    }
+  }
+  
+  .btn-submit {
+    background: #68a357;
+    color: #fff;
+  
+    &:hover:not(:disabled) {
+      background: #4f8e43;
+    }
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  
+  @keyframes slideUp {
+    from { transform: translateY(12px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }

@@ -1,0 +1,115 @@
+@if (visible && reporte) {
+  <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal-panel" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <div class="modal-title">
+          <i class="pi pi-eye"></i>
+          <h2>Detalles del Informe</h2>
+        </div>
+        <button type="button" class="close-btn" (click)="closeModal()" aria-label="Cerrar">
+          <i class="pi pi-times"></i>
+        </button>
+      </header>
+
+      <!-- Pestañas internas -->
+      <nav class="modal-tabs">
+        <button 
+          type="button" 
+          class="tab-btn" 
+          [class.active]="activeTab === 'general'" 
+          (click)="selectTab('general')">
+          General
+        </button>
+
+        @for (viaje of viajesList; track viaje.key) {
+          <button 
+            type="button" 
+            class="tab-btn" 
+            [class.active]="activeTab === viaje.key" 
+            (click)="selectTab(viaje.key)">
+            Viaje {{ viaje.numero }}
+          </button>
+        }
+      </nav>
+
+      <div class="modal-body">
+        @if (isLoading) {
+          <div class="loading-state">
+            <i class="pi pi-spin pi-spinner"></i>
+            <p>Cargando viajes...</p>
+          </div>
+        } @else {
+          <!-- Pestaña: Información General -->
+          @if (activeTab === 'general') {
+            <div class="tab-content">
+              <div class="detail-group">
+                <label>Usuario</label>
+                <p class="detail-value">{{ reporte.nombreUsuario || reporte.usuario || 'Sin usuario' }}</p>
+              </div>
+
+              <div class="detail-group">
+                <label>Vehículo / Camión</label>
+                <p class="detail-value">{{ reporte.camionId || reporte.camion || 'Sin vehículo asignado' }}</p>
+              </div>
+
+              <div class="detail-group">
+                <label>Ruta</label>
+                <p class="detail-value">{{ reporte.rutaId || reporte.ruta || 'N/A' }}</p>
+              </div>
+
+              <div class="detail-group">
+                <label>Total Toneladas Recogidas</label>
+                <p class="detail-value font-bold">{{ totalToneladas }} ton</p>
+              </div>
+
+              <div class="detail-group">
+                <label>Cantidad de Viajes</label>
+                <p class="detail-value">{{ viajesList.length }}</p>
+              </div>
+
+              <div class="detail-group">
+                <label>Aprobación</label>
+                <div class="signature-box">
+                  <span [class]="reporte.estado ? 'badge-success' : 'badge-warning'">
+                    {{ reporte.estado ? 'Firmado' : 'Pendiente de firma' }}
+                  </span>
+                  @if (reporte.estado && reporte.nombreUsuarioFirma) {
+                    <small class="signer-name">Por: {{ reporte.nombreUsuarioFirma }}</small>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Pestañas Dinámicas: Detalle de cada Viaje -->
+          @for (viaje of viajesList; track viaje.key) {
+            @if (activeTab === viaje.key) {
+              <div class="tab-content">
+                <div class="detail-group">
+                  <label>Toneladas Recogidas (Viaje {{ viaje.numero }})</label>
+                  <p class="detail-value font-bold">{{ viaje.tonRecogidas }} ton</p>
+                </div>
+
+                <div class="detail-group">
+                  <label>Dirección de Llenado</label>
+                  <p class="detail-value">{{ viaje.direccionDelLlenado || 'Sin dirección registrada.' }}</p>
+                </div>
+
+                <div class="detail-group">
+                  <label>Descripción / Observaciones del Viaje</label>
+                  <p class="detail-value text-box">
+                    {{ viaje.descripcion || 'Sin descripción para este viaje.' }}
+                  </p>
+                </div>
+              </div>
+            }
+          }
+        }
+      </div>
+
+      <footer class="modal-footer">
+        <button type="button" class="btn-close" (click)="closeModal()">Cerrar</button>
+      </footer>
+    </div>
+  </div>
+}

@@ -1,0 +1,436 @@
+.vehicles-page {
+  margin-top: 0;
+  padding-top: 0;
+  font-family: 'Raleway', sans-serif !important;
+}
+
+.title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #003628;
+  margin-bottom: 40px;
+}
+
+.title h1 {
+  font-size: 45px;
+  margin-bottom: 10px;
+}
+
+.title span {
+  font-size: 20px;
+  color: #06523f;
+}
+
+.table-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 1rem;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+.search-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.select-all-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #0f4b3a;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.select-all-wrap input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  accent-color: #06523f;
+  cursor: pointer;
+}
+
+.search-input {
+  min-width: 230px;
+  height: 42px;
+  border: 1px solid #c9d9c6;
+  border-radius: 8px;
+  padding: 0 2.3rem 0 0.8rem;
+  color: #123f32;
+  font: 600 14px 'Raleway', sans-serif;
+}
+
+.search-input-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.search-input-wrap i {
+  position: absolute;
+  right: 0.75rem;
+  color: #64748b;
+  pointer-events: none;
+}
+
+.create-btn,
+.bulk-delete-btn {
+  height: 42px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #fff;
+  font: 800 13px 'Raleway', sans-serif;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.create-btn {
+  background: #68a357;
+}
+
+.create-btn:hover {
+  background: #4f8e43;
+}
+
+.bulk-delete-btn {
+  background: #d62828;
+}
+
+.bulk-delete-btn:hover {
+  background: #b51f1f;
+}
+
+.option-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #555;
+  font-size: 1rem;
+  
+  &:hover {
+    color: #06523f;
+  }
+
+  &.danger:hover {
+    color: #d62828;
+  }
+}
+
+.options-header {
+  text-align: center;
+}
+
+.select-col {
+  width: 44px;
+  text-align: center;
+}
+
+.preview-section {
+  margin-top: 2rem;
+  border: 1px solid #d8e4de;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #f8fcfa 0%, #f1f8f4 100%);
+  box-shadow: 0 10px 24px rgba(6, 82, 63, 0.08);
+  overflow: hidden;
+}
+
+.preview-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 680px;
+}
+
+.preview-table thead th {
+  background: #e7f3ec;
+  color: #0f4b3a;
+  text-align: left;
+  font-size: 0.83rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-weight: 800;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #d2e3da;
+}
+
+.preview-table tbody td {
+  padding: 0.9rem 1rem;
+  color: #173d32;
+  border-bottom: 1px solid #e5efe9;
+  font-size: 0.9rem;
+}
+
+.preview-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.preview-table tbody tr:nth-child(even) {
+  background-color: rgba(141, 190, 164, 0.11);
+}
+
+.preview-table tbody tr:hover {
+  background-color: rgba(104, 163, 87, 0.16);
+}
+
+.hidden-row {
+  display: none !important;
+}
+
+/* Chips de Estado adaptados */
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: capitalize;
+
+  &.en_reparacion {
+    background: #ffe8bf;
+    color: #8a5b00;
+  }
+
+  &.espera_repuesto {
+    background: #f6d5d5;
+    color: #8d1f1f;
+  }
+  &.espera_entrega,
+  &.listo {
+    background: #d5f0df;
+    color: #1b7a45;
+  }
+}
+
+/* Desplegable de Vehículos Listos */
+.finished-collapsible {
+  margin-top: 1.5rem;
+  border-radius: 12px;
+  background: transparent;
+
+  &[open] .arrow-icon {
+    transform: rotate(180deg);
+  }
+}
+
+.collapsible-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1.2rem;
+  background: #e7f5ec;
+  border: 1px solid #cce5d7;
+  border-radius: 12px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+
+  &:hover {
+    background: #dbf0e2;
+    border-color: #b5dac3;
+  }
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+}
+
+.trigger-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: #1b7a45;
+  font-size: 0.95rem;
+  font-weight: 800;
+
+  i {
+    font-size: 1.1rem;
+  }
+}
+
+.arrow-icon {
+  color: #1b7a45;
+  font-weight: 700;
+  transition: transform 0.2s ease;
+}
+
+.finished-section {
+  margin-top: 0.75rem !important;
+  border-color: #cce5d7 !important;
+  opacity: 0.92;
+}
+
+.empty-row {
+  text-align: center;
+  padding: 1.5rem !important;
+  color: #5d7568;
+  font-weight: 600;
+  font-style: italic;
+}
+
+/* MODAL DE CONFIRMACIÓN DE ELIMINACIÓN */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.confirm-modal {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1.8rem;
+  width: 90%;
+  max-width: 420px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: scaleUp 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  .confirm-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+
+    &.danger {
+      background: #fde8e8;
+      color: #d62828;
+      i {
+        font-size: 1.8rem;
+      }
+    }
+  }
+
+  h2 {
+    font-size: 1.3rem;
+    color: #0f4b3a;
+    margin: 0 0 0.5rem 0;
+    font-weight: 800;
+  }
+
+  p {
+    font-size: 0.92rem;
+    color: #4a5568;
+    margin: 0 0 1.5rem 0;
+    line-height: 1.4;
+
+    strong {
+      color: #d62828;
+    }
+  }
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+
+  button {
+    flex: 1;
+    height: 42px;
+    border-radius: 8px;
+    font-family: 'Raleway', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  .btn-cancel {
+    background: #edf2f7;
+    color: #4a5568;
+
+    &:hover:not(:disabled) {
+      background: #e2e8f0;
+    }
+  }
+
+  .btn-confirm-danger {
+    background: #d62828;
+    color: #ffffff;
+
+    &:hover:not(:disabled) {
+      background: #b51f1f;
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 720px) {
+  .title h1 {
+    font-size: 34px;
+    text-align: center;
+  }
+
+  .title span {
+    text-align: center;
+    font-size: 16px;
+    padding: 0 0.5rem;
+  }
+
+  .search-input {
+    width: 100%;
+    min-width: 0;
+  }
+}

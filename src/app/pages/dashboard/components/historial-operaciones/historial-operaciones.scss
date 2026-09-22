@@ -1,0 +1,123 @@
+.operaciones-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.header-operaciones {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  h3 {
+    margin: 0;
+    color: #003628;
+    font-size: 18px;
+  }
+
+  .total-badge {
+    background: #e7f3ec;
+    color: #06523f;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.operaciones-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+
+  th {
+    background-color: #e7f3ec;
+    color: #0f4b3a;
+    padding: 12px;
+    font-weight: 700;
+    border-bottom: 2px solid #d8e4de;
+  }
+
+  td {
+    padding: 12px;
+    border-bottom: 1px solid #eef4f1;
+    color: #2c423b;
+  }
+
+  tr:hover {
+    background-color: #f6faf8;
+  }
+}
+
+.col-fecha {
+  white-space: nowrap;
+  font-size: 13px;
+  color: #607b70;
+}
+
+.col-usuario {
+  display: flex;
+  flex-direction: column;
+
+  strong {
+    color: #134636;
+  }
+
+  small {
+    color: #607b70;
+    font-size: 11px;
+  }
+}
+
+.modulo-tag {
+  background-color: #f0f4f2;
+  border: 1px solid #d0ded7;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #1d4f40;
+}
+
+/* Badges de acciones */
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  text-align: center;
+
+  &.crear {
+    background-color: #e3f9e5;
+    color: #1f7a28;
+    border: 1px solid #b7ebbc;
+  }
+
+  &.actualizar {
+    background-color: #e3f2fd;
+    color: #0d47a1;
+    border: 1px solid #bbdefb;
+  }
+
+  &.eliminar {
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
+  }
+}
+
+.col-detalle {
+  max-width: 320px;
+  line-height: 1.4;
+}
+
+.empty-state {
+  text-align: center;
+  color: #607b70;
+  padding: 24px !important;
+}

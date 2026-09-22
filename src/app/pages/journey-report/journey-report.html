@@ -1,9 +1,120 @@
-<body>
-
+<div class="report-page">
   <div class="title">
     <h1>Informe de Jornada</h1>
     <span>Reporte detallado del desempeño de su jornada laboral</span>
   </div>
 
+<<<<<<< HEAD
 
 </body>
+=======
+  <div class="table-toolbar">
+    <div class="search-row">
+      <span class="search-input-wrap">
+        <input type="text" placeholder="Buscar" class="search-input" [(ngModel)]="reportSearchTerm"
+          (input)="onReportSearchChange()" />
+        <i class="pi pi-search"></i>
+      </span>
+      @if (isAdmin) {
+      <label class="select-all-wrap" for="selectAllDrivers">
+        <input id="selectAllDrivers" type="checkbox" [checked]="allReportsSelected"
+          (change)="toggleSelectedAllInformes()" />
+        Seleccionar todos
+      </label>
+      }
+      @if (hasSelectedReport) {
+      <button type="button" class="bulk-delete-btn" (click)="deleteSelectedReport()">
+        <i class="pi pi-trash"></i>
+        Eliminar seleccionados
+      </button>
+      }
+    </div>
+
+    <button type="button" class="create-btn" (click)="openCreateModal()">
+      <i class="pi pi-plus"></i>
+      Crear informe
+    </button>
+  </div>
+
+  <div class="table-card">
+    <div class="table-wrap">
+      <p-table 
+        [value]="reportes" 
+        [paginator]="true" 
+        [rows]="10" 
+        styleClass="custom-report-table">
+        
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Usuario</th>
+            <th>Vehículo</th>
+            <th>Estado Firma</th>
+            <th>Fecha Creación</th>
+            <th class="options-header">Opciones</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-reporte let-i="rowIndex">
+          <tr>
+            <td>
+              <span class="user-name">{{ reporte.nombreUsuario }}</span>
+            </td>
+            <td>
+              <span [class]="reporte.camionId ? 'badge-info' : 'text-muted'">
+                {{ reporte.camionId || 'N/A' }}
+              </span>
+            </td>
+            <td>
+              <span [class]="reporte.estado ? 'badge-success' : 'badge-warning'">
+                {{ reporte.estado ? 'Firmado' : 'Pendiente' }}
+              </span>
+            </td>
+            <td>{{ reporte.creadoEn | date:'dd/MM/yyyy, hh:mm a' }}</td>
+            <td>
+              <div class="option-actions">
+                @if (isAdmin) {
+                <input type="checkbox" [checked]="selectedReportRows[i]"
+                  (change)="toggleReportRow(i, $any($event.target).checked)" />
+                }
+                <button type="button" class="icon-btn" title="Ver Reporte" (click)="openViewModal(reporte)">
+                  <i class="pi pi-eye"></i>
+                </button>
+                <button type="button" class="icon-btn" title="Editar" (click)="openUpdateModal(reporte)">
+                  <i class="pi pi-pencil"></i>
+                </button>
+                @if (isAdmin) {
+    <button type="button" class="icon-btn danger" title="Eliminar" (click)="openSingleDeleteModal(reporte)">
+      <i class="pi pi-trash"></i>
+    </button>
+  }
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="5" class="empty-message">
+              No se encontraron reportes de viaje registrados.
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</div>
+
+<app-create-journey-report
+  [(visible)]="isCreateModalOpen">
+</app-create-journey-report>
+
+<app-view-journey-report
+  [(visible)]="isViewModalOpen"
+  [reporte]="selectedReport">
+</app-view-journey-report>
+
+<app-update-journey-report
+  [(visible)]="isUpdateModalOpen"
+  [reporte]="selectedReport"
+></app-update-journey-report>
+>>>>>>> 7e021c7dcb168a21d1ee001761a14342ef0d920d

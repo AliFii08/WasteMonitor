@@ -1,0 +1,204 @@
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 30, 22, 0.45);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.modal-panel {
+  width: 100%;
+  max-width: 520px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(0, 54, 40, 0.28);
+  overflow: hidden;
+  font-family: 'Raleway', sans-serif;
+  animation: slideUp 0.2s ease-out;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.4rem;
+  background: linear-gradient(180deg, #e7f3ec 0%, #dcefe4 100%);
+  border-bottom: 1px solid #cfe3d8;
+
+  .modal-title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: #06523f;
+
+    i {
+      font-size: 1.1rem;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+    }
+  }
+}
+
+.close-btn {
+  border: 0;
+  background: transparent;
+  color: #06523f;
+  cursor: pointer;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background: rgba(6, 82, 63, 0.1);
+  }
+}
+
+.modal-body {
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.modal-tabs {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+
+  .tab-btn {
+    padding: 0.75rem 1rem;
+    border: none;
+    background: transparent;
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: #6b7280;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: #111827;
+    }
+
+    &.active {
+      color: #16a34a; // O el color principal de tu tema
+      border-bottom-color: #16a34a;
+      font-weight: 600;
+    }
+  }
+}
+
+.detail-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+
+  label {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #0f4b3a;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .detail-value {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #173d32;
+    font-weight: 600;
+
+    &.text-box {
+      background: #f4f8f5;
+      border: 1px solid #dbe7e0;
+      border-radius: 8px;
+      padding: 0.65rem 0.8rem;
+      min-height: 50px;
+      white-space: pre-wrap;
+    }
+
+    &.font-bold {
+      font-weight: 700;
+    }
+  }
+}
+
+.signature-box {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.2rem;
+
+  .signer-name {
+    color: #0f4b3a;
+    font-weight: 600;
+  }
+}
+
+.badge-success {
+  background-color: #d5f0df;
+  color: #1b7a45;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  display: inline-flex;
+}
+
+.badge-warning {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  display: inline-flex;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.9rem 1.4rem;
+  border-top: 1px solid #e5efe9;
+
+  .btn-close {
+    height: 38px;
+    border: 0;
+    border-radius: 8px;
+    padding: 0 20px;
+    background: #eef3f0;
+    color: #0f4b3a;
+    font: 800 13px 'Raleway', sans-serif;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background: #dde8e1;
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(12px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}

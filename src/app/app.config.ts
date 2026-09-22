@@ -1,6 +1,6 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideHttpClient, withFetch } from '@angular/common/http';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withViewTransitions } from '@angular/router';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeuix/themes/aura';
@@ -24,7 +24,7 @@ export const appConfig: ApplicationConfig = {
     provideAnimationsAsync(),
     provideBrowserGlobalErrorListeners(),
     provideHttpClient(withFetch()),
-    provideRouter(routes),
+    provideRouter(routes, withViewTransitions()),
     MessageService,
     providePrimeNG({
       theme: {
