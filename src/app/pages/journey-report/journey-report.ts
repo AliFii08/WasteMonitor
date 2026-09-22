@@ -8,6 +8,7 @@ import { CommonModule } from '@angular/common';
 import { TableModule } from 'primeng/table';
 import { UpdateJourneyReport } from './components/update-journey-report/update-journey-report';
 import { AuthService } from '../../@core/services/auth.service';
+import { DeleteJourneyReport } from './components/delete-journey-report/delete-journey-report';
 
 
 @Component({
@@ -19,6 +20,7 @@ import { AuthService } from '../../@core/services/auth.service';
     FormsModule,
     ViewJourneyReport,
     UpdateJourneyReport,
+    DeleteJourneyReport,
   ],
   templateUrl: './journey-report.html',
   styleUrls: ['./journey-report.scss'],
@@ -59,7 +61,10 @@ export class JourneyReport implements OnInit, OnDestroy {
   async cargarInformes(): Promise<void> {
     this.informesSub = this.informeService.getInformes().subscribe({
       next: ([informes, usuarios]) => {
-        this.reportes = (informes || []).map((informe) => {
+        // Filtrar únicamente los informes que están activos (activo !== false)
+        const informesActivos = (informes || []).filter((informe) => informe.activo !== false);
+
+        this.reportes = informesActivos.map((informe) => {
           const uidUsuario = informe.uidUsuario || informe.usuario || '';
           const usuarioData = usuarios?.[uidUsuario] || null;
 
@@ -87,7 +92,6 @@ export class JourneyReport implements OnInit, OnDestroy {
       },
       error: (err) => console.error('Error al cargar informes:', err),
     });
-    
   }
 
   onReportSearchChange(): void {
@@ -122,7 +126,6 @@ export class JourneyReport implements OnInit, OnDestroy {
 
     // 2. Extraer el UID del creador (tomando 'reporte.usuario' que es como está en Firebase)
     const creadorId = reporte?.usuario || reporte?.usuarioId || reporte?.userId;
-
 
     // 3. Validar coincidencia de IDs
     if ((!currentUserId || creadorId !== currentUserId) && !this.isAdmin) {
