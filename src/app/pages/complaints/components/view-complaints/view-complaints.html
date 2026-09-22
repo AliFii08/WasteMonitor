@@ -1,8 +1,4 @@
-<p-dialog 
-  header="Detalle de la Queja" 
-  [(visible)]="visible" 
-  [modal]="true" 
-  [style]="{ width: '500px' }"
+<p-dialog header="Detalle de la Queja" [(visible)]="visible" [modal]="true" [style]="{ width: '500px' }"
   (onHide)="cerrarModal()">
 
   <div *ngIf="queja" class="flex flex-column gap-3">
@@ -38,11 +34,7 @@
   </div>
 
   <ng-template pTemplate="footer">
-    <p-button 
-      label="Cerrar" 
-      icon="pi pi-times" 
-      severity="secondary" 
-      (onClick)="cerrarModal()">
+    <p-button label="Cerrar" icon="pi pi-times" severity="secondary" (onClick)="cerrarModal()">
     </p-button>
   </ng-template>
 </p-dialog>

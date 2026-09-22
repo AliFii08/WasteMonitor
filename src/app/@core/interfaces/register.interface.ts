@@ -6,8 +6,5 @@ export interface Register{
     password: string;
     confirmPassword: string;
     sector: string;
-    street: string;
-    houseNumber: string;
-    postalCode: number;
 }
 

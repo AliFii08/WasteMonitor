@@ -288,9 +288,6 @@ export class Profile implements OnInit, AfterViewInit, OnDestroy {
       }),
       confirmPassword: new FormControl('', { nonNullable: true }),
       sector: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      street: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      houseNumber: new FormControl('', { nonNullable: true }),
-      postalCode: new FormControl('', { nonNullable: true }),
     },
     { validators: passwordMatchValidator },
   );
@@ -305,9 +302,6 @@ export class Profile implements OnInit, AfterViewInit, OnDestroy {
         email: user.email,
         phone: user.phone,
         sector: user.address?.sector || '',
-        street: user.address?.street || '',
-        houseNumber: user.address?.houseNumber || '',
-        postalCode: user.address?.postalCode ? String(user.address.postalCode) : '',
       });
 
       // Recuperar lat/lng existentes si ya fueron registrados previamente
@@ -428,8 +422,7 @@ export class Profile implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    const { email, name, lastName, phone, sector, street, houseNumber, postalCode } =
-      this.profileForm.getRawValue();
+    const { email, name, lastName, phone, sector } = this.profileForm.getRawValue();
 
     const currentUser = this.auth.currentUser;
     if (!currentUser) {
@@ -448,9 +441,6 @@ export class Profile implements OnInit, AfterViewInit, OnDestroy {
         phone,
         address: {
           sector,
-          street,
-          houseNumber,
-          postalCode: postalCode ? Number(postalCode) : 0,
           lat: this.selectedCoords.lat,
           lng: this.selectedCoords.lng,
         },

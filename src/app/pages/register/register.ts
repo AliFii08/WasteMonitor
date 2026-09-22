@@ -72,9 +72,6 @@
 //         validators: [Validators.required],
 //       }),
 //       sector: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-//       street: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-//       houseNumber: new FormControl('', { nonNullable: true }),
-//       postalCode: new FormControl('', { nonNullable: true }),
 //     },
 //     { validators: passwordMatchValidator },
 //   );
@@ -250,9 +247,6 @@ export class Register implements OnInit, AfterViewInit, OnDestroy {
         validators: [Validators.required],
       }),
       sector: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      street: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      houseNumber: new FormControl('', { nonNullable: true }),
-      postalCode: new FormControl('', { nonNullable: true }),
     },
     { validators: passwordMatchValidator },
   );

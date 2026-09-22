@@ -169,42 +169,6 @@
 
     <div class="form-group">
       <div class="field-row">
-        <label for="street">Calle/Avenida*</label>
-        <div class="input-block error-slot">
-          <input
-            type="text"
-            placeholder="Calle/Avenida"
-            formControlName="street"
-            required
-            [class.invalid]="isValidField(registerForm.controls.street)"
-          />
-          <small *ngIf="isValidField(registerForm.controls.street)">
-            {{ getErrorMessage(registerForm.controls.street) }}
-          </small>
-        </div>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <div class="field-row">
-        <label for="houseNumber">Número de Casa/Edificio/Lote</label>
-        <div class="input-block">
-          <input type="text" placeholder="Número de Casa/Edificio/Lote" formControlName="houseNumber" />
-        </div>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <div class="field-row">
-        <label for="postalCode">Código Postal</label>
-        <div class="input-block">
-          <input type="number" placeholder="Código Postal" formControlName="postalCode" />
-        </div>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <div class="field-row">
         <label>Ubicación de la Vivienda (Haz clic en el mapa para fijar tu casa)*</label>
         <div id="register-map" class="map-container"></div>
         <small *ngIf="selectedCoords" class="coords-info">

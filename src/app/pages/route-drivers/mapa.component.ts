@@ -1,6 +1,5 @@
 import { Component, OnDestroy } from '@angular/core';
 import * as L from 'leaflet';
-import { RoutesService, RouteData, RoutePoint } from '../../@core/services/routes.service';
 
 export interface PointWithLabel {
   x: number;
@@ -18,7 +17,7 @@ export interface PointWithLabel {
 })
 export class MapaComponent implements OnDestroy {
   private map!: L.Map;
-  private routeLayer!: L.Polyline;
+  private routeLayer?: L.Polyline;
   private markersGroup: L.LayerGroup = L.layerGroup();
 
   initMap(onMapClick: (lat: number, lng: number) => void): void {
@@ -76,6 +75,7 @@ export class MapaComponent implements OnDestroy {
   clearRoute(): void {
     if (this.routeLayer) {
       this.map.removeLayer(this.routeLayer);
+      this.routeLayer = undefined;
     }
   }
 
@@ -119,66 +119,6 @@ export class MapaComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.destroyMap();
-  }
-
-  destroyMap(): void {
-    if (this.map) {
-      this.map.remove();
-    }
-  }
-
-  // Dibujar la polínea que retorna OSRM en el mapa
-  drawRoute(latLngs: [number, number][]): void {
-    this.clearRoute();
-
-    if (latLngs.length === 0) return;
-
-    this.routeLayer = L.polyline(latLngs, {
-      color: '#68a357',
-      weight: 6,
-      opacity: 0.9,
-    }).addTo(this.map);
-
-    this.map.fitBounds(this.routeLayer.getBounds());
-  }
-
-  // Renderizar los marcadores de puntos locales
-  renderLocalMarkers(points: RoutePoint[]): void {
-    this.clearMarkers();
-
-    points.forEach((p) => {
-      const m = L.marker([p.x, p.y], { icon: localPointIcon }).addTo(this.map);
-      this.markers.push(m);
-    });
-
-    if (points.length === 1) {
-      this.map.flyTo([points[0].x, points[0].y], 15);
-    }
-  }
-
-  clearRoute(): void {
-    if (this.routeLayer) {
-      this.map.removeLayer(this.routeLayer);
-      this.routeLayer = undefined;
-    }
-  }
-
-  clearMarkers(): void {
-    this.markers.forEach((m) => m.remove());
-    this.markers = [];
-  }
-
-  clearAll(): void {
-    this.clearRoute();
-    this.clearMarkers();
-  }
-
-  resetView(): void {
-    if (this.routeLayer) {
-      this.map.fitBounds(this.routeLayer.getBounds());
-    } else {
-      this.map.flyTo([10.6447, -71.6106], 13);
-    }
   }
 
   destroyMap(): void {

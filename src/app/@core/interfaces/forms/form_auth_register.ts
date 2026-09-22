@@ -8,7 +8,4 @@ export interface AuthRegister{
     password: FormControl<string>;
     confirmPassword: FormControl<string>;
     sector: FormControl<string>;
-    street: FormControl<string>;
-    houseNumber: FormControl<string>;
-    postalCode: FormControl<number>;
 }

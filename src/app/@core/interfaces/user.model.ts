@@ -47,10 +47,7 @@ export interface FirebaseUser {
   camionId?: string; // Formato VEH-001
   rutaAsignada?: string; // Opcional si se calcula dinámicamente desde la ruta del camión
   address?: {
-     houseNumber: string;
-     postalCode: number;
      sector: string;
-     street: string;
      lat: number;
      lng: number;
    };
