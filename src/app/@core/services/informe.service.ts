@@ -223,4 +223,8 @@ export class InformeService {
     // 3. Ejecutar la actualización con un objeto totalmente plano
     await update(ref(this.db), updatesPayload);
   }
+
+  async firmarInforme() {
+    
+  }
 }

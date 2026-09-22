@@ -61,8 +61,8 @@
               </span>
             </td>
             <td>
-              <span [class]="reporte.firmado ? 'badge-success' : 'badge-warning'">
-                {{ reporte.firmado ? 'Firmado' : 'Pendiente' }}
+              <span [class]="reporte.estado ? 'badge-success' : 'badge-warning'">
+                {{ reporte.estado ? 'Firmado' : 'Pendiente' }}
               </span>
             </td>
             <td>{{ reporte.creadoEn | date:'dd/MM/yyyy, hh:mm a' }}</td>

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { InformeService } from '../../@core/services/informe.service';
 import { CreateJourneyReport } from './components/create-journey-report/create-journey-report';
@@ -27,6 +27,8 @@ export class JourneyReport implements OnInit, OnDestroy {
   reportes: any[] = [];
   reportSearchTerm: string = '';
 
+  private cdr = inject(ChangeDetectorRef);
+
   // Control de selección
   selectedReportRows: boolean[] = [];
   allReportsSelected: boolean = false;
@@ -54,7 +56,7 @@ export class JourneyReport implements OnInit, OnDestroy {
     return this.authService.hasRole(['admin']);
   }
 
-  cargarInformes(): void {
+  async cargarInformes(): Promise<void> {
     this.informesSub = this.informeService.getInformes().subscribe({
       next: ([informes, usuarios]) => {
         this.reportes = (informes || []).map((informe) => {
@@ -81,9 +83,11 @@ export class JourneyReport implements OnInit, OnDestroy {
         });
 
         this.selectedReportRows = new Array(this.reportes.length).fill(false);
+        this.cdr.detectChanges();
       },
       error: (err) => console.error('Error al cargar informes:', err),
     });
+    
   }
 
   onReportSearchChange(): void {
@@ -119,11 +123,14 @@ export class JourneyReport implements OnInit, OnDestroy {
     // 2. Extraer el UID del creador (tomando 'reporte.usuario' que es como está en Firebase)
     const creadorId = reporte?.usuario || reporte?.usuarioId || reporte?.userId;
 
+
     // 3. Validar coincidencia de IDs
-    if (!currentUserId || creadorId !== currentUserId) {
+    if ((!currentUserId || creadorId !== currentUserId) && !this.isAdmin) {
       alert('no puedes actualizar un informe que no fue creado por ti');
       return;
     }
+
+    this.cdr.detectChanges();
 
     // 4. Abrir modal si coincide
     this.selectedReport = reporte;

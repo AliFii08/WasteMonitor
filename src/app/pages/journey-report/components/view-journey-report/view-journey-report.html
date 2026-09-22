@@ -70,10 +70,10 @@
               <div class="detail-group">
                 <label>Aprobación</label>
                 <div class="signature-box">
-                  <span [class]="reporte.firmado ? 'badge-success' : 'badge-warning'">
-                    {{ reporte.firmado ? 'Firmado' : 'Pendiente de firma' }}
+                  <span [class]="reporte.estado ? 'badge-success' : 'badge-warning'">
+                    {{ reporte.estado ? 'Firmado' : 'Pendiente de firma' }}
                   </span>
-                  @if (reporte.firmado && reporte.nombreUsuarioFirma) {
+                  @if (reporte.estado && reporte.nombreUsuarioFirma) {
                     <small class="signer-name">Por: {{ reporte.nombreUsuarioFirma }}</small>
                   }
                 </div>

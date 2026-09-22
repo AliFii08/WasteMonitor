@@ -6,6 +6,7 @@ import {
   OnChanges,
   SimpleChanges,
   inject,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Database, ref, get, query, orderByChild, equalTo } from '@angular/fire/database';
@@ -30,6 +31,7 @@ export class ViewJourneyReport implements OnChanges {
   @Input() visible: boolean = false;
   @Input() reporte: any = null;
   @Output() visibleChange = new EventEmitter<boolean>();
+  private cdr = inject(ChangeDetectorRef);
 
   private db = inject(Database);
 
@@ -40,7 +42,9 @@ export class ViewJourneyReport implements OnChanges {
   async ngOnChanges(changes: SimpleChanges): Promise<void> {
     if (changes['reporte'] && this.reporte?.id) {
       await this.cargarViajes();
+      this.cdr.detectChanges();
     }
+    
   }
 
   async cargarViajes(): Promise<void> {
@@ -73,9 +77,11 @@ export class ViewJourneyReport implements OnChanges {
           });
           index++;
         });
+        
       }
 
       this.activeTab = 'general';
+      this.cdr.detectChanges();
     } catch (error) {
       console.error('Error al cargar viajes para visualizar:', error);
     } finally {

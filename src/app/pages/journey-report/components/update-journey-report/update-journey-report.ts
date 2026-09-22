@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -11,9 +11,12 @@ import {
   equalTo,
   set,
   remove,
+  update,
 } from '@angular/fire/database';
+import { AuthService } from '../../../../@core/services/auth.service';
 
 import { InformeService } from '../../../../@core/services/informe.service';
+import { Auth } from '@angular/fire/auth';
 
 export interface ViajeItem {
   id: string;
@@ -35,6 +38,8 @@ export class UpdateJourneyReport implements OnChanges {
   @Input() visible: boolean = false;
   @Input() reporte: any = null;
   @Output() visibleChange = new EventEmitter<boolean>();
+  private cdr = inject(ChangeDetectorRef);
+  private authService = inject(AuthService);
 
   activeTab: string = 'general';
   viajesList: ViajeItem[] = [];
@@ -44,6 +49,10 @@ export class UpdateJourneyReport implements OnChanges {
 
   isLoading: boolean = false;
   isSubmitting: boolean = false;
+
+  get isAdmin(): boolean {
+    return this.authService.hasRole(['admin']);
+  }
 
   // --- MINI MODAL NUEVO VIAJE ---
   showAddTripModal: boolean = false;
@@ -56,18 +65,57 @@ export class UpdateJourneyReport implements OnChanges {
 
   showErrorModal: boolean = false;
   errorMessage: string = '';
+  nombreUsuario: string = '';
 
   // Inyección de dependencias correcta para resolver TS2564
   constructor(
     private db: Database,
+    private auth: Auth,
     private informe: InformeService,
   ) {}
 
-  async ngOnChanges(changes: SimpleChanges): Promise<void> {
-    if (changes['reporte'] && this.reporte?.id) {
-      this.camion = this.reporte.camion || '';
-      this.ruta = this.reporte.ruta || '';
-      await this.cargarViajes();
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['reporte'] && this.reporte) {
+      // 1. Asignar los campos base del informe (vehículo y ruta)
+      this.camion = this.reporte.camionId || this.reporte.camion || '';
+      this.ruta = this.reporte.rutaId || this.reporte.ruta || '';
+
+      // 2. Asignar nombre previo si ya viene cargado en el objeto principal
+      if (this.reporte.nombreUsuario) {
+        this.nombreUsuario = this.reporte.nombreUsuario;
+      }
+
+      // 3. Obtener el ID del usuario creador
+      const userId = this.reporte.usuario || this.reporte.usuarioId;
+      if (userId) {
+        this.cargarNombreUsuario(userId);
+      }
+
+      // 4. CARGAR LOS VIAJES ASOCIADOS AL INFORME
+      this.cargarViajes();
+    }
+  }
+
+  async cargarNombreUsuario(uid: string): Promise<void> {
+    try {
+      const userRef = ref(this.db, `usuarios/${uid}`);
+      const snapshot = await get(userRef);
+
+      if (snapshot.exists()) {
+        const userData = snapshot.val();
+        // Construir nombre completo
+        const nombre = userData.name || userData.nombre || '';
+        const apellido = userData.lastName || userData.apellido || '';
+
+        this.nombreUsuario = `${nombre} ${apellido}`.trim() || 'Usuario sin nombre';
+      } else {
+        this.nombreUsuario = uid; // Fallback al ID si el nodo no existe
+      }
+    } catch (error) {
+      console.error('Error al cargar nombre del usuario:', error);
+      this.nombreUsuario = uid;
+    } finally {
+      this.cdr.detectChanges();
     }
   }
 
@@ -104,10 +152,12 @@ export class UpdateJourneyReport implements OnChanges {
       }
 
       this.activeTab = 'general';
+      this.cdr.detectChanges();
     } catch (error) {
       console.error('Error al cargar viajes:', error);
     } finally {
       this.isLoading = false;
+      this.cdr.detectChanges();
     }
   }
 
@@ -141,6 +191,7 @@ export class UpdateJourneyReport implements OnChanges {
 
       this.cerrarModalNuevoViaje();
       await this.cargarViajes();
+      this.cdr.detectChanges();
     } catch (error) {
       console.error('Error al agregar viaje:', error);
       this.errorMessage = 'No se pudo crear el nuevo viaje.';
@@ -181,6 +232,7 @@ export class UpdateJourneyReport implements OnChanges {
       this.showErrorModal = true;
     } finally {
       this.isSubmitting = false;
+      this.cdr.detectChanges();
     }
   }
   // Método que delega la actualización al servicio para resolver TS2339
@@ -230,6 +282,46 @@ export class UpdateJourneyReport implements OnChanges {
 
   agregarNuevoViaje(): void {
     this.abrirModalNuevoViaje();
+  }
+
+  async firmarInforme(): Promise<void> {
+    if (!this.reporte?.id) return;
+
+    const currentUser = this.auth.currentUser;
+    if (!currentUser) {
+      this.errorMessage = 'No hay una sesión de usuario activa para firmar.';
+      this.showErrorModal = true;
+      return;
+    }
+
+    this.isSubmitting = true;
+
+    try {
+      const informeRef = ref(this.db, `informe_de_viaje/${this.reporte.id}`);
+
+      const payloadActualizacion = {
+        estado: 'firmado',
+        firmadoEl: new Date().toISOString(),
+        firmadoPor: currentUser.uid, // Guardamos el UID del usuario que firma
+      };
+
+      // Actualizar en Realtime Database
+      await update(informeRef, payloadActualizacion);
+
+      // Actualizar estado local para la vista
+      this.reporte.estado = 'firmado';
+      this.reporte.firmadoEl = payloadActualizacion.firmadoEl;
+      this.reporte.firmadoPor = payloadActualizacion.firmadoPor;
+
+      this.closeModal();
+    } catch (error) {
+      console.error('Error al firmar el informe:', error);
+      this.errorMessage = 'No se pudo registrar la firma del informe.';
+      this.showErrorModal = true;
+    } finally {
+      this.isSubmitting = false;
+      this.cdr.detectChanges();
+    }
   }
 
   async eliminarViaje(index: number, event: Event): Promise<void> {

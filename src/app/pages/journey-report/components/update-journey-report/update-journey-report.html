@@ -63,10 +63,15 @@
             <!-- Pestaña: General -->
             @if (activeTab === 'general') {
               <div class="tab-content">
-                <div class="form-field">
-                  <label>ID Usuario</label>
-                  <input type="text" [value]="reporte.usuario || 'Sin usuario'" disabled class="input-disabled" />
-                </div>
+    <div class="form-field">
+      <label>Usuario</label>
+      <input 
+        type="text" 
+        [value]="nombreUsuario || reporte.nombreUsuario || reporte.usuario || 'Sin usuario'" 
+        disabled 
+        class="input-disabled" 
+      />
+    </div>
 
                 <div class="form-field">
                   <label for="camion">Vehículo / Camión</label>
@@ -152,6 +157,16 @@
         </div>
 
         <footer class="modal-footer">
+          @if (isAdmin) {
+    <button 
+      type="button" 
+      class="btn-submit" 
+      [disabled]="isSubmitting || reporte?.estado === 'firmado'" 
+      (click)="firmarInforme()">
+      <i class="pi pi-check-circle"></i>
+      {{ reporte?.estado === 'firmado' ? 'Firmado' : 'Firmar' }}
+    </button>
+  }
           <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
           <button 
   *ngIf="activeTab !== 'general'" 
