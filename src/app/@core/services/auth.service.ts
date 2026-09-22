@@ -21,9 +21,6 @@ export interface RegisterData {
   lastName: string;
   phone: string;
   sector: string;
-  street: string;
-  houseNumber: string;
-  postalCode: string | number;
   lat?: number;
   lng?: number;
 }
@@ -63,9 +60,6 @@ export class AuthService {
       phone: data.phone,
       address: {
         sector: data.sector,
-        street: data.street,
-        houseNumber: data.houseNumber,
-        postalCode: data.postalCode ? Number(data.postalCode) : 0,
         lat: data.lat ?? null,
         lng: data.lng ?? null,
       },

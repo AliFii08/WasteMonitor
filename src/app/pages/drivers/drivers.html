@@ -78,11 +78,3 @@
     </div>
   </section>
 </div>
-
-<app-create-driver [(visible)]="isCreateModalOpen" (created)="loadDrivers()"></app-create-driver>
-
-<app-update-driver [(visible)]="isUpdateModalOpen" [driverData]="selectedDriverForUpdate"
-  (updated)="loadDrivers()"></app-update-driver>
-
-<app-delete-driver-modal [(visible)]="isDeleteModalOpen" [targetUids]="uidsToDelete" [driverName]="deleteDriverName"
-  (deleted)="onDriversDeleted()"></app-delete-driver-modal>

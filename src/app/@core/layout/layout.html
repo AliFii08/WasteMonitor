@@ -7,10 +7,10 @@
   <div class="icons">
     <p-button pTooltip="Inicio" class="mb-2" icon="pi pi-home" routerLink="/home"></p-button>
     <p-button pTooltip="Horarios" class="mb-2" icon="pi pi-fw pi-calendar" routerLink="/home/schedules"></p-button>
-    
+
     <!-- Se muestra solo si el usuario NO es un rol 'user' estándar -->
     @if (authService.hasRole(['admin', 'supervisor', 'crew', 'conductor'])) {
-      <p-button pTooltip="Dashboard" class="mb-2" icon="pi pi-cog" routerLink="/home/dashboard"></p-button>
+    <p-button pTooltip="Dashboard" class="mb-2" icon="pi pi-cog" routerLink="/home/dashboard"></p-button>
     }
 
     @if (authService.hasRole(['admin', 'supervisor', 'crew', 'conductor'])) {

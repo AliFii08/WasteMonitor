@@ -1,17 +1,18 @@
-.logo img{                //innerWidth: 982px   innerHeight: 730px
+.logo img {
+  //innerWidth: 982px   innerHeight: 730px
   display: flex;
   position: fixed;
   top: -55px;
   left: 0;
   margin-top: 0px;
   margin-left: 0;
-  width: 1500px;
+  width: 1700px;
 }
 
-.container{
+.container {
   font-family: 'Raleway', sans-serif;
   width: 45%;
-  height: 100vh;
+  height: 150vh;
   position: fixed;
   top: 0;
   right: 0;
@@ -21,38 +22,30 @@
   background-color: #06523f;
 }
 
-h2{
+h2 {
   font-family: 'Raleway', sans-serif;
-  font-size: 50px;
+  font-size: 70px;
   font-weight: 400;
   color: #fff;
   margin-top: 110px;
-  margin-bottom: 90px;
+  margin-bottom: 110px;
 }
 
-hr{
-  width: 100px;
-  height: 3px;
-  background-color: #fff;
-  border: none;
-  margin-top: 0px;
-  margin-bottom: 100px;
-}
 
-label{
+label {
   font-family: 'Raleway', sans-serif;
-  font-size: 25px;
+  font-size: 30px;
   font-weight: 500;
   color: #ffffff;
   display: block;
 }
 
-input{
+input {
   font-family: 'Raleway', sans-serif;
-  font-size: 15px;
-  padding: 18px;
-  width: 350px;
-  height: 50px;
+  font-size: 25px;
+  padding: 28px;
+  width: 400px;
+  height: 60px;
   color: #000000;
   background-color: #ffffff;
   outline: none;
@@ -64,14 +57,14 @@ input{
   outline: none;
   background: #fff;
   color: #123f32;
-  font: 500 15px 'Raleway', sans-serif;
+  font: 500 25px 'Raleway', sans-serif;
   transition: border-color .2s ease, box-shadow .2s ease;
 }
 
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
-input:-webkit-autofill:active{
+input:-webkit-autofill:active {
   -webkit-text-fill-color: #000000;
   box-shadow: 0 0 0 1000px #ffffff inset;
   transition: background-color 9999s ease-in-out 0s;
@@ -80,15 +73,15 @@ input:-webkit-autofill:active{
 input::placeholder,
 input::-webkit-input-placeholder,
 input::-moz-placeholder,
-input:-ms-input-placeholder{
+input:-ms-input-placeholder {
   color: #000000;
   opacity: 0.9;
 }
 
-.form-group{
+.form-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 9px;
 }
 
 .form-group.error-slot {
@@ -104,13 +97,17 @@ input:-ms-input-placeholder{
   padding-right: 52px;
 }
 
+i {
+  font-size: 24px;
+}
+
 .password-toggle {
   position: absolute;
   top: 50%;
   right: 12px;
   transform: translateY(-50%);
-  width: 32px;
-  height: 32px;
+  width: 52px;
+  height: 52px;
   margin: 0;
   padding: 0;
   border: 0;
@@ -128,53 +125,54 @@ input:-ms-input-placeholder{
   color: #2f5f24;
 }
 
-#passwordDiv{
+#passwordDiv {
   margin-top: 20px;
 }
 
-button{
+button {
   font-family: 'Raleway', sans-serif;
-  font-size: 20px;
+  font-size: 25px;
   font-weight: 700;
   color: #fff;
   background-color: #68a357;
   border: none;
-  width: 180px;
-  height: 50px;
+  width: 250px;
+  height: 60px;
   border-radius: 10px;
-  margin-top: 35px;
+  margin-top: 55px;
   transition: 0.5s;
 }
 
-button:hover{
+button:hover {
   background-color: #578849;
   transition: 0.5s;
   cursor: pointer;
 }
 
-form > button[type="submit"]{
+form>button[type="submit"] {
   margin-left: auto;
   margin-right: auto;
   display: block;
   cursor: pointer;
 }
 
-.options{
+.options {
   margin-top: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  font-size: 20px;
 }
 
-.options a{
+.options a {
   color: #56bb3a;
   text-decoration: none;
   font-weight: 500;
 }
 
-.options a:hover{
+.options a:hover {
   text-decoration: underline;
   cursor: pointer;
   color: #6be749;
@@ -184,10 +182,10 @@ form > button[type="submit"]{
   color: #fff;
 }
 
-small{
+small {
   font-family: 'Raleway', sans-serif;
   font-weight: 500;
-  font-size: 16px;
+  font-size: 18px;
   color: #ff0000;
   font-style: italic;
   position: absolute;
@@ -199,29 +197,24 @@ small{
   max-width: none;
 }
 
-@media (min-width: 1280px) and (min-height: 800px) {
-  .logo img{
-    display: flex;
-    position: fixed;
+/* En escritorio maximizado el panel debe ocupar solo el viewport visible. */
+@media (min-width: 1000px) {
+  .container {
+    height: 100vh;
+    min-height: 100vh;
+    overflow-y: auto;
+    justify-content: center;
+    align-content: center;
+  }
+
+  .logo img {
+    top: 0;
     left: 0;
-    margin-top: 55px;
-    margin-left: 0;
     width: 100%;
+    height: auto;
   }
 
-  .container{
-    width: 45%;
-  }
-
-  h2{
-    margin-top: 140px;
-  }
-
-  hr{
-    margin-bottom: 110px;
-  }
-
-  input{
-    font-size: 16px;
+  .container h2 {
+    margin-top: 0;
   }
 }
