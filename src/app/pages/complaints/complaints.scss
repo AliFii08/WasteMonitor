@@ -1,13 +1,12 @@
-body {
-  margin-top: 0;
-  padding-top: 0;
+:host {
+  display: block;
+  min-height: 100vh;
   font-family: 'Raleway', sans-serif !important;
 }
 
-.container {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+.quejas-page {
+  margin-top: 0;
+  padding-top: 0;
 }
 
 .title {
@@ -20,6 +19,7 @@ body {
   h1 {
     font-size: 45px;
     margin-bottom: 10px;
+    font-weight: 800;
   }
 
   span {
@@ -28,9 +28,203 @@ body {
   }
 }
 
-.table-card {
+.table-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 0 1rem;
+  margin-left: 20px;
+  margin-right: 20px;
+  margin-bottom: 15px;
+}
+
+.search-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.search-input-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+
+  i {
+    position: absolute;
+    right: 0.75rem;
+    color: #64748b;
+    pointer-events: none;
+  }
+}
+
+.search-input {
+  min-width: 280px;
+  height: 42px;
+  border: 1px solid #c9d9c6;
+  border-radius: 8px;
+  padding: 0 2.3rem 0 0.8rem;
+  color: #123f32;
+  font: 600 14px 'Raleway', sans-serif;
   background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-  padding: 20px;
+  outline: none;
+  transition: border-color 0.2s ease;
+
+  &:focus {
+    border-color: #06523f;
+  }
+}
+
+.create-btn {
+  height: 42px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #fff;
+  background: #68a357;
+  font: 800 13px 'Raleway', sans-serif;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background: #4f8e43;
+  }
+}
+
+/* CARDA CONTENEDORA Y TABLA CLARA */
+.preview-section {
+  margin: 0 20px 2rem;
+  border: 1px solid #d8e4de;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #f8fcfa 0%, #f1f8f4 100%);
+  box-shadow: 0 10px 24px rgba(6, 82, 63, 0.08);
+  overflow: hidden;
+}
+
+.preview-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 680px;
+
+  thead th {
+    background: #e7f3ec;
+    color: #0f4b3a;
+    text-align: left;
+    font-size: 0.83rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    font-weight: 800;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid #d2e3da;
+
+    &.options-header {
+      text-align: center;
+    }
+  }
+
+  tbody td {
+    padding: 0.9rem 1rem;
+    color: #173d32;
+    border-bottom: 1px solid #e5efe9;
+    font-size: 0.9rem;
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  tbody tr:nth-child(even) {
+    background-color: rgba(141, 190, 164, 0.11);
+  }
+
+  tbody tr:hover {
+    background-color: rgba(104, 163, 87, 0.16);
+  }
+}
+
+.option-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #123f32;
+  font-size: 1rem;
+  padding: 6px;
+  border-radius: 6px;
+  transition: color 0.2s ease, background-color 0.2s ease;
+
+  &:hover {
+    color: #06523f;
+    background-color: rgba(6, 82, 63, 0.12);
+  }
+}
+
+/* CHIPS DE ESTADO EN PASTEL */
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: capitalize;
+
+  &.pendiente {
+    background: #ffe8bf;
+    color: #8a5b00;
+  }
+
+  &.en_proceso {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  &.resuelto,
+  &.atendida {
+    background: #d5f0df;
+    color: #1b7a45;
+  }
+}
+
+.empty-row {
+  text-align: center;
+  padding: 1.5rem !important;
+  color: #5d7568;
+  font-weight: 600;
+  font-style: italic;
+}
+
+@media (max-width: 720px) {
+  .title h1 {
+    font-size: 34px;
+    text-align: center;
+  }
+
+  .search-input {
+    width: 100%;
+  }
+
+  .table-toolbar,
+  .preview-section {
+    margin-left: 10px;
+    margin-right: 10px;
+  }
 }

@@ -1,6 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
 import { QuejasService } from '../../@core/services/quejas.service';
@@ -9,19 +8,20 @@ import { Quejas } from '../../@core/interfaces/quejas.model';
 import { CreateComplaints } from './components/create-complaints/create-complaints';
 import { ViewComplaints } from './components/view-complaints/view-complaints';
 import { UpdateComplaints } from './components/update-complaints/update-complaints';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-complaints',
   standalone: true,
   imports: [
     CommonModule,
-    TableModule,
+    FormsModule,
     TagModule,
     ButtonModule,
     DatePipe,
     CreateComplaints,
     ViewComplaints,
-    UpdateComplaints
+    UpdateComplaints,
   ],
   templateUrl: './complaints.html',
   styleUrl: './complaints.scss',
@@ -32,6 +32,23 @@ export class Complaints implements OnInit {
 
   quejas = signal<Quejas[]>([]);
   loading = signal<boolean>(true);
+  
+  // 🔹 Propiedad para el filtro del input de búsqueda
+  filtroTexto = signal<string>('');
+
+  // 🔹 Lista filtrada automáticamente en tiempo real
+  quejasFiltradas = computed(() => {
+    const texto = this.filtroTexto().toLowerCase().trim();
+    const lista = this.quejas();
+
+    if (!texto) return lista;
+
+    return lista.filter(
+      (q) =>
+        (q.asunto && q.asunto.toLowerCase().includes(texto)) ||
+        (q.descripcion && q.descripcion.toLowerCase().includes(texto))
+    );
+  });
 
   esAdmin = computed(() => {
     const user = this.userService.currentUserSignal();
@@ -54,8 +71,8 @@ export class Complaints implements OnInit {
       const currentUser = this.userService.currentUserSignal();
 
       // Si es admin, no enviamos ID para traer todas; si no, pasamos su uid/id
-      const userIdFiltro = this.esAdmin() ? undefined : (currentUser?.uid);
-      
+      const userIdFiltro = this.esAdmin() ? undefined : currentUser?.uid;
+
       const data = await this.quejasService.obtenerQuejas(userIdFiltro);
       this.quejas.set(data);
     } catch (error) {
@@ -77,10 +94,14 @@ export class Complaints implements OnInit {
 
   getSeverity(estado: string): 'warn' | 'info' | 'success' | 'secondary' {
     switch (estado) {
-      case 'pendiente': return 'warn';
-      case 'en_revision': return 'info';
-      case 'resuelto': return 'success';
-      default: return 'secondary';
+      case 'pendiente':
+        return 'warn';
+      case 'en_revision':
+        return 'info';
+      case 'resuelto':
+        return 'success';
+      default:
+        return 'secondary';
     }
   }
 }

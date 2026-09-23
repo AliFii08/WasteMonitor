@@ -9,18 +9,14 @@
       <span class="search-input-wrap">
         <input
           type="text"
-          placeholder="Buscar"
+          placeholder="Buscar vehículo, placa o ruta..."
           class="search-input"
-          (input)="dt1.filterGlobal($any($event.target).value, 'contains')"
+          [(ngModel)]="searchTerm"
         />
         <i class="pi pi-search"></i>
       </span>
 
-      <select
-        [(ngModel)]="selectedVehicleType"
-        (change)="dt1.filter(selectedVehicleType, 'type', 'equals')"
-        class="filter-select"
-      >
+      <select [(ngModel)]="selectedVehicleType" class="filter-select">
         <option value="">Filtrar por tipo</option>
         @for (vehicleType of vehicleTypes; track vehicleType) {
           <option [value]="vehicleType">{{ vehicleType | titlecase }}</option>
@@ -32,7 +28,7 @@
           id="selectAllVehicles"
           type="checkbox"
           [checked]="allVehiclesSelected"
-          (change)="toggleSelectAllVehicles(dt1, $any($event.target).checked)"
+          (change)="toggleSelectAllVehicles($any($event.target).checked)"
         />
         Seleccionar todos
       </label>
@@ -40,7 +36,7 @@
       @if (selectedVehicles.length) {
         <button type="button" class="bulk-delete-btn" (click)="onDeleteSelectedVehicles()">
           <i class="pi pi-trash"></i>
-          Desactivar seleccionados
+          Desactivar seleccionados ({{ selectedVehicles.length }})
         </button>
       }
     </div>
@@ -51,110 +47,115 @@
     </button>
   </div>
 
-  <p-table
-    #dt1
-    [value]="vehicles"
-    [loading]="loading"
-    [(selection)]="selectedVehicles"
-    (selectionChange)="onVehiclesSelectionChange(dt1)"
-    dataKey="id"
-    [rows]="8"
-    [paginator]="true"
-    [showCurrentPageReport]="true"
-    [rowsPerPageOptions]="[8, 15, 30]"
-    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} vehículos"
-    [globalFilterFields]="['id', 'type', 'weight', 'plate', 'route']"
-    styleClass="vehicles-table"
-  >
-    <ng-template pTemplate="header">
-      <tr>
-        <th>ID</th>
-        <th>Tipo</th>
-        <th>Capacidad (toneladas)</th>
-        <th>Placa</th>
-        <th>Ruta</th>
-        <th>Estado</th>
-        <th class="options-header">Opciones</th>
-      </tr>
-    </ng-template>
+  <!-- TABLA CON ESTÉCICA CLARA Y VERDE -->
+  <section class="preview-section" aria-label="Tabla de vehículos">
+    <div class="preview-table-wrap">
+      <table class="preview-table">
+        <thead>
+          <tr>
+            <th class="select-col">
+              <i class="pi pi-check-square"></i>
+            </th>
+            <th>ID</th>
+            <th>Tipo</th>
+            <th>Capacidad</th>
+            <th>Placa</th>
+            <th>Ruta</th>
+            <th>Estado</th>
+            <th class="options-header">Opciones</th>
+          </tr>
+        </thead>
 
-    <ng-template pTemplate="body" let-vehicle>
-      <tr>
-        <td>{{ vehicle.id }}</td>
-        <td>{{ vehicle.type | titlecase }}</td>
-        <td>{{ vehicle.weight | number: '1.0-0' }} t</td>
-        <td>{{ vehicle.plate }}</td>
-        <td>{{ vehicle.route }}</td>
-        <td>
-          <span
-  class="status-chip"
-  [ngClass]="{
-    'disponible': vehicle.status === 'disponible',
-    'en_taller': vehicle.status === 'en_taller',
-    'en-ruta': vehicle.status === 'en ruta',
-    'no-disponible': vehicle.status === 'no disponible'
-  }"
->
-  {{ vehicle.status === 'en_taller' ? 'En Taller' : (vehicle.status | titlecase) }}
-</span>
-        </td>
-        <td>
-          <div class="option-actions">
-            <p-tableCheckbox [value]="vehicle"></p-tableCheckbox>
-            <button
-              pButton
-              type="button"
-              icon="pi pi-pencil"
-              class="p-button-rounded p-button-text"
-              title="Editar"
-              (click)="openEditModal(vehicle)"
-            ></button>
-            <button
-              pButton
-              type="button"
-              icon="pi pi-trash"
-              class="p-button-rounded p-button-text p-button-danger"
-              title="Desactivar"
-              (click)="openDeleteModalForSingle(vehicle)"
-            ></button>
-          </div>
-        </td>
-      </tr>
-    </ng-template>
-
-    <ng-template pTemplate="emptymessage">
-      <tr>
-        <td colspan="7">No hay vehículos registrados o activos.</td>
-      </tr>
-    </ng-template>
-  </p-table>
+        <tbody>
+          @for (vehicle of filteredVehicles; track vehicle.id || $index) {
+            <tr>
+              <td class="select-col">
+                <input
+                  type="checkbox"
+                  [checked]="isVehicleSelected(vehicle)"
+                  (change)="toggleVehicleSelection(vehicle, $any($event.target).checked)"
+                />
+              </td>
+              <td><strong>{{ vehicle.id }}</strong></td>
+              <td>{{ vehicle.type | titlecase }}</td>
+              <td>{{ vehicle.weight | number: '1.0-0' }} t</td>
+              <td>{{ vehicle.plate }}</td>
+              <td>{{ vehicle.route || 'Sin asignar' }}</td>
+              <td>
+                <span
+                  class="status-chip"
+                  [ngClass]="{
+                    'disponible': vehicle.status === 'disponible',
+                    'en_taller': vehicle.status === 'en_taller',
+                    'en-ruta': vehicle.status === 'en ruta',
+                    'no-disponible': vehicle.status === 'no disponible'
+                  }"
+                >
+                  {{ vehicle.status === 'en_taller' ? 'En Taller' : (vehicle.status | titlecase) }}
+                </span>
+              </td>
+              <td class="options-header">
+                <div class="option-actions">
+                  <button
+                    type="button"
+                    class="icon-btn"
+                    title="Editar"
+                    (click)="openEditModal(vehicle)"
+                  >
+                    <i class="pi pi-pencil"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="icon-btn danger"
+                    title="Desactivar"
+                    (click)="openDeleteModalForSingle(vehicle)"
+                  >
+                    <i class="pi pi-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="8" class="empty-row">No hay vehículos registrados o activos.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
 </div>
 
-<!-- Modal de Confirmación de Desactivación (Borrado Lógico) -->
-<div class="modal-backdrop" *ngIf="isDeleteModalOpen">
-  <div class="modal-content">
-    <h2>Confirmar desactivación</h2>
+<!-- Modal de Confirmación de Desactivación -->
+@if (isDeleteModalOpen) {
+  <div class="modal-backdrop" (click)="closeDeleteModal()">
+    <div class="confirm-modal" (click)="$event.stopPropagation()">
+      <div class="confirm-icon danger">
+        <i class="pi pi-exclamation-triangle"></i>
+      </div>
+      <h2>Confirmar desactivación</h2>
 
-    <p *ngIf="vehiclesToDelete.length === 1">
-      ¿Estás seguro de que deseas desactivar el vehículo con placa
-      <strong>{{ vehiclesToDelete[0].plate }}</strong>?
-    </p>
+      <p *ngIf="vehiclesToDelete.length === 1">
+        ¿Estás seguro de que deseas desactivar el vehículo con placa
+        <strong>{{ vehiclesToDelete[0].plate }}</strong>?
+      </p>
 
-    <p *ngIf="vehiclesToDelete.length > 1">
-      ¿Estás seguro de que deseas desactivar los
-      <strong>{{ vehiclesToDelete.length }}</strong> vehículos seleccionados?
-    </p>
+      <p *ngIf="vehiclesToDelete.length > 1">
+        ¿Estás seguro de que deseas desactivar los
+        <strong>{{ vehiclesToDelete.length }}</strong> vehículos seleccionados?
+      </p>
 
-    <div class="modal-actions">
-      <button type="button" class="btn-cancel" (click)="closeDeleteModal()">
-        Cancelar
-      </button>
-      <button type="button" class="btn-danger" (click)="confirmDelete()">
-        Desactivar
-      </button>
+      <div class="confirm-actions">
+        <button type="button" class="btn-cancel" (click)="closeDeleteModal()">
+          Cancelar
+        </button>
+        <button type="button" class="btn-confirm-danger" (click)="confirmDelete()">
+          Desactivar
+        </button>
+      </div>
     </div>
   </div>
-</div>
+}
 
 <app-create-vehicle
   [(visible)]="isCreateModalOpen"

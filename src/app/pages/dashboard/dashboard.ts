@@ -1,5 +1,7 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { DashboardService } from '../../@core/services/dashboard.service';
+import { NotificationService } from '../../@core/services/notification.service';
 import { HistorialOperaciones } from './components/historial-operaciones/historial-operaciones';
 import { Employees } from "./components/employees/employees";
 import { Vehicles } from './components/vehicles/vehicles';
@@ -7,7 +9,7 @@ import { Vehicles } from './components/vehicles/vehicles';
 type DashboardTab = 'vehicles' | 'employees' | 'operations';
 
 interface DashboardNotification {
-  id: number;
+  id: string;
   title: string;
   message: string;
   time: string;
@@ -20,33 +22,31 @@ interface DashboardNotification {
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
-export class Dashboard implements OnInit {
+export class Dashboard implements OnInit, OnDestroy {
   private dashboardService = inject(DashboardService);
+  private notificationService = inject(NotificationService);
 
   activeTab: DashboardTab = 'vehicles';
-
-  notifications: DashboardNotification[] = [
-    {
-      id: 1,
-      title: 'Ruta Norte',
-      message: 'Una unidad reportó retraso por tráfico en la recolección matutina.',
-      time: '08:40',
-    },
-    {
-      id: 2,
-      title: 'Mantenimiento',
-      message: 'El vehículo VEH-014 tiene revisión preventiva programada hoy.',
-      time: '09:10',
-    },
-    {
-      id: 3,
-      title: 'Operaciones',
-      message: 'Se completó el cierre de jornada del turno nocturno.',
-      time: '09:35',
-    },
-  ];
+  notifications: DashboardNotification[] = [];
+  private notifSub?: Subscription;
 
   async ngOnInit(): Promise<void> {
+    // 1. Escuchar las notificaciones en tiempo real desde el servicio
+    this.notifSub = this.notificationService.notifications$.subscribe((items) => {
+      this.notifications = items.map((item) => ({
+        id: item.id,
+        title: item.titulo,
+        message: item.mensaje,
+        time: item.timestamp
+          ? new Date(item.timestamp).toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+            })
+          : '',
+      }));
+    });
+
+    // 2. Obtener estadísticas del Dashboard
     const stats = await this.dashboardService.obtenerEstadisticas();
 
     if (stats) {
@@ -63,5 +63,11 @@ export class Dashboard implements OnInit {
 
   selectTab(tab: DashboardTab): void {
     this.activeTab = tab;
+  }
+
+  ngOnDestroy(): void {
+    if (this.notifSub) {
+      this.notifSub.unsubscribe();
+    }
   }
 }

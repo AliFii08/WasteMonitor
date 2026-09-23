@@ -74,6 +74,9 @@ export class TallerService {
       creadoEl: registro.creadoEl ?? ahora,
       modificadoEl: ahora,
     });
+
+    
+    
     return nuevoRef.key as string;
   }
 

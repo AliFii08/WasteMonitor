@@ -1,8 +1,6 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Table, TableModule } from 'primeng/table';
-import { ButtonModule } from 'primeng/button';
 import { Vehicle, VEHICLE_TYPES, VehicleType } from '../../@core/interfaces/vehicle.model';
 import { CreateVehicleComponent, RouteOption } from './components/create-vehicle/create-vehicle';
 import { UpdateVehicleComponent } from './components/update-vehicle/update-vehicle';
@@ -15,8 +13,6 @@ import { VehiculoService } from '../../@core/services/vehiculos.service';
   imports: [
     CommonModule,
     FormsModule,
-    TableModule,
-    ButtonModule,
     CreateVehicleComponent,
     UpdateVehicleComponent,
   ],
@@ -26,7 +22,7 @@ import { VehiculoService } from '../../@core/services/vehiculos.service';
 export class Vehicles implements OnInit {
   private vehiculoService = inject(VehiculoService);
   private routesService = inject(RoutesService);
-  private cdr = inject(ChangeDetectorRef); // Inyección del ChangeDetectorRef
+  private cdr = inject(ChangeDetectorRef);
 
   vehicles: Vehicle[] = [];
   selectedVehicles: Vehicle[] = [];
@@ -37,6 +33,7 @@ export class Vehicles implements OnInit {
 
   vehicleTypes = [...VEHICLE_TYPES];
   selectedVehicleType: VehicleType | '' = '';
+  searchTerm: string = '';
   allVehiclesSelected = false;
 
   availableRoutes: RouteOption[] = [];
@@ -46,6 +43,21 @@ export class Vehicles implements OnInit {
 
   get existingPlates(): string[] {
     return this.vehicles.map((v) => v.plate);
+  }
+
+  // Filtrado dinámico en tiempo real
+  get filteredVehicles(): Vehicle[] {
+    return this.vehicles.filter((v) => {
+      const matchType = !this.selectedVehicleType || v.type === this.selectedVehicleType;
+      const term = this.searchTerm.toLowerCase().trim();
+      const matchSearch =
+        !term ||
+        (v.id && v.id.toLowerCase().includes(term)) ||
+        (v.plate && v.plate.toLowerCase().includes(term)) ||
+        (v.route && v.route.toLowerCase().includes(term));
+
+      return matchType && matchSearch;
+    });
   }
 
   async ngOnInit(): Promise<void> {
@@ -60,7 +72,7 @@ export class Vehicles implements OnInit {
         id: r.id,
         nombreRuta: r.nombreRuta || r.id,
       }));
-      this.cdr.detectChanges(); // Notifica cambios
+      this.cdr.detectChanges();
     } catch (error) {
       console.error('Error al obtener rutas:', error);
     }
@@ -68,7 +80,7 @@ export class Vehicles implements OnInit {
 
   async loadVehicles(): Promise<void> {
     this.loading = true;
-    this.cdr.detectChanges(); // Fuerza el loader visual inmediatamente
+    this.cdr.detectChanges();
     try {
       const allVehicles = await this.vehiculoService.getVehicles();
       this.vehicles = allVehicles.filter((v) => v.activo !== false);
@@ -76,7 +88,7 @@ export class Vehicles implements OnInit {
       console.error('Error al cargar vehículos desde Firebase:', error);
     } finally {
       this.loading = false;
-      this.cdr.detectChanges(); // Fuerza a Angular a pintar la tabla cuando se quita el spinner
+      this.cdr.detectChanges();
     }
   }
 
@@ -89,22 +101,29 @@ export class Vehicles implements OnInit {
     this.isUpdateModalOpen = true;
   }
 
-  // --- MÉTODOS DE LA TABLA Y SELECCIÓN ---
+  // --- SELECCIÓN MANUAL DE FILAS ---
 
-  onVehiclesSelectionChange(table: Table): void {
-    const currentList = table.filteredValue || this.vehicles;
-    const totalRecords = currentList.length;
-
-    this.allVehiclesSelected = totalRecords > 0 && this.selectedVehicles.length === totalRecords;
+  isVehicleSelected(vehicle: Vehicle): boolean {
+    return this.selectedVehicles.some((v) => v.id === vehicle.id);
   }
 
-  toggleSelectAllVehicles(table: Table, checked: boolean): void {
-    const currentList = table.filteredValue || this.vehicles;
-    this.selectedVehicles = checked ? [...currentList] : [];
+  toggleVehicleSelection(vehicle: Vehicle, checked: boolean): void {
+    if (checked) {
+      this.selectedVehicles.push(vehicle);
+    } else {
+      this.selectedVehicles = this.selectedVehicles.filter((v) => v.id !== vehicle.id);
+    }
+    this.allVehiclesSelected =
+      this.filteredVehicles.length > 0 &&
+      this.selectedVehicles.length === this.filteredVehicles.length;
+  }
+
+  toggleSelectAllVehicles(checked: boolean): void {
     this.allVehiclesSelected = checked;
+    this.selectedVehicles = checked ? [...this.filteredVehicles] : [];
   }
 
-  // --- MODAL DE BORRADO LÓGICO ---
+  // --- MODAL DE BORRADO ---
 
   openDeleteModalForSingle(vehicle: Vehicle): void {
     this.vehiclesToDelete = [vehicle];
@@ -136,7 +155,7 @@ export class Vehicles implements OnInit {
     }
   }
 
-  // --- MÉTODOS DE CREACIÓN Y EDICIÓN ---
+  // --- CREACIÓN Y EDICIÓN ---
 
   async handleSaveVehicle(newVehicleData: Omit<Vehicle, 'id'>): Promise<void> {
     try {
@@ -149,13 +168,6 @@ export class Vehicles implements OnInit {
       this.cdr.detectChanges();
     } catch (error) {
       console.error('Error al guardar vehículo:', error);
-    }
-  }
-
-  onUpdateModalVisibleChange(visible: boolean): void {
-    this.isUpdateModalOpen = visible;
-    if (!visible) {
-      this.editingVehicle = null;
     }
   }
 

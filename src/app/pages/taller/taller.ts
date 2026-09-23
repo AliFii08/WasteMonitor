@@ -6,6 +6,8 @@ import { CreateVehicleTaller } from './components/create-vehicle-taller/create-v
 import { UpdateVehicleTaller } from './components/update-vehicle-taller/update-vehicle-taller';
 import { DashboardService } from '../../@core/services/dashboard.service';
 import { UserService } from '../../@core/services/user.service';
+import { NotificationService } from '../../@core/services/notification.service';
+
 
 @Component({
   selector: 'app-taller',
@@ -18,6 +20,7 @@ export class Taller implements OnInit {
   private tallerService = inject(TallerService);
   private cdr = inject(ChangeDetectorRef);
   private dashboardService = inject(DashboardService);
+  private notificationService = inject(NotificationService);
   private userService = inject(UserService);
 
   @ViewChild(CreateVehicleTaller) createModal!: CreateVehicleTaller;

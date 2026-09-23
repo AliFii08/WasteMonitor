@@ -1,8 +1,8 @@
 import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { Database, ref, push, set, onValue, get } from '@angular/fire/database';
+import { Database, ref, onValue, get } from '@angular/fire/database';
 import { BehaviorSubject, Observable } from 'rxjs';
-
+import { environment } from '../../../environments/environment';
 
 export interface OperacionHistorial {
   id: string;
@@ -44,36 +44,62 @@ export class DashboardService {
   private database = inject(Database);
   private platformId = inject(PLATFORM_ID);
 
+  private readonly API_OPERACIONES = `${environment.firebaseConfig.databaseURL}/operaciones.json`;
+
   private operacionesSubject = new BehaviorSubject<OperacionHistorial[]>([]);
   public operaciones$: Observable<OperacionHistorial[]> = this.operacionesSubject.asObservable();
 
   /**
-   * Registra una acción ejecutada por un usuario en el nodo 'operaciones'
+   * Registra una acción ejecutada por un usuario en el nodo 'operaciones' vía REST (Fetch)
    */
   async registrarOperacion(operacion: Omit<OperacionHistorial, 'id'>): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
 
     try {
-      const opsRef = ref(this.database, 'operaciones');
-      const newOpRef = push(opsRef);
+      const timestamp = operacion.timestamp || Date.now();
 
-      await set(newOpRef, {
-        id: newOpRef.key,
+      const payload = {
         usuarioNombre: operacion.usuario,
         usuarioRol: operacion.rol,
         accion: operacion.accion,
         modulo: operacion.modulo,
         detalle: operacion.detalle,
         fechaFormateada: operacion.fechaHora,
-        timestamp: operacion.timestamp || Date.now(),
+        timestamp: timestamp,
+      };
+
+      // 1. Guardar mediante POST para que Firebase autogenere la clave
+      const response = await fetch(this.API_OPERACIONES, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP Error: ${response.status}`);
+      }
+
+      const resData = await response.json();
+      const generatedId = resData.name; // Firebase devuelve { "name": "-P2E..." }
+
+      // 2. Asignar el id recién creado en el nodo para mantener consistencia
+      if (generatedId) {
+        const updateUrl = `${environment.firebaseConfig.databaseURL}/operaciones/${generatedId}.json`;
+        await fetch(updateUrl, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: generatedId }),
+        });
+      }
+
+      console.log('✅ Operación registrada en historial exitosamente con ID:', generatedId);
     } catch (error) {
-      console.error('Error al registrar la operación:', error);
+      console.error('❌ Error al registrar la operación:', error);
     }
   }
 
   /**
-   * Escucha el nodo 'operaciones' en tiempo real
+   * Escucha el nodo 'operaciones' en tiempo real (las lecturas no generan problemas de stack size)
    */
   obtenerOperacionesEnTiempoReal(): Observable<OperacionHistorial[]> {
     if (isPlatformBrowser(this.platformId)) {

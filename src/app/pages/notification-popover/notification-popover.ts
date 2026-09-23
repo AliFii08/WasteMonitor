@@ -23,6 +23,8 @@ export class NotificationPopover implements OnInit, OnDestroy {
   private subNotif: Subscription | null = null;
   private subCount: Subscription | null = null;
 
+  
+
   ngOnInit(): void {
     this.subNotif = this.notificationService.notifications$.subscribe((data) => {
       this.notificaciones = data;

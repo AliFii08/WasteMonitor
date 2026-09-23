@@ -225,6 +225,35 @@
   }
 }
 
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #123f32;
+  font-size: 1rem;
+  padding: 6px;
+  border-radius: 6px;
+  transition: color 0.2s ease, background-color 0.2s ease;
+
+  &:hover {
+    color: #06523f;
+    background-color: rgba(6, 82, 63, 0.12);
+  }
+
+  &.danger:hover {
+    color: #d62828;
+    background-color: rgba(214, 40, 40, 0.12);
+  }
+}
+
+.empty-row {
+  text-align: center;
+  padding: 1.5rem !important;
+  color: #5d7568;
+  font-weight: 600;
+  font-style: italic;
+}
+
 // ESTILO DE LAS TABLAS AQUI, USAR PARA TODAS
 
 @media (max-width: 720px) {
