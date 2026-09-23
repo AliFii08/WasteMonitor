@@ -1,0 +1,216 @@
+.notification-wrapper {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .icon-bell-btn {
+    position: relative;
+    background: transparent;
+    border: none;
+    color: #0f4b3a;
+    font-size: 1.25rem;
+    padding: 0.5rem;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+  
+    &:hover {
+      background-color: rgba(15, 75, 58, 0.08);
+    }
+  
+    .badge-count {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      background-color: #dc2626;
+      color: #ffffff;
+      font-size: 0.7rem;
+      font-weight: 800;
+      border-radius: 999px;
+      padding: 0.15rem 0.4rem;
+      min-width: 18px;
+      text-align: center;
+      line-height: 1;
+      border: 2px solid #ffffff;
+    }
+  }
+  
+  .popover-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 990;
+  }
+  
+  .popover-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 360px;
+    max-height: 480px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 54, 40, 0.18);
+    border: 1px solid #e2ece7;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: 'Raleway', sans-serif;
+    animation: slideDown 0.18s ease-out;
+  }
+  
+  .popover-header {
+    padding: 0.9rem 1.1rem;
+    background: #f4f8f5;
+    border-bottom: 1px solid #e0eae4;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  
+    .title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+  
+      h3 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 800;
+        color: #0f4b3a;
+      }
+  
+      .count-pill {
+        background-color: #e2f0e8;
+        color: #1b7a45;
+        font-size: 0.72rem;
+        font-weight: 800;
+        padding: 0.15rem 0.5rem;
+        border-radius: 999px;
+      }
+    }
+  
+    .btn-read-all {
+      background: none;
+      border: none;
+      color: #68a357;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+  
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+  
+  .popover-body {
+    overflow-y: auto;
+    max-height: 400px;
+  }
+  
+  .empty-notif {
+    padding: 2.5rem 1rem;
+    text-align: center;
+    color: #888;
+  
+    i {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+  
+    p {
+      margin: 0;
+      font-size: 0.88rem;
+    }
+  }
+  
+  .notif-list {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .notif-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid #f0f4f2;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+    position: relative;
+  
+    &:hover {
+      background-color: #f8faf9;
+    }
+  
+    &.unread {
+      background-color: #f0f7f3;
+    }
+  
+    .notif-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+  
+      &.alerta {
+        background-color: #fee2e2;
+        color: #dc2626;
+      }
+  
+      &.info {
+        background-color: #e0f2fe;
+        color: #0284c7;
+      }
+    }
+  
+    .notif-content {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+  
+      .notif-title {
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: #0f4b3a;
+      }
+  
+      .notif-msg {
+        margin: 0;
+        font-size: 0.8rem;
+        color: #4b5563;
+        line-height: 1.35;
+      }
+  
+      .notif-time {
+        font-size: 0.7rem;
+        color: #9ca3af;
+        margin-top: 0.2rem;
+      }
+    }
+  
+    .unread-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #16a34a;
+      border-radius: 50%;
+      position: absolute;
+      right: 12px;
+      top: 14px;
+    }
+  }
+  
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }

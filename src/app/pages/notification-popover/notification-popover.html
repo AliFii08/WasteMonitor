@@ -1,0 +1,64 @@
+<div class="notification-wrapper">
+    <!-- Botón Campana con Insignia de No Leídas -->
+    <button type="button" class="icon-bell-btn" (click)="togglePopover()">
+      <i class="pi pi-bell"></i>
+      @if (unreadCount > 0) {
+        <span class="badge-count">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+      }
+    </button>
+  
+    <!-- Panel Desplegable de Notificaciones -->
+    @if (isOpen) {
+      <div class="popover-backdrop" (click)="togglePopover()"></div>
+      
+      <div class="popover-panel">
+        <header class="popover-header">
+          <div class="title-wrap">
+            <h3>Notificaciones</h3>
+            <span class="count-pill">{{ unreadCount }} nuevas</span>
+          </div>
+          @if (unreadCount > 0) {
+            <button type="button" class="btn-read-all" (click)="marcarTodas()">
+              Marcar leídas
+            </button>
+          }
+        </header>
+  
+        <div class="popover-body">
+          @if (notificaciones.length === 0) {
+            <div class="empty-notif">
+              <i class="pi pi-inbox"></i>
+              <p>No tienes notificaciones registradas.</p>
+            </div>
+          } @else {
+            <div class="notif-list">
+              @for (item of notificaciones; track item.id) {
+                <div 
+                  class="notif-item" 
+                  [class.unread]="!item.leida" 
+                  (click)="marcarLeida(item)">
+                  
+                  <div class="notif-icon" [ngClass]="item.tipo">
+                    <i [class]="item.tipo === 'alerta' ? 'pi pi-exclamation-triangle' : 'pi pi-info-circle'"></i>
+                  </div>
+  
+                  <div class="notif-content">
+                    <span class="notif-title">{{ item.titulo }}</span>
+                    <p class="notif-msg">{{ item.mensaje }}</p>
+  
+                    <span class="notif-time">
+                      {{ item.timestamp | date:'dd/MM/yyyy, hh:mm a' }}
+                    </span>
+                  </div>
+  
+                  @if (!item.leida) {
+                    <span class="unread-dot"></span>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
