@@ -36,6 +36,10 @@ export class JourneyReport implements OnInit, OnDestroy {
   allReportsSelected: boolean = false;
   hasSelectedReport: boolean = false;
 
+
+selectedReportsList: any[] = [];
+
+
   // Modales
   isCreateModalOpen: boolean = false;
   isViewModalOpen: boolean = false;
@@ -140,17 +144,30 @@ export class JourneyReport implements OnInit, OnDestroy {
     this.isUpdateModalOpen = true;
   }
 
-  openSingleDeleteModal(reporte: any): void {
-    if (!this.isAdmin) {
-      alert('No tienes permisos de administrador para eliminar informes.');
-      return;
-    }
-    this.selectedReport = reporte;
+  // Al presionar el botón de la barra superior para eliminar seleccionados:
+  deleteSelectedReport(): void {
+    // Extrae los reportes cuya casilla esté en true
+    this.selectedReportsList = this.reportes.filter((item, index) => {
+      return Boolean(this.selectedReportRows[index]) || Boolean(item.selected);
+    });
+  
+    console.log('📋 Reportes filtrados para eliminar:', this.selectedReportsList);
+  
+    this.selectedReport = null; // Limpiar selección individual
     this.isDeleteModalOpen = true;
   }
-
-  deleteSelectedReport(): void {
-    // Lógica para eliminar seleccionados
+  
+  openSingleDeleteModal(reporte: any): void {
+    this.selectedReport = reporte;
+    this.selectedReportsList = []; // Limpiar selección múltiple
+    this.isDeleteModalOpen = true;
+  }
+  
+  onReportesEliminados(): void {
+    this.selectedReportRows = [];
+    this.allReportsSelected = false;
+    this.selectedReportsList = [];
+    this.selectedReport = null;
   }
 
   ngOnDestroy(): void {
