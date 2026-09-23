@@ -111,6 +111,32 @@ button {
   margin-left: 68px !important;
 }
 
+.notification-btn-wrapper {
+  position: relative;
+  display: inline-block;
+
+  .bell-icon-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .badge-dot {
+      position: absolute;
+      top: -6px;
+      right: -8px;
+      background-color: #dc2626;
+      color: #ffffff;
+      font-size: 0.65rem;
+      font-weight: 800;
+      border-radius: 999px;
+      padding: 2px 5px;
+      line-height: 1;
+      border: 2px solid #ffffff;
+    }
+  }
+}
+
 
 @media (min-width: 1280px) and (min-height: 800px) {
 

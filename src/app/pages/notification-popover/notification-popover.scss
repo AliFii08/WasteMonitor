@@ -42,21 +42,33 @@
   }
   
   .popover-panel {
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
+    position: fixed;
+    /* Se alinea justo al lado de la barra lateral izquierda */
+    left: 90px; 
+    bottom: 20px;
     width: 360px;
     max-height: 480px;
     background: #ffffff;
     border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 54, 40, 0.18);
+    box-shadow: 0 10px 30px rgba(0, 54, 40, 0.25);
     border: 1px solid #e2ece7;
-    z-index: 1000;
+    z-index: 9999;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     font-family: 'Raleway', sans-serif;
-    animation: slideDown 0.18s ease-out;
+    animation: slideRight 0.18s ease-out;
+  }
+  
+  @keyframes slideRight {
+    from {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
   
   .popover-header {

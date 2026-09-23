@@ -1,9 +1,8 @@
-import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
-import { Subscription } from 'rxjs';
-import { NotificacionItem } from '../../@core/interfaces/notification.model';
 import { NotificationService } from '../../@core/services/notification.service';
+import { NotificacionItem } from '../../@core/interfaces/notification.model';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-notification-popover',
@@ -15,7 +14,9 @@ import { NotificationService } from '../../@core/services/notification.service';
 export class NotificationPopover implements OnInit, OnDestroy {
   private notificationService = inject(NotificationService);
 
-  isOpen: boolean = false;
+  @Input() visible: boolean = false;
+  @Output() visibleChange = new EventEmitter<boolean>();
+
   notificaciones: NotificacionItem[] = [];
   unreadCount: number = 0;
 
@@ -32,8 +33,9 @@ export class NotificationPopover implements OnInit, OnDestroy {
     });
   }
 
-  togglePopover(): void {
-    this.isOpen = !this.isOpen;
+  closePopover(): void {
+    this.visible = false;
+    this.visibleChange.emit(false);
   }
 
   async marcarLeida(notif: NotificacionItem): Promise<void> {

@@ -34,7 +34,30 @@
   </div>
 
   <div class="profile">
-    <p-button pTooltip="Notificaciones" class="mb-2" icon="pi pi-bell"></p-button>
+    <div class="notification-btn-wrapper">
+      <p-button 
+        pTooltip="Notificaciones" 
+        class="mb-2" 
+        (click)="toggleNotifications()">
+        <ng-template pTemplate="icon">
+          <div class="bell-icon-container">
+            <i class="pi pi-bell"></i>
+            @if ((notificationService.unreadCount$ | async); as unread) {
+              @if (unread > 0) {
+                <span class="badge-dot">{{ unread > 99 ? '99+' : unread }}</span>
+              }
+            }
+          </div>
+        </ng-template>
+      </p-button>
+  
+      <!-- Solo desplegable del panel, sin botones internos adicionales -->
+      <app-notification-popover 
+        [visible]="showNotificationsPopover"
+        (visibleChange)="showNotificationsPopover = $event">
+      </app-notification-popover>
+    </div>
+  
     <p-button pTooltip="Perfil" class="mb-2" icon="pi pi-user" routerLink="/home/profile"></p-button>
     <p-button pTooltip="Cerrar Sesión" class="mb-2" icon="pi pi-sign-out" (click)="logout()"></p-button>
   </div>
