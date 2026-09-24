@@ -2,6 +2,7 @@ import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Database, ref, get, set, remove, push } from '@angular/fire/database';
 import { Vehicle } from '../interfaces/vehicle.model';
+import { NotificationService } from './notification.service'; // 👈 1. Importar NotificationService
 
 @Injectable({
   providedIn: 'root',
@@ -9,6 +10,7 @@ import { Vehicle } from '../interfaces/vehicle.model';
 export class VehiculoService {
   private database = inject(Database);
   private platformId = inject(PLATFORM_ID);
+  private notificationService = inject(NotificationService); // 👈 2. Inyectar NotificationService
 
   // --- OBTENER TODOS LOS VEHÍCULOS ---
   async getVehicles(): Promise<Vehicle[]> {
@@ -92,10 +94,13 @@ export class VehiculoService {
     return customId;
   }
 
-  // --- ACTUALIZAR VEHÍCULO ---
+  // --- ACTUALIZAR VEHÍCULO CON NOTIFICACIÓN A USUARIOS ---
   async updateVehicle(vehicle: Vehicle): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
 
+    const newStatus = (vehicle.status || 'disponible').trim().toLowerCase();
+
+    // 1. Guardar la actualización en Firebase
     const vehicleRef = ref(this.database, `camiones/${vehicle.id}`);
     await set(vehicleRef, {
       tipo: vehicle.type,
@@ -105,6 +110,17 @@ export class VehiculoService {
       estado: vehicle.status || 'disponible',
       activo: vehicle.activo ?? true,
     });
+
+    // 2. 🔔 Si el estado cambia a 'en ruta' o 'en_ruta', enviar notificación a usuarios comunes
+    if (newStatus === 'en ruta' || newStatus === 'en_ruta') {
+      const rutaDetalle = vehicle.route ? ` en la ruta ${vehicle.route}` : '';
+      await this.notificationService.crearNotificacion(
+        'Unidad en Ruta',
+        `El vehículo ${vehicle.id} (${vehicle.plate}) ha iniciado su recorrido${rutaDetalle}.`,
+        'info',
+        'user' // 👈 Se envía a usuarios con rol 'user'
+      );
+    }
   }
 
   // --- DESACTIVAR (ELIMINAR LÓGICAMENTE) Y REGISTRAR EN HISTORIAL ---
