@@ -65,6 +65,7 @@ export const routes: Routes = [
       {
         path: 'home/routes',
         title: 'Rutas',
+        canActivate: [roleGuard(['admin'])],
         loadComponent: () =>
           import('./pages/route-drivers/route-drivers').then((m) => m.RouteDrivers),
       },

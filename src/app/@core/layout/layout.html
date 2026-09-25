@@ -23,9 +23,9 @@
   @if (authService.hasRole(['admin', 'supervisor', 'crew', 'conductor', 'mecanico'])) {
     <p-button pTooltip="Taller" class="mb-2" icon="pi pi-fw pi-wrench" [routerLink]="['/home/taller']"></p-button>
   }
-    <!-- @if (authService.hasRole(['admin', 'supervisor', 'crew', 'conductor'])) { -->
+     @if (authService.hasRole(['admin', 'supervisor', 'crew', 'conductor'])) { 
     <p-button pTooltip="Rutas" class="mb-2" icon="pi pi-fw pi-map" routerLink="/home/routes"></p-button>
-    <!-- } -->
+     } 
     <p-button pTooltip="Quejas" class="mb-2" icon="pi pi-fw pi-inbox" routerLink="/home/complaints"></p-button>
 
     @if (authService.hasRole(['admin', 'supervisor', 'crew', 'conductor'])) {
