@@ -27,15 +27,10 @@
     <p-button pTooltip="Rutas" class="mb-2" icon="pi pi-fw pi-map" routerLink="/home/routes"></p-button>
     <!-- } -->
     <p-button pTooltip="Quejas" class="mb-2" icon="pi pi-fw pi-inbox" routerLink="/home/complaints"></p-button>
-<<<<<<< HEAD
-    <p-button pTooltip="Informe de Jornada" class="mb-2" icon="pi pi-fw pi-file-edit"
-      routerLink="/home/journey-report"></p-button>
-=======
 
     @if (authService.hasRole(['admin', 'supervisor', 'crew', 'conductor'])) {
     <p-button pTooltip="Informe de Jornada" class="mb-2" icon="pi pi-fw pi-file-edit" routerLink="/home/journey-report"></p-button>
-    }  
->>>>>>> 7e021c7dcb168a21d1ee001761a14342ef0d920d
+    }
   </div>
 
   <div class="profile">

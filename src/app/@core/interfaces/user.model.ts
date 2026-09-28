@@ -37,9 +37,5 @@ export interface FirebaseUser {
      lat: number;
      lng: number;
    };
-<<<<<<< HEAD
-}
-=======
    activo: boolean;
 }
->>>>>>> 7e021c7dcb168a21d1ee001761a14342ef0d920d

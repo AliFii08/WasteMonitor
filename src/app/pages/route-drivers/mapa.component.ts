@@ -1,9 +1,6 @@
 import { Component, OnDestroy } from '@angular/core';
 import * as L from 'leaflet';
-<<<<<<< HEAD
-=======
 import { RoutePoint } from '../../@core/services/routes.service';
->>>>>>> 7e021c7dcb168a21d1ee001761a14342ef0d920d
 
 export interface PointWithLabel {
   x: number;
@@ -22,10 +19,7 @@ export interface PointWithLabel {
 export class MapaComponent implements OnDestroy {
   private map!: L.Map;
   private routeLayer?: L.Polyline;
-<<<<<<< HEAD
-=======
   private tempMarker?: L.Marker;
->>>>>>> 7e021c7dcb168a21d1ee001761a14342ef0d920d
   private markersGroup: L.LayerGroup = L.layerGroup();
 
   initMap(onMapClick: (lat: number, lng: number) => void): void {
@@ -68,45 +62,10 @@ export class MapaComponent implements OnDestroy {
   renderLocalMarkers(points: RoutePoint[]): void {
     this.clearMarkers();
 
-<<<<<<< HEAD
-    if (coordinates.length === 0) return;
-
-    this.routeLayer = L.polyline(coordinates, {
-      color: '#2e7d32',
-      weight: 5,
-      opacity: 0.8,
-    }).addTo(this.map);
-
-    this.map.fitBounds(this.routeLayer.getBounds(), { padding: [50, 50] });
-  }
-
-  clearRoute(): void {
-    if (this.routeLayer) {
-      this.map.removeLayer(this.routeLayer);
-      this.routeLayer = undefined;
-    }
-  }
-
-  // Agrega esta propiedad a MapaComponent:
-  private tempMarker?: L.Marker;
-
-  // Método para colocar un marcador temporal de selección
-  showTemporaryMarker(lat: number, lng: number): void {
-    if (this.tempMarker) {
-      this.map.removeLayer(this.tempMarker);
-    }
-
-    const tempIcon = L.divIcon({
-      className: 'custom-temp-marker',
-      html: `<div class="marker-pin-temp"><span>+</span></div>`,
-      iconSize: [30, 42],
-      iconAnchor: [15, 42],
-=======
     points.forEach((p, index) => {
       const icon = this.createCustomIcon('custom-local-marker', String(index + 1));
       const marker = L.marker([p.x, p.y], { icon });
       this.markersGroup.addLayer(marker);
->>>>>>> 7e021c7dcb168a21d1ee001761a14342ef0d920d
     });
 
     if (points.length === 1 && this.map) {
@@ -134,12 +93,6 @@ export class MapaComponent implements OnDestroy {
 
   // --- Manejo de Rutas y Capas ---
 
-<<<<<<< HEAD
-  ngOnDestroy(): void {
-    this.destroyMap();
-  }
-
-=======
   drawRoute(coordinates: [number, number][]): void {
     this.clearRoute();
 
@@ -177,17 +130,13 @@ export class MapaComponent implements OnDestroy {
 
   // --- Ciclo de Vida ---
 
->>>>>>> 7e021c7dcb168a21d1ee001761a14342ef0d920d
   destroyMap(): void {
     if (this.map) {
       this.map.remove();
     }
   }
-<<<<<<< HEAD
-=======
 
   ngOnDestroy(): void {
     this.destroyMap();
   }
->>>>>>> 7e021c7dcb168a21d1ee001761a14342ef0d920d
 }
