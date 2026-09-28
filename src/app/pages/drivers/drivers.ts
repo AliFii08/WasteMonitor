@@ -108,14 +108,10 @@ export class Drivers implements OnInit {
     this.isDeleteModalOpen = true;
   }
 
-  onDriversDeleted(): void {
-    this.loadDrivers();
+  async onDriversChanged(): Promise<void> {
+    await this.loadDrivers();
     this.selectedDriverRows = new Array(this.driversList.length).fill(false);
     this.allDriversSelected = false;
-  }
-
-  createDriver(): void {
-    alert('Botón Crear conductor');
   }
 
   private syncDriversSelection(): void {
@@ -136,5 +132,5 @@ export class Drivers implements OnInit {
     this.isUpdateModalOpen = true;
   }
 
-  
+
 }

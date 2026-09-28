@@ -99,6 +99,12 @@ button {
     filter: none !important;
   }
 
+  .notification-tooltip .p-tooltip-arrow {
+    transform: rotate(90deg);
+    right: -5px !important;
+    left: auto !important;
+  }
+
   .p-button .pi {
     font-size: 1.5em;
     ;

@@ -4,12 +4,12 @@ body {
   font-family: 'Raleway', sans-serif !important;
 }
 
-
 .title {
   display: flex;
   flex-direction: column;
   align-items: center;
   color: #003628;
+  font-family: 'Raleway', sans-serif;
   //margin-bottom: 50px;
 }
 
@@ -21,6 +21,147 @@ body {
 .title span {
   font-size: 20px;
   color: #06523f;
+}
+
+.schedule-page {
+  margin-top: 50px;
+  padding: 0 20px 32px;
+  font-family: 'Raleway', sans-serif;
+}
+
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.day-card {
+  display: flex;
+  min-width: 0;
+  min-height: 204px;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #d8e4de;
+  border-top: 4px solid #68a357;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #ffffff 0%, #f6fbf7 100%);
+  box-shadow: 0 6px 16px rgba(6, 82, 63, 0.07);
+}
+
+.day-card:nth-child(3n + 2) {
+  border-top-color: #169a8a;
+}
+
+.day-card:nth-child(3n) {
+  border-top-color: #d59a39;
+}
+
+.day-card.weekend-card {
+  border-top-color: #5684a0;
+}
+
+.day-card-header {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 60px;
+  padding: 10px 13px;
+  border-bottom: 1px solid #e4eee8;
+  background: #f1f8f3;
+}
+
+.day-number {
+  display: grid;
+  width: 34px;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 8px;
+  background: #dcefe0;
+  color: #155a42;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.day-card:nth-child(3n + 2) .day-number {
+  background: #d8f0eb;
+  color: #087466;
+}
+
+.day-card:nth-child(3n) .day-number {
+  background: #f8ebd5;
+  color: #825b1d;
+}
+
+.day-card.weekend-card .day-number {
+  background: #deebf1;
+  color: #365f76;
+}
+
+.day-card-header h2 {
+  min-width: 0;
+  margin: 0;
+  color: #123f32;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.route-count {
+  padding: 5px 7px;
+  border-radius: 6px;
+  background: #edf4ef;
+  color: #557064;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.day-card-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 18px 12px;
+  text-align: center;
+}
+
+.day-card-content > i {
+  color: #68a357;
+  font-size: 21px;
+}
+
+.day-card-content strong {
+  color: #244f3e;
+  font-size: 13px;
+}
+
+.day-card-content span {
+  color: #71857b;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.day-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 13px;
+  border-top: 1px solid #e4eee8;
+  color: #71857b;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: #d59a39;
 }
 
 @media (max-width: 1024px) {
@@ -37,6 +178,10 @@ body {
     font-size: 17px;
     line-height: 1.45;
   }
+
+  .week-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 600px) {
@@ -46,5 +191,44 @@ body {
 
   .title span {
     font-size: 15px;
+  }
+
+  .schedule-page {
+    margin-top: 32px;
+    padding: 0 12px 24px;
+  }
+
+  .week-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .day-card {
+    min-height: 190px;
+  }
+
+  .day-card-header {
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: 8px;
+    padding: 9px;
+  }
+
+  .day-number {
+    width: 30px;
+  }
+
+  .day-card-header h2 {
+    font-size: 15px;
+  }
+
+  .route-count {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+
+@media (max-width: 380px) {
+  .week-grid {
+    grid-template-columns: 1fr;
   }
 }

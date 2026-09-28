@@ -109,13 +109,15 @@ export class Vehicles implements OnInit {
 
   toggleVehicleSelection(vehicle: Vehicle, checked: boolean): void {
     if (checked) {
-      this.selectedVehicles.push(vehicle);
+      if (!this.isVehicleSelected(vehicle)) {
+        this.selectedVehicles = [...this.selectedVehicles, vehicle];
+      }
     } else {
       this.selectedVehicles = this.selectedVehicles.filter((v) => v.id !== vehicle.id);
     }
     this.allVehiclesSelected =
       this.filteredVehicles.length > 0 &&
-      this.selectedVehicles.length === this.filteredVehicles.length;
+      this.filteredVehicles.every((filteredVehicle) => this.isVehicleSelected(filteredVehicle));
   }
 
   toggleSelectAllVehicles(checked: boolean): void {
@@ -132,7 +134,8 @@ export class Vehicles implements OnInit {
 
   onDeleteSelectedVehicles(): void {
     if (this.selectedVehicles.length === 0) return;
-    this.vehiclesToDelete = [...this.selectedVehicles];
+    const selectedIds = new Set(this.selectedVehicles.map((vehicle) => vehicle.id));
+    this.vehiclesToDelete = this.vehicles.filter((vehicle) => selectedIds.has(vehicle.id));
     this.isDeleteModalOpen = true;
   }
 
@@ -143,7 +146,12 @@ export class Vehicles implements OnInit {
 
   async confirmDelete(): Promise<void> {
     try {
-      for (const vehicle of this.vehiclesToDelete) {
+      const vehiclesById = new Map(this.vehicles.map((vehicle) => [vehicle.id, vehicle]));
+      const targets = [...new Set(this.vehiclesToDelete.map((vehicle) => vehicle.id))]
+        .map((id) => vehiclesById.get(id))
+        .filter((vehicle): vehicle is Vehicle => Boolean(vehicle));
+
+      for (const vehicle of targets) {
         await this.vehiculoService.deactivateVehicle(vehicle);
       }
       await this.loadVehicles();

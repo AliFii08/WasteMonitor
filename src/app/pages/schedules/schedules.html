@@ -1,7 +1,29 @@
-<body>
+<div class="title">
+  <h1>Horarios</h1>
+  <span>Horarios de trabajo de la Parroquia Juana de Ávila</span>
+</div>
 
-  <div class="title">
-    <h1>Horarios</h1>
-    <span>Horarios de trabajo de la Parroquia Juana de Ávila</span>
-  </div>
-</body>
+<main class="schedule-page">
+  <section class="week-grid" aria-label="Programación semanal de camiones">
+    @for (day of weekDays; track day.key) {
+      <article class="day-card" [class.weekend-card]="day.key === 'saturday' || day.key === 'sunday'">
+        <header class="day-card-header">
+          <span class="day-number">{{ day.number }}</span>
+          <h2>{{ day.name }}</h2>
+          <span class="route-count">0 rutas</span>
+        </header>
+
+        <div class="day-card-content">
+          <i class="pi pi-truck" aria-hidden="true"></i>
+          <strong>Sin recorrido asignado</strong>
+          <span>Sector, camión y hora pendientes</span>
+        </div>
+
+        <footer class="day-card-footer">
+          <span class="status-dot" aria-hidden="true"></span>
+          Horario no publicado
+        </footer>
+      </article>
+    }
+  </section>
+</main>

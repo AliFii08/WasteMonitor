@@ -183,6 +183,11 @@
             </button>
           }
           <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
+          @if (activeTab === 'general' && reporte.estado !== 'firmado') {
+            <button type="submit" class="btn-submit" [disabled]="isSubmitting">
+              {{ isSubmitting ? 'Guardando...' : 'Guardar cambios' }}
+            </button>
+          }
           @if(reporte.estado !== 'firmado'){
           <button
             *ngIf="activeTab !== 'general'"
