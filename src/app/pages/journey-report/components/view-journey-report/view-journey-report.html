@@ -68,16 +68,19 @@
               </div>
 
               <div class="detail-group">
-                <label>Aprobación</label>
-                <div class="signature-box">
-                  <span [class]="reporte.estado ? 'badge-success' : 'badge-warning'">
-                    {{ reporte.estado ? 'Firmado' : 'Pendiente de firma' }}
-                  </span>
-                  @if (reporte.estado && reporte.nombreUsuarioFirma) {
-                    <small class="signer-name">Por: {{ reporte.nombreUsuarioFirma }}</small>
-                  }
-                </div>
-              </div>
+      <label>Aprobación</label>
+      <div class="signature-box">
+        <span [class]="reporte.estado === 'firmado' ? 'badge-success' : 'badge-warning'">
+          {{ reporte.estado === 'firmado' ? 'Firmado' : 'Pendiente de firma' }}
+        </span>
+        
+        @if (reporte.estado === 'firmado' && nombreUsuarioFirma) {
+          <small class="signer-name">
+            Por: {{ nombreUsuarioFirma }}
+          </small>
+        }
+      </div>
+    </div>
             </div>
           }
 

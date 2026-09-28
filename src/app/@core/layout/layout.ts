@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, HostListener, inject } from '@angular/core';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { Auth, signOut } from '@angular/fire/auth';
 import { ButtonModule } from 'primeng/button';
@@ -7,9 +7,12 @@ import { TooltipModule } from 'primeng/tooltip';
 import { SessionTimeoutService } from '../services/session-timeout.service';
 import { AuthService } from '../services/auth.service'; // Adjust the relative path if needed
 
+import { NotificationPopover } from '../../pages/notification-popover/notification-popover';
+import { NotificationService } from '../services/notification.service';
+
 @Component({
   selector: 'app-layout',
-  imports: [RouterOutlet, RouterLink, CommonModule, ButtonModule, TooltipModule],
+  imports: [RouterOutlet, RouterLink, CommonModule, ButtonModule, TooltipModule, NotificationPopover],
   templateUrl: './layout.html',
   styleUrl: './layout.scss',
 })
@@ -18,6 +21,38 @@ export class Layout {
   private router = inject(Router);
   private sessionTimeoutService = inject(SessionTimeoutService);
   public authService = inject(AuthService); // Public so it can be accessed in layout.html
+  public notificationService = inject(NotificationService);
+
+  showNotificationsPopover: boolean = false;
+  mobileMenuOpen = false;
+
+  toggleMobileMenu(): void {
+    this.mobileMenuOpen = !this.mobileMenuOpen;
+    if (this.mobileMenuOpen) {
+      this.showNotificationsPopover = false;
+    }
+  }
+
+  closeMobileMenu(): void {
+    this.mobileMenuOpen = false;
+    this.showNotificationsPopover = false;
+  }
+
+  toggleNotifications(): void {
+    if (this.mobileMenuOpen) {
+      return;
+    }
+
+      this.showNotificationsPopover = !this.showNotificationsPopover;
+    }
+
+  @HostListener('document:click', ['$event'])
+  closeNotificationsOnOutsideClick(event: MouseEvent): void {
+    const target = event.target;
+    if (target instanceof Element && !target.closest('.notification-btn-wrapper')) {
+      this.showNotificationsPopover = false;
+    }
+  }
 
   async logout() {
     try {

@@ -1,18 +1,20 @@
 import { inject, Injectable } from '@angular/core';
-import { Database, ref, push, set, get, update, query, orderByChild, equalTo } from '@angular/fire/database';
-import { Quejas } from '../interfaces/quejas.model'; // Ajusta la ruta del modelo si es necesario
+import { Database, ref, get, update } from '@angular/fire/database';
+import { Quejas } from '../interfaces/quejas.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class QuejasService {
   private database = inject(Database);
+  private readonly API_QUEJAS = `${environment.firebaseConfig.databaseURL}/quejas.json`;
 
+  /**
+   * Registra una queja vía REST (Fetch) con el ID del usuario dinámico
+   */
   async registrarQueja(userId: string, asunto: string, descripcion: string): Promise<void> {
-    const quejasRef = ref(this.database, 'quejas');
-    const nuevaQuejaRef = push(quejasRef);
-
-    const nuevaQueja: Quejas = {
+    const payload: Omit<Quejas, 'id'> = {
       userId,
       asunto,
       descripcion,
@@ -20,19 +22,24 @@ export class QuejasService {
       estado: 'pendiente',
     };
 
-    await set(nuevaQuejaRef, nuevaQueja);
+    const response = await fetch(this.API_QUEJAS, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP Error: ${response.status}`);
+    }
   }
 
-  // Método para obtener y formatear las quejas
+  /**
+   * Obtiene quejas. Si viene `userId`, filtra en memoria asegurando
+   * que se muestren las del usuario actual.
+   */
   async obtenerQuejas(userId?: string): Promise<Quejas[]> {
     const quejasRef = ref(this.database, 'quejas');
-    
-    // Si se pasa userId, se aplica la consulta filtrada
-    const consulta = userId 
-      ? query(quejasRef, orderByChild('userId'), equalTo(userId))
-      : quejasRef;
-
-    const snapshot = await get(consulta);
+    const snapshot = await get(quejasRef);
 
     if (!snapshot.exists()) {
       return [];
@@ -42,13 +49,16 @@ export class QuejasService {
     const listaQuejas: Quejas[] = [];
 
     Object.keys(data).forEach((key) => {
-      listaQuejas.push({
-        id: key,
-        ...data[key],
-      });
+      const item = data[key];
+      if (!userId || item.userId === userId) {
+        listaQuejas.push({
+          id: key,
+          ...item,
+        });
+      }
     });
 
-    return listaQuejas;
+    return listaQuejas.sort((a, b) => (b.fecha || 0) - (a.fecha || 0));
   }
 
   async obtenerUsuarioPorId(userId: string): Promise<{ name: string; lastName: string } | null> {
@@ -59,16 +69,17 @@ export class QuejasService {
       const data = snapshot.val();
       return {
         name: data.name || data.nombreUsuario || 'Usuario',
-        lastName: data.lastName || ''
+        lastName: data.lastName || '',
       };
     }
 
     return null;
   }
 
-  
-
-  async actualizarEstadoQueja(quejaId: string, nuevoEstado: 'pendiente' | 'en_revision' | 'resuelto'): Promise<void> {
+  async actualizarEstadoQueja(
+    quejaId: string,
+    nuevoEstado: 'pendiente' | 'en_revision' | 'resuelto',
+  ): Promise<void> {
     const quejaRef = ref(this.database, `quejas/${quejaId}`);
     await update(quejaRef, { estado: nuevoEstado });
   }

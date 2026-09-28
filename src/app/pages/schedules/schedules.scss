@@ -22,3 +22,29 @@ body {
   font-size: 20px;
   color: #06523f;
 }
+
+@media (max-width: 1024px) {
+  .title {
+    padding: 0 16px;
+    text-align: center;
+  }
+
+  .title h1 {
+    font-size: clamp(32px, 5vw, 42px);
+  }
+
+  .title span {
+    font-size: 17px;
+    line-height: 1.45;
+  }
+}
+
+@media (max-width: 600px) {
+  .title h1 {
+    font-size: 32px;
+  }
+
+  .title span {
+    font-size: 15px;
+  }
+}

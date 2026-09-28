@@ -123,7 +123,7 @@
   cursor: pointer;
   color: #555;
   font-size: 1rem;
-  
+
   &:hover {
     color: #06523f;
   }
@@ -418,6 +418,23 @@
 }
 
 @media (max-width: 720px) {
+  .table-toolbar {
+    margin-left: 10px;
+    margin-right: 10px;
+    padding: 0.75rem 0;
+  }
+
+  .search-row,
+  .search-input-wrap,
+  .create-btn,
+  .bulk-delete-btn {
+    width: 100%;
+  }
+
+  .search-row {
+    align-items: stretch;
+  }
+
   .title h1 {
     font-size: 34px;
     text-align: center;

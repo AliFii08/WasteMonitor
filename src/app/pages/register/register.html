@@ -16,7 +16,7 @@
   <h2>Registro</h2>
   <p>Campos con (*) son obligatorios</p>
 
-  <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+  <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" (keydown.enter)="handleEnterKey($event)">
     <h3>Datos Personales</h3>
 
     <div class="form-group two-columns">

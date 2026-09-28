@@ -1,7 +1,7 @@
-import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { InformeService } from '../../../../@core/services/informe.service';
+import { DatosViajeInput, InformeService } from '../../../../@core/services/informe.service';
 
 
 @Component({
@@ -16,50 +16,43 @@ export class CreateJourneyReport {
 
   @Input() visible: boolean = false;
   @Input() numeroViaje: number = 1;
-  @Output() visibleChange = new EventEmitter<boolean>();
-  @Output() reportCreated = new EventEmitter<void>();
 
-  // Manejo de modal de error
+  @Output() visibleChange = new EventEmitter<boolean>();
+  @Output() informeCreado = new EventEmitter<void>();
+
+  loading: boolean = false;
   showErrorModal: boolean = false;
   errorMessage: string = '';
 
-  formData = {
-    tonRecogidas: null as number | null,
+  formData: DatosViajeInput = {
+    tonRecogidas: null,
     direccionLlenado: '',
     observaciones: '',
   };
 
-  onSubmit(): void {
-    this.informeService.crearInforme(this.formData, this.numeroViaje).subscribe({
-      next: () => {
-        console.log('Informe de viaje registrado con éxito');
-        this.closeModal();
-        this.resetForm();
-        this.reportCreated.emit();
-      },
-      error: (err) => {
-        // Capturamos el mensaje lanzado por el servicio
-        this.errorMessage = err.message || 'Ocurrió un error inesperado al guardar.';
-        this.showErrorModal = true;
-      },
-    });
+  closeModal(): void {
+    this.visible = false;
+    this.visibleChange.emit(false);
   }
 
   closeErrorModal(): void {
     this.showErrorModal = false;
-    this.errorMessage = '';
   }
 
-  closeModal(): void {
-    this.visible = false;
-    this.visibleChange.emit(this.visible);
-  }
+  onSubmit(): void {
+    this.loading = true;
 
-  private resetForm(): void {
-    this.formData = {
-      tonRecogidas: null,
-      direccionLlenado: '',
-      observaciones: '',
-    };
+    this.informeService.crearInforme(this.formData, this.numeroViaje).subscribe({
+      next: () => {
+        this.loading = false;
+        this.informeCreado.emit();
+        this.closeModal();
+      },
+      error: (err) => {
+        this.loading = false;
+        this.errorMessage = err?.message || 'Ocurrió un error al intentar crear el informe.';
+        this.showErrorModal = true;
+      },
+    });
   }
 }

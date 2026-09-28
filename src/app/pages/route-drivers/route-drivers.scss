@@ -248,6 +248,71 @@ body {
   font-size: 0.8rem;
 }
 
+@media (max-width: 1024px) {
+  .map-container {
+    box-sizing: border-box;
+    width: calc(100% - 24px);
+    max-width: none;
+    margin: 12px;
+    padding: 14px;
+  }
+
+  #map {
+    height: clamp(300px, 48dvh, 520px);
+  }
+
+  .route-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .route-actions > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .route-selector {
+    flex: 1 1 100%;
+  }
+
+  .points-table-container {
+    overflow-x: auto;
+  }
+
+  .points-table {
+    min-width: 620px;
+  }
+
+  .footer-info {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 600px) {
+  .map-container {
+    padding: 10px;
+  }
+
+  .title h1 {
+    font-size: 34px;
+    text-align: center;
+  }
+
+  .title span {
+    padding: 0 10px;
+    text-align: center;
+    font-size: 16px;
+  }
+
+  .footer-info > * {
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+  }
+}
+
 .add-point-row {
   background-color: #f0fdf4;
 

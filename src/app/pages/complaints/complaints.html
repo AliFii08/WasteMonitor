@@ -1,75 +1,95 @@
-<div class="container">
+<div class="quejas-page">
   <div class="title">
     <h1>Gestión de Quejas</h1>
     <span>Por favor, detalle su problemática.</span>
   </div>
 
-  <div class="table-card">
-    <div class="flex justify-content-end mb-3">
-      <p-button 
-        label="Nueva Queja" 
-        icon="pi pi-plus" 
-        severity="success" 
-        (onClick)="mostrarModalCrear = true">
-      </p-button>
+  <!-- TOOLBAR SUPERIOR -->
+  <div class="table-toolbar">
+    <div class="search-row">
+      <div class="search-input-wrap">
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Buscar problemática..."
+          [ngModel]="filtroTexto()"
+          (ngModelChange)="filtroTexto.set($event)"
+        />
+        <i class="pi pi-search"></i>
+      </div>
     </div>
 
-    <p-table 
-      [value]="quejas()" 
-      [loading]="loading()" 
-      [paginator]="true" 
-      [rows]="5" 
-      responsiveLayout="scroll"
-      styleClass="p-datatable-striped">
-      <ng-template pTemplate="header">
-        <tr>
-          <th>Asunto</th>
-          <th>Descripción</th>
-          <th>Fecha</th>
-          <th>Estado</th>
-          <th style="width: 140px; text-align: center;">Acciones</th>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="body" let-queja>
-        <tr>
-          <td><strong>{{ queja.asunto }}</strong></td>
-          <td>{{ queja.descripcion }}</td>
-          <td>{{ queja.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
-          <td>
-            <p-tag [value]="queja.estado" [severity]="getSeverity(queja.estado)"></p-tag>
-          </td>
-          <td style="text-align: center;">
-            <p-button 
-              icon="pi pi-eye" 
-              [text]="true" 
-              [rounded]="true" 
-              severity="info"
-              (onClick)="verQueja(queja)">
-            </p-button>
-          
-            <!-- Solo visible para el Admin -->
-            <p-button 
-              *ngIf="esAdmin()"
-              icon="pi pi-pencil" 
-              [text]="true" 
-              [rounded]="true" 
-              severity="warn"
-              (onClick)="editarQueja(queja)">
-            </p-button>
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
+    <button type="button" class="create-btn" (click)="mostrarModalCrear = true">
+      <i class="pi pi-plus"></i>
+      Nueva Queja
+    </button>
   </div>
+
+  <!-- TABLA NATIVA CON DISEÑO CLARO MANTENIMIENTO Y TALLER -->
+  <section class="preview-section">
+    <div class="preview-table-wrap">
+      <table class="preview-table">
+        <thead>
+          <tr>
+            <th>Asunto</th>
+            <th>Descripción</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th class="options-header">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (queja of quejasFiltradas(); track queja.id) {
+            <tr>
+              <td><strong>{{ queja.asunto }}</strong></td>
+              <td>{{ queja.descripcion }}</td>
+              <td>{{ queja.fecha | date:'dd/MM/yyyy, hh:mm a' }}</td>
+              <td>
+                <span class="status-chip" [class]="queja.estado">
+                  {{ queja.estado.replace('_', ' ') }}
+                </span>
+              </td>
+              <td class="options-header">
+                <div class="option-actions">
+                  <button
+                    type="button"
+                    class="icon-btn"
+                    title="Ver Queja"
+                    (click)="verQueja(queja)"
+                  >
+                    <i class="pi pi-eye"></i>
+                  </button>
+          
+                  @if (esAdmin()) {
+                    <button
+                      type="button"
+                      class="icon-btn"
+                      title="Editar Queja"
+                      (click)="editarQueja(queja)"
+                    >
+                      <i class="pi pi-pencil"></i>
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="empty-row">No hay quejas registradas.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
 </div>
 
-<!-- Modal de Creación -->
+<!-- Modales -->
 <app-create-complaints 
   [(visible)]="mostrarModalCrear" 
   (quejaCreada)="cargarQuejas()">
 </app-create-complaints>
 
-<!-- Modal de Visualización -->
 <app-view-complaints 
   [(visible)]="mostrarModalVer" 
   [queja]="quejaSeleccionada">

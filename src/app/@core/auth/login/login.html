@@ -5,7 +5,7 @@
 <div class="container">
   <h2>Inicio de Sesión</h2>
 
-  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" (keydown.enter)="handleEnterKey($event)">
     <div class="form-group error-slot">
       <label for="email">Correo</label>
 

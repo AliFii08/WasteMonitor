@@ -291,3 +291,12 @@
   font-weight: 600;
   margin-top: 6px !important;
 }
+
+/* Zonas disponibles para ajustes manuales; los estilos actuales se conservan. */
+@media (max-width: 767px) {
+  /* Agrega aquí los cambios visuales para teléfonos. */
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  /* Agrega aquí los cambios visuales para tablets. */
+}

@@ -218,3 +218,12 @@ small {
     margin-top: 0;
   }
 }
+
+/* Zona para ajustes manuales de teléfono y tablet. */
+@media (max-width: 767px) {
+  /* Agrega aquí los cambios visuales para teléfonos. */
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  /* Agrega aquí los cambios visuales para tablets. */
+}

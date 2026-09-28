@@ -52,6 +52,35 @@ export class Login {
     this.passwordFieldType = this.passwordFieldType === 'password' ? 'text' : 'password';
   }
 
+  handleEnterKey(event: Event): void {
+    if (!(event instanceof KeyboardEvent)) return;
+
+    const target = event.target;
+    if (
+      !(target instanceof HTMLInputElement) &&
+      !(target instanceof HTMLSelectElement) &&
+      !(target instanceof HTMLTextAreaElement)
+    ) {
+      return;
+    }
+
+    const form = event.currentTarget as HTMLFormElement;
+    const fields = Array.from(
+      form.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+        'input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled])',
+      ),
+    );
+    const currentIndex = fields.indexOf(target);
+    if (currentIndex < 0) return;
+
+    event.preventDefault();
+    if (currentIndex === fields.length - 1) {
+      void this.onSubmit();
+    } else {
+      fields[currentIndex + 1].focus();
+    }
+  }
+
   isValidField(control: FormControl<string>): boolean {
     return control.invalid && (control.dirty || control.touched);
   }

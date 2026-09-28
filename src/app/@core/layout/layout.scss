@@ -1,6 +1,9 @@
 nav {
   font-family: 'LoveloBlack', sans-serif;
-  padding: 18px;
+  box-sizing: border-box;
+  width: 70px;
+  min-width: 70px;
+  padding: 18px 8px;
 }
 
 nav {
@@ -18,14 +21,13 @@ nav {
 .div-logo {
   display: flex;
   align-items: center;
-  justify-content: left;
-  width: 100%;
-  width: 100%;
+  justify-content: center;
+  width: 68px;
   position: fixed;
   /* o relative, pero fixed asegura superposición */
   top: 34px;
   /* ajusta a gusto */
-  left: 18px;
+  left: 0;
   z-index: 20;
 }
 
@@ -40,14 +42,19 @@ nav {
 }
 
 .icons {
-  margin-top: 50px;
+  margin-top: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  gap: 2px;
+  gap: 8px;
   width: 100%;
   flex: 1;
+}
+
+::ng-deep .icons .mb-2,
+::ng-deep .profile .mb-2 {
+  margin-bottom: 0 !important;
 }
 
 button {
@@ -104,11 +111,229 @@ button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
 }
 
 .content {
   margin-left: 68px !important;
+  min-width: 0;
+}
+
+.mobile-menu-trigger,
+.mobile-menu-close,
+.mobile-sidebar-backdrop {
+  display: none;
+}
+
+::ng-deep nav .nav-link .p-button-label {
+  display: none !important;
+}
+
+.notification-btn-wrapper {
+  position: fixed;
+  top: 12px;
+  right: 16px;
+  z-index: 600;
+
+  ::ng-deep .p-button {
+    background-color: #e2f0e8 !important;
+    border: 1px solid #b8d9c4 !important;
+    color: #06523f !important;
+  }
+
+  ::ng-deep .p-button .pi {
+    color: #06523f !important;
+  }
+
+  ::ng-deep .p-button:hover {
+    background-color: #cce6d4 !important;
+    border-color: #9dc9ac !important;
+    color: #003628 !important;
+  }
+
+  .bell-icon-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .badge-dot {
+      position: absolute;
+      top: -6px;
+      right: -8px;
+      background-color: #dc2626;
+      color: #ffffff;
+      font-size: 0.65rem;
+      font-weight: 800;
+      border-radius: 999px;
+      padding: 2px 5px;
+      line-height: 1;
+      border: 2px solid #ffffff;
+    }
+  }
+}
+
+
+@media (min-width: 1025px) {
+  .notification-btn-wrapper {
+    position: fixed;
+    top: 12px;
+    right: 16px;
+  }
+}
+
+@media (max-width: 1024px) {
+  nav {
+    box-sizing: border-box;
+    width: min(220px, 55vw);
+    padding: 18px 14px 14px;
+    transform: translateX(-105%);
+    transition: transform 0.24s ease;
+    overflow-y: auto;
+    z-index: 1100;
+  }
+
+  nav.mobile-open {
+    transform: translateX(0);
+  }
+
+  .div-logo {
+    position: absolute;
+    top: 18px;
+    left: 0;
+    right: 0;
+    width: auto;
+    justify-content: center;
+    margin: 0;
+  }
+
+  .mini-logo {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .mobile-menu-close {
+    position: absolute;
+    top: 0;
+    right: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #fff;
+    font-size: 1.25rem;
+  }
+
+  .icons {
+    flex: 0 0 auto;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 8px;
+    width: 100%;
+    margin-top: 60px;
+  }
+
+  .profile {
+    align-items: stretch;
+    gap: 8px;
+    margin-top: auto;
+    margin-bottom: 8px;
+  }
+
+  ::ng-deep .nav-link .p-button {
+    box-sizing: border-box;
+    display: flex;
+    justify-content: flex-start;
+    width: 100%;
+    min-height: 44px;
+    padding: 0.65rem 0.8rem !important;
+    gap: 0.8rem;
+  }
+
+  ::ng-deep nav .nav-link .p-button-label {
+    display: inline !important;
+    font-family: 'Raleway', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+  ::ng-deep .nav-link .p-button-icon {
+    box-sizing: border-box;
+    display: inline-flex;
+    flex: 0 0 24px;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    min-width: 24px;
+    margin: 0 !important;
+  }
+
+  ::ng-deep .nav-link .p-button-label {
+    flex: 1;
+    text-align: left;
+  }
+
+  .mobile-menu-trigger {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 31;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid rgba(6, 82, 63, 0.14);
+    border-radius: 8px;
+    background: #fff;
+    color: #06523f;
+    box-shadow: 0 2px 8px rgba(0, 54, 40, 0.12);
+    font-size: 1.2rem;
+  }
+
+  .mobile-sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 900;
+    display: block;
+    border: 0;
+    background: rgba(0, 25, 18, 0.42);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.24s ease, visibility 0s linear 0.24s;
+  }
+
+  .mobile-sidebar-backdrop.is-visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition: opacity 0.24s ease, visibility 0s;
+  }
+
+  .content {
+    box-sizing: border-box;
+    width: 100%;
+    margin-left: 0 !important;
+    padding-top: 20px;
+  }
+
+  .content app-profile {
+    display: block;
+    padding-top: 44px;
+  }
+
+  .notification-btn-wrapper {
+    top: 10px;
+    right: 10px;
+  }
 }
 
 
@@ -120,7 +345,7 @@ button {
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
     width: 100%;
     flex: 1;
   }

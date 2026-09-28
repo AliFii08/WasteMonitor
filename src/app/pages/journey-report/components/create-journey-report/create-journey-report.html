@@ -12,53 +12,19 @@
       </header>
 
       <form (ngSubmit)="onSubmit()" class="modal-body" #f="ngForm">
-        <!-- Indicador del Viaje Actual -->
         <div class="trip-header">
-          <span class="trip-title">Viaje {{ numeroViaje }}</span>
+          <span class="trip-title">Nueva Jornada de Viaje</span>
         </div>
 
-        <div class="form-field">
-          <label for="tonRecogidas">Toneladas Recogidas <span class="req">*</span></label>
-          <input 
-            type="number" 
-            id="tonRecogidas" 
-            [(ngModel)]="formData.tonRecogidas" 
-            name="tonRecogidas" 
-            step="0.01" 
-            min="0" 
-            placeholder="0.00" 
-            required 
-          />
-        </div>
-
-        <div class="form-field">
-          <label for="direccionLlenado">Dirección de Llenado <span class="req">*</span></label>
-          <input 
-            type="text" 
-            id="direccionLlenado" 
-            [(ngModel)]="formData.direccionLlenado" 
-            name="direccionLlenado" 
-            placeholder="Ej: Av. Principal, Sector El Milagro" 
-            required 
-          />
-        </div>
-
-        <div class="form-field">
-          <label for="observaciones">Descripción / Observaciones</label>
-          <textarea 
-            id="observaciones" 
-            [(ngModel)]="formData.observaciones" 
-            name="observaciones" 
-            rows="3" 
-            placeholder="Escriba la descripción o detalles de la jornada..."
-          ></textarea>
-        </div>
+        <p class="info-text">
+          Se creará la cabecera del informe de jornada asignado a tu usuario y vehículo activo.
+        </p>
 
         <footer class="modal-footer">
           <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
-          <button type="submit" class="btn-submit" [disabled]="!f.valid">
+          <button type="submit" class="btn-submit" [disabled]="loading">
             <i class="pi pi-check"></i>
-            Guardar
+            {{ loading ? 'Guardando...' : 'Iniciar Jornada' }}
           </button>
         </footer>
       </form>

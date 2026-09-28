@@ -1,29 +1,35 @@
 <div class="home-container">
   <!-- Card Flotante de Información para el Usuario -->
-  <div class="info-card" *ngIf="!loading">
-    <div class="card-header">
-      <i class="pi pi-map-marker icon-location"></i>
-      <h3>Ubicación y Ruta de Recolección</h3>
-    </div>
-
-    <div class="card-body">
-      <p class="address-text">
-        <strong>Tu Dirección:</strong> {{ userAddressText || 'No registrada' }}
-      </p>
-
-      <div *ngIf="nearestRouteId" class="route-info">
-        <p class="route-badge">
-          Ruta Más Cercana: <span>{{ nearestRouteId }}</span>
-        </p>
-        <p *ngIf="routeDistanceKm !== null" class="distance-text">
-          Distancia aproximada a tu sector: <strong>{{ routeDistanceKm }} km</strong>
-        </p>
+  <div class="info-card" *ngIf="!loading" [class.is-collapsed]="infoCardCollapsed">
+    <div class="info-card-content">
+      <div class="card-header">
+        <i class="pi pi-map-marker icon-location"></i>
+        <h3>Ubicación y Ruta de Recolección</h3>
       </div>
 
-      <div *ngIf="!nearestRouteId" class="no-route-info">
-        <p>No se encontró ninguna ruta de recolección cercana a tu dirección.</p>
+      <div class="card-body">
+        <p class="address-text">
+          <strong>Tu Dirección:</strong> {{ userAddressText || 'No registrada' }}
+        </p>
+
+        <div *ngIf="nearestRouteId" class="route-info">
+          <p class="route-badge">
+            Ruta Más Cercana: <span>{{ nearestRouteId }}</span>
+          </p>
+          <p *ngIf="routeDistanceKm !== null" class="distance-text">
+            Distancia aproximada a tu sector: <strong>{{ routeDistanceKm }} km</strong>
+          </p>
+        </div>
+
+        <div *ngIf="!nearestRouteId" class="no-route-info">
+          <p>No se encontró ninguna ruta de recolección cercana a tu dirección.</p>
+        </div>
       </div>
     </div>
+    <button type="button" class="info-card-toggle" (click)="infoCardCollapsed = !infoCardCollapsed"
+      [attr.aria-label]="infoCardCollapsed ? 'Mostrar información de ruta' : 'Ocultar información de ruta'">
+      <i [class]="infoCardCollapsed ? 'pi pi-angle-right' : 'pi pi-angle-left'"></i>
+    </button>
   </div>
 
   <!-- Indicador de Carga -->

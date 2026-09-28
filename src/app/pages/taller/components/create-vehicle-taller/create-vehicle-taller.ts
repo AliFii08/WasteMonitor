@@ -9,6 +9,7 @@ import {
 } from '../../../../@core/services/taller.service';
 import { DashboardService } from '../../../../@core/services/dashboard.service';
 import { UserService } from '../../../../@core/services/user.service';
+import { NotificationService } from '../../../../@core/services/notification.service'; // Importar el servicio
 
 export const RAZONES_INGRESO = [
   'Mantenimiento preventivo',
@@ -35,6 +36,7 @@ export class CreateVehicleTaller {
   private cdr = inject(ChangeDetectorRef);
   private dashboardService = inject(DashboardService);
   private userService = inject(UserService);
+  private notificationService = inject(NotificationService); // Inyección
 
   @Output() created = new EventEmitter<void>();
 
@@ -64,7 +66,6 @@ export class CreateVehicleTaller {
 
     try {
       const allCamiones = await this.tallerService.getCamiones();
-      // Filtrar solo camiones que no estén actualmente en taller
       this.camiones = allCamiones.filter((c) => !c.enTaller && c.activo !== false);
     } catch (err: any) {
       this.errorMsg = 'No se pudieron cargar los vehículos: ' + (err.message || err);
@@ -83,15 +84,15 @@ export class CreateVehicleTaller {
   async onSubmit(): Promise<void> {
     const razonFinal =
       this.form.razon === 'Otro' ? this.razonPersonalizada.trim() : this.form.razon;
-
+  
     if (!this.form.idCamion || !razonFinal) return;
-
+  
     this.saving = true;
     this.errorMsg = '';
-
+  
     try {
       const camion = this.camiones.find((c) => c.idKey === this.form.idCamion);
-
+  
       // 1) Crear registro en /taller
       await this.tallerService.crearRegistro({
         idCamion: this.form.idCamion,
@@ -104,18 +105,18 @@ export class CreateVehicleTaller {
         prioridad: this.form.prioridad,
         activo: true,
       });
-
+  
       // 2) Actualizar la marca en /camiones
       await this.tallerService.marcarCamionEnTaller(this.form.idCamion, true);
-
+  
       // 3) Obtener usuario y rol dinámicamente
       const currentUser = this.userService.currentUserSignal();
       const usuarioNombre = currentUser
         ? `${currentUser.name || ''} ${currentUser.lastName || ''}`.trim() || currentUser.email
         : 'Usuario Anónimo';
       const usuarioRol = currentUser?.rol || 'Sin Rol';
-
-      // 4) Registrar en el historial del Dashboard con datos reales
+  
+      // 4) Registrar en el historial del Dashboard
       await this.dashboardService.registrarOperacion({
         usuario: usuarioNombre,
         rol: usuarioRol,
@@ -124,10 +125,26 @@ export class CreateVehicleTaller {
         detalle: `Vehículo ${this.form.idCamion} ingresado al taller (${razonFinal})`,
         fechaHora: new Date().toLocaleString(),
       });
-
+  
+      // 5) 🔔 GUARDAR NOTIFICACIÓN EN FIREBASE (Esperar a que finalice la escritura)
+      try {
+        // 🔔 Guardar la notificación
+        this.notificationService.crearNotificacion(
+          'Nuevo Ingreso a Taller',
+          `El vehículo ${this.form.idCamion} ingresó por ${razonFinal}.`,
+          'alerta',
+          'mecanico'
+        );
+      } catch (e) {
+        console.error('Error enviando notificación:', e);
+      }
+  
+      // 6) Emitir y cerrar SOLO después de haber guardado todo en Firebase
       this.created.emit();
       this.close();
+  
     } catch (err: any) {
+      console.error('Error general en onSubmit:', err);
       this.errorMsg = err?.message ?? 'Error al guardar el registro.';
     } finally {
       this.saving = false;

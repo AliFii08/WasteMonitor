@@ -26,7 +26,7 @@ interface RutaData {
 })
 export class Home implements AfterViewInit, OnDestroy {
   map!: L.Map;
-  
+
   // Inyección de dependencias
   private http = inject(HttpClient);
   private database = inject(Database);
@@ -40,6 +40,7 @@ export class Home implements AfterViewInit, OnDestroy {
   public userCoords: [number, number] | null = null;
   public routeDistanceKm: number | null = null;
   public loading: boolean = true;
+  public infoCardCollapsed = false;
 
   // Capas del mapa Leaflet
   private userMarker!: L.Marker;
@@ -203,7 +204,7 @@ export class Home implements AfterViewInit, OnDestroy {
             }
           } catch (err) {
             console.error(`Error procesando trazado vial para ${routeKey}:`, err);
-            
+
             // Fallback: Si OSRM falla o hay límite de peticiones, dibuja línea recta
             const fallbackPolyline = L.polyline(points, {
               color: color,
@@ -281,7 +282,7 @@ export class Home implements AfterViewInit, OnDestroy {
    */
   private geocodeAddress(addressQuery: string): Promise<[number, number] | null> {
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressQuery)}`;
-    
+
     return new Promise((resolve) => {
       this.http.get<any[]>(url).subscribe({
         next: (results) => {
@@ -372,7 +373,7 @@ export class Home implements AfterViewInit, OnDestroy {
     if (closestRoute) {
       this.nearestRouteId = closestRoute.id;
       this.routeDistanceKm = parseFloat(minDistance.toFixed(2));
-      
+
       // Trazar el camino real por calles con OSRM
       this.trazarRutaConOSRM(closestRoute.puntos);
     }

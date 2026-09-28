@@ -8,6 +8,7 @@ import { CommonModule } from '@angular/common';
 import { TableModule } from 'primeng/table';
 import { UpdateJourneyReport } from './components/update-journey-report/update-journey-report';
 import { AuthService } from '../../@core/services/auth.service';
+import { DeleteJourneyReport } from './components/delete-journey-report/delete-journey-report';
 
 
 @Component({
@@ -19,6 +20,7 @@ import { AuthService } from '../../@core/services/auth.service';
     FormsModule,
     ViewJourneyReport,
     UpdateJourneyReport,
+    DeleteJourneyReport,
   ],
   templateUrl: './journey-report.html',
   styleUrls: ['./journey-report.scss'],
@@ -33,6 +35,10 @@ export class JourneyReport implements OnInit, OnDestroy {
   selectedReportRows: boolean[] = [];
   allReportsSelected: boolean = false;
   hasSelectedReport: boolean = false;
+
+
+selectedReportsList: any[] = [];
+
 
   // Modales
   isCreateModalOpen: boolean = false;
@@ -59,7 +65,10 @@ export class JourneyReport implements OnInit, OnDestroy {
   async cargarInformes(): Promise<void> {
     this.informesSub = this.informeService.getInformes().subscribe({
       next: ([informes, usuarios]) => {
-        this.reportes = (informes || []).map((informe) => {
+        // Filtrar únicamente los informes que están activos (activo !== false)
+        const informesActivos = (informes || []).filter((informe) => informe.activo !== false);
+
+        this.reportes = informesActivos.map((informe) => {
           const uidUsuario = informe.uidUsuario || informe.usuario || '';
           const usuarioData = usuarios?.[uidUsuario] || null;
 
@@ -87,7 +96,6 @@ export class JourneyReport implements OnInit, OnDestroy {
       },
       error: (err) => console.error('Error al cargar informes:', err),
     });
-    
   }
 
   onReportSearchChange(): void {
@@ -123,7 +131,6 @@ export class JourneyReport implements OnInit, OnDestroy {
     // 2. Extraer el UID del creador (tomando 'reporte.usuario' que es como está en Firebase)
     const creadorId = reporte?.usuario || reporte?.usuarioId || reporte?.userId;
 
-
     // 3. Validar coincidencia de IDs
     if ((!currentUserId || creadorId !== currentUserId) && !this.isAdmin) {
       alert('no puedes actualizar un informe que no fue creado por ti');
@@ -137,17 +144,30 @@ export class JourneyReport implements OnInit, OnDestroy {
     this.isUpdateModalOpen = true;
   }
 
-  openSingleDeleteModal(reporte: any): void {
-    if (!this.isAdmin) {
-      alert('No tienes permisos de administrador para eliminar informes.');
-      return;
-    }
-    this.selectedReport = reporte;
+  // Al presionar el botón de la barra superior para eliminar seleccionados:
+  deleteSelectedReport(): void {
+    // Extrae los reportes cuya casilla esté en true
+    this.selectedReportsList = this.reportes.filter((item, index) => {
+      return Boolean(this.selectedReportRows[index]) || Boolean(item.selected);
+    });
+  
+    console.log('📋 Reportes filtrados para eliminar:', this.selectedReportsList);
+  
+    this.selectedReport = null; // Limpiar selección individual
     this.isDeleteModalOpen = true;
   }
-
-  deleteSelectedReport(): void {
-    // Lógica para eliminar seleccionados
+  
+  openSingleDeleteModal(reporte: any): void {
+    this.selectedReport = reporte;
+    this.selectedReportsList = []; // Limpiar selección múltiple
+    this.isDeleteModalOpen = true;
+  }
+  
+  onReportesEliminados(): void {
+    this.selectedReportRows = [];
+    this.allReportsSelected = false;
+    this.selectedReportsList = [];
+    this.selectedReport = null;
   }
 
   ngOnDestroy(): void {

@@ -13,44 +13,52 @@
 
       <!-- Navigation Tabs -->
       <!-- Navigation Tabs -->
-<nav class="modal-tabs">
-  <!-- Pestaña General -->
-  <button 
-    type="button" 
-    class="tab-btn" 
-    [class.active]="activeTab === 'general'" 
-    (click)="selectTab('general')">
-    General
-  </button>
-
-  <!-- Pestañas de los Viajes -->
-  @for (viaje of viajesList; track viaje.key; let idx = $index) {
-    <div class="tab-btn-wrap">
-      <button 
-        type="button" 
-        class="tab-btn" 
-        [class.active]="activeTab === viaje.key" 
-        (click)="selectTab(viaje.key)">
-        Viaje {{ viaje.numero }}
-      </button>
-
-      @if (viajesList.length > 1) {
-        <button 
-          type="button" 
-          class="tab-remove-btn" 
-          title="Eliminar Viaje" 
-          (click)="eliminarViaje(idx, $event)">
-          <i class="pi pi-times"></i>
+      <nav class="modal-tabs">
+        <!-- Pestaña General -->
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="activeTab === 'general'"
+          (click)="selectTab('general')"
+        >
+          General
         </button>
-      }
-    </div>
-  }
 
-  <!-- Botón '+' único al final -->
-  <button type="button" class="add-tab-btn" (click)="abrirModalNuevoViaje()" title="Agregar nuevo viaje">
-    <i class="pi pi-plus"></i>
-  </button>
-</nav>
+        <!-- Pestañas de los Viajes -->
+        @for (viaje of viajesList; track viaje.key; let idx = $index) {
+          <div class="tab-btn-wrap">
+            <button
+              type="button"
+              class="tab-btn"
+              [class.active]="activeTab === viaje.key"
+              (click)="selectTab(viaje.key)"
+            >
+              Viaje {{ viaje.numero }}
+            </button>
+
+            @if (viajesList.length > 1) {
+              <button
+                type="button"
+                class="tab-remove-btn"
+                title="Eliminar Viaje"
+                (click)="eliminarViaje(idx, $event)"
+              >
+                <i class="pi pi-times"></i>
+              </button>
+            }
+          </div>
+        }
+
+        <!-- Botón '+' único al final -->
+        <button
+          type="button"
+          class="add-tab-btn"
+          (click)="abrirModalNuevoViaje()"
+          title="Agregar nuevo viaje"
+        >
+          <i class="pi pi-plus"></i>
+        </button>
+      </nav>
 
       <form (ngSubmit)="onSubmit()" #f="ngForm" class="modal-form">
         <div class="modal-body">
@@ -63,35 +71,37 @@
             <!-- Pestaña: General -->
             @if (activeTab === 'general') {
               <div class="tab-content">
-    <div class="form-field">
-      <label>Usuario</label>
-      <input 
-        type="text" 
-        [value]="nombreUsuario || reporte.nombreUsuario || reporte.usuario || 'Sin usuario'" 
-        disabled 
-        class="input-disabled" 
-      />
-    </div>
+                <div class="form-field">
+                  <label>Usuario</label>
+                  <input
+                    type="text"
+                    [value]="
+                      nombreUsuario || reporte.nombreUsuario || reporte.usuario || 'Sin usuario'
+                    "
+                    disabled
+                    class="input-disabled"
+                  />
+                </div>
 
                 <div class="form-field">
                   <label for="camion">Vehículo / Camión</label>
-                  <input 
-                    type="text" 
-                    id="camion" 
-                    [(ngModel)]="camion" 
-                    name="camion" 
-                    placeholder="Ej: VEH-001" 
+                  <input
+                    type="text"
+                    id="camion"
+                    [(ngModel)]="camion"
+                    name="camion"
+                    placeholder="Ej: VEH-001"
                   />
                 </div>
 
                 <div class="form-field">
                   <label for="ruta">Ruta</label>
-                  <input 
-                    type="text" 
-                    id="ruta" 
-                    [(ngModel)]="ruta" 
-                    name="ruta" 
-                    placeholder="Ej: NombreRuta7" 
+                  <input
+                    type="text"
+                    id="ruta"
+                    [(ngModel)]="ruta"
+                    name="ruta"
+                    placeholder="Ej: NombreRuta7"
                   />
                 </div>
 
@@ -116,37 +126,41 @@
                   </div>
 
                   <div class="form-field">
-                    <label [for]="'ton_' + viaje.key">Toneladas Recogidas <span class="req">*</span></label>
-                    <input 
-                      type="number" 
-                      [id]="'ton_' + viaje.key" 
-                      [(ngModel)]="viaje.tonRecogidas" 
-                      [name]="'ton_' + viaje.key" 
-                      step="0.01" 
-                      min="0" 
-                      required 
+                    <label [for]="'ton_' + viaje.key"
+                      >Toneladas Recogidas <span class="req">*</span></label
+                    >
+                    <input
+                      type="number"
+                      [id]="'ton_' + viaje.key"
+                      [(ngModel)]="viaje.tonRecogidas"
+                      [name]="'ton_' + viaje.key"
+                      step="0.01"
+                      min="0"
+                      required
                     />
                   </div>
 
                   <div class="form-field">
-                    <label [for]="'dir_' + viaje.key">Dirección del Llenado <span class="req">*</span></label>
-                    <input 
-                      type="text" 
-                      [id]="'dir_' + viaje.key" 
-                      [(ngModel)]="viaje.direccionDelLlenado" 
-                      [name]="'dir_' + viaje.key" 
-                      placeholder="Ej: Sector El Milagro" 
-                      required 
+                    <label [for]="'dir_' + viaje.key"
+                      >Dirección del Llenado <span class="req">*</span></label
+                    >
+                    <input
+                      type="text"
+                      [id]="'dir_' + viaje.key"
+                      [(ngModel)]="viaje.direccionDelLlenado"
+                      [name]="'dir_' + viaje.key"
+                      placeholder="Ej: Sector El Milagro"
+                      required
                     />
                   </div>
 
                   <div class="form-field">
                     <label [for]="'desc_' + viaje.key">Descripción / Observaciones</label>
-                    <textarea 
-                      [id]="'desc_' + viaje.key" 
-                      [(ngModel)]="viaje.descripcion" 
-                      [name]="'desc_' + viaje.key" 
-                      rows="3" 
+                    <textarea
+                      [id]="'desc_' + viaje.key"
+                      [(ngModel)]="viaje.descripcion"
+                      [name]="'desc_' + viaje.key"
+                      rows="3"
                       placeholder="Observaciones de este viaje..."
                     ></textarea>
                   </div>
@@ -158,24 +172,28 @@
 
         <footer class="modal-footer">
           @if (isAdmin) {
-    <button 
-      type="button" 
-      class="btn-submit" 
-      [disabled]="isSubmitting || reporte?.estado === 'firmado'" 
-      (click)="firmarInforme()">
-      <i class="pi pi-check-circle"></i>
-      {{ reporte?.estado === 'firmado' ? 'Firmado' : 'Firmar' }}
-    </button>
-  }
+            <button
+              type="button"
+              class="btn-submit"
+              [disabled]="isSubmitting || reporte?.estado === 'firmado'"
+              (click)="firmarInforme()"
+            >
+              <i class="pi pi-check-circle"></i>
+              {{ reporte?.estado === 'firmado' ? 'Firmado' : 'Firmar' }}
+            </button>
+          }
           <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
-          <button 
-  *ngIf="activeTab !== 'general'" 
-  type="button" 
-  class="btn btn-primary" 
-  [disabled]="isSubmitting"
-  (click)="actualizarViajeActivo()">
-  {{ isSubmitting ? 'Guardando...' : 'Actualizar Viaje' }}
-</button>
+          @if(reporte.estado !== 'firmado'){
+          <button
+            *ngIf="activeTab !== 'general'"
+            type="button"
+            class="btn btn-primary"
+            [disabled]="isSubmitting"
+            (click)="actualizarViajeActivo()"
+          >
+            {{ isSubmitting ? 'Guardando...' : 'Actualizar Viaje' }}
+          </button>
+        }
         </footer>
       </form>
     </div>
@@ -188,13 +206,11 @@
       <div class="error-icon">
         <i class="pi pi-exclamation-triangle"></i>
       </div>
-      
+
       <h3>Atención</h3>
       <p>{{ errorMessage }}</p>
 
-      <button type="button" class="btn-error-close" (click)="closeErrorModal()">
-        Entendido
-      </button>
+      <button type="button" class="btn-error-close" (click)="closeErrorModal()">Entendido</button>
     </div>
   </div>
 }
@@ -216,42 +232,44 @@
         <div class="modal-body">
           <div class="form-field">
             <label for="new_ton">Toneladas Recogidas <span class="req">*</span></label>
-            <input 
-              type="number" 
-              id="new_ton" 
-              [(ngModel)]="nuevoViaje.tonRecogidas" 
-              name="new_ton" 
-              step="0.01" 
-              min="0" 
-              required 
+            <input
+              type="number"
+              id="new_ton"
+              [(ngModel)]="nuevoViaje.tonRecogidas"
+              name="new_ton"
+              step="0.01"
+              min="0"
+              required
             />
           </div>
 
           <div class="form-field">
             <label for="new_dir">Dirección de Llenado <span class="req">*</span></label>
-            <input 
-              type="text" 
-              id="new_dir" 
-              [(ngModel)]="nuevoViaje.direccionDelLlenado" 
-              name="new_dir" 
-              placeholder="Ej: Sector El Milagro" 
-              required 
+            <input
+              type="text"
+              id="new_dir"
+              [(ngModel)]="nuevoViaje.direccionDelLlenado"
+              name="new_dir"
+              placeholder="Ej: Sector El Milagro"
+              required
             />
           </div>
 
           <div class="form-field">
             <label for="new_desc">Descripción / Observaciones</label>
-            <textarea 
-              id="new_desc" 
-              [(ngModel)]="nuevoViaje.descripcion" 
-              name="new_desc" 
+            <textarea
+              id="new_desc"
+              [(ngModel)]="nuevoViaje.descripcion"
+              name="new_desc"
               rows="3"
             ></textarea>
           </div>
         </div>
 
         <footer class="modal-footer">
-          <button type="button" class="btn-cancel" (click)="cerrarModalNuevoViaje()">Cancelar</button>
+          <button type="button" class="btn-cancel" (click)="cerrarModalNuevoViaje()">
+            Cancelar
+          </button>
           <button type="submit" class="btn-submit" [disabled]="!newTripForm.valid || isSavingTrip">
             <i class="pi pi-check"></i>
             Guardar Viaje
