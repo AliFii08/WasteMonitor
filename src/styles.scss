@@ -77,3 +77,351 @@ body {
   color: currentColor !important;
   opacity: 1 !important;
 }
+
+/* Shared visual language for application dialogs (not the notification popover). */
+.modal-backdrop:not(.error-backdrop) > :is(.modal-panel, .modal-container, .confirm-modal) {
+  box-sizing: border-box;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  color: #283127;
+  background: #fff;
+  border: 1px solid #dce8dd;
+  border-radius: 12px;
+  box-shadow: 0 24px 60px rgba(0, 54, 40, 0.24);
+  font-family: 'Raleway', sans-serif;
+  font-size: 16px !important;
+}
+
+.modal-backdrop:not(.error-backdrop) :is(.modal-panel, .modal-container) > .modal-header,
+.modal-backdrop:not(.error-backdrop) > .modal-panel > .modal-header {
+  color: #06523f;
+  background: #e2f0e8;
+  border-color: #b8d9c4;
+}
+
+.modal-backdrop:not(.error-backdrop) :is(.modal-panel, .modal-container) .modal-title {
+  color: #06523f;
+}
+
+.modal-backdrop:not(.error-backdrop) :is(.modal-panel, .modal-container) .close-btn {
+  color: #06523f;
+}
+
+.modal-backdrop:not(.error-backdrop) :is(.modal-panel, .modal-container) .close-btn:hover {
+  background: #cce6d4;
+}
+
+.modal-backdrop:not(.error-backdrop) :is(.modal-panel, .modal-container, .confirm-modal)
+  :is(label, p, small, span, li, button, input, select, textarea, legend) {
+  font-size: max(15px, 1em) !important;
+  line-height: 1.45;
+}
+
+.modal-backdrop:not(.error-backdrop) :is(.modal-panel, .modal-container) .modal-footer {
+  border-color: #e2e9e2;
+}
+
+.modal-backdrop:not(.error-backdrop) :is(.modal-panel, .modal-container) .btn-cancel,
+.modal-backdrop:not(.error-backdrop) > .confirm-modal .btn-cancel {
+  color: #174c39;
+  background: #e8f1e9;
+}
+
+.modal-backdrop:not(.error-backdrop) :is(.modal-panel, .modal-container, .confirm-modal)
+  :is(.btn-cancel, .btn-danger, .btn-primary, .btn-close, button) {
+  min-height: 42px;
+  border-radius: 6px;
+  font-family: 'Raleway', sans-serif;
+  font-weight: 700;
+}
+
+.modal-backdrop:not(.error-backdrop) :is(.modal-panel, .modal-container, .confirm-modal)
+  :is(.modal-footer, .confirm-actions) button,
+.p-dialog :is(.actions, .p-dialog-footer, .flex.justify-content-end) .p-button {
+  box-sizing: border-box;
+  min-height: 44px !important;
+  padding: 9px 16px !important;
+  color: #485246 !important;
+  background: #eef1eb !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+  font: 700 15px/1.35 'Raleway', sans-serif !important;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.modal-backdrop:not(.error-backdrop) :is(.modal-panel, .modal-container, .confirm-modal)
+  :is(.modal-footer, .confirm-actions) :is(.btn-submit, .btn-danger, .btn-confirm-danger, .btn-primary, button[type='submit']),
+.p-dialog :is(.actions, .p-dialog-footer, .flex.justify-content-end) .p-button:last-child {
+  color: #fff !important;
+  background: #24704d !important;
+  border-color: #24704d !important;
+}
+
+.modal-backdrop:not(.error-backdrop) :is(.modal-panel, .modal-container, .confirm-modal)
+  :is(.modal-footer, .confirm-actions) :is(.btn-submit, .btn-danger, .btn-confirm-danger, .btn-primary, button[type='submit']):hover:not(:disabled),
+.p-dialog :is(.actions, .p-dialog-footer, .flex.justify-content-end) .p-button:last-child:hover:not(:disabled) {
+  color: #fff !important;
+  background: #185a3d !important;
+  border-color: #185a3d !important;
+}
+
+.modal-backdrop:not(.error-backdrop) :is(.modal-panel, .modal-container, .confirm-modal)
+  :is(.modal-footer, .confirm-actions) button:hover:not(:disabled),
+.p-dialog :is(.actions, .p-dialog-footer, .flex.justify-content-end) .p-button:not(:last-child):hover:not(:disabled) {
+  color: #174c39 !important;
+  background: #dfe7dd !important;
+}
+
+.modal-backdrop:not(.error-backdrop) :is(.modal-footer, .confirm-actions) button:disabled,
+.p-dialog .p-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.modal-backdrop .error-panel {
+  box-sizing: border-box;
+  max-width: min(400px, calc(100vw - 32px));
+  color: #283127;
+  background: #fff;
+  border: 1px solid #dce8dd;
+  border-radius: 12px;
+  box-shadow: 0 24px 60px rgba(0, 54, 40, 0.24);
+  font-family: 'Raleway', sans-serif;
+}
+
+.modal-backdrop .error-panel .error-icon {
+  color: #06523f;
+  background: #e2f0e8;
+}
+
+.modal-backdrop .error-panel :is(h3, p, button) {
+  font-family: 'Raleway', sans-serif;
+  font-size: max(16px, 1em) !important;
+  line-height: 1.45;
+}
+
+.modal-backdrop .error-panel h3 {
+  color: #06523f;
+}
+
+.modal-backdrop .error-panel .btn-error-close {
+  min-height: 44px;
+  color: #fff;
+  background: #24704d;
+  border-radius: 6px;
+}
+
+.modal-backdrop .error-panel .btn-error-close:hover {
+  background: #185a3d;
+}
+
+/* Retain the dedicated yellow and red themes while making their copy readable. */
+:is(.broadcast-modal, .emergency-modal)
+  :is(label, p, small, span, li, button, input, select, textarea, legend) {
+  font-size: max(15px, 1em) !important;
+  line-height: 1.45;
+}
+
+:is(.broadcast-modal, .emergency-modal)
+  :is(.field-label, .mode-option, .role-option, .audience-hint, .recipient-heading,
+    .recipient-option, .empty-recipients, .loading-message, .feedback, .kind-label,
+    .reported-by, .status-pill, .alert-description, .event-list, .error-message,
+    .empty-state, .primary-action, .secondary-action) {
+  font-size: max(15px, 1em) !important;
+}
+
+.broadcast-footer button,
+.emergency-modal :is(.primary-action, .secondary-action) {
+  box-sizing: border-box;
+  min-height: 44px !important;
+  padding: 9px 16px !important;
+  border-radius: 6px !important;
+  font: 700 15px/1.35 'Raleway', sans-serif !important;
+}
+
+.broadcast-footer .cancel-action,
+.emergency-modal .secondary-action {
+  color: #485246 !important;
+  background: #eef1eb !important;
+  border: 0 !important;
+}
+
+.broadcast-footer .cancel-action:hover,
+.emergency-modal .secondary-action:hover {
+  color: #174c39 !important;
+  background: #dfe7dd !important;
+}
+
+.broadcast-footer .send-action {
+  color: #fff !important;
+  background: #b38400 !important;
+}
+
+.broadcast-footer .send-action:hover:not(:disabled) {
+  background: #8b6700 !important;
+}
+
+.emergency-modal .primary-action {
+  color: #fff !important;
+  background: #b42318 !important;
+  border: 1px solid #b42318 !important;
+}
+
+.emergency-modal .primary-action:hover:not(:disabled) {
+  background: #921d15 !important;
+}
+
+/* PrimeNG dialogs used by the vehicles and complaints screens. */
+.p-dialog {
+  overflow: hidden;
+  color: #283127;
+  border: 1px solid #dce8dd;
+  border-radius: 12px;
+  box-shadow: 0 24px 60px rgba(0, 54, 40, 0.24);
+  font-family: 'Raleway', sans-serif;
+}
+
+.p-dialog .p-dialog-header {
+  color: #06523f;
+  background: #e2f0e8;
+  border-bottom: 1px solid #b8d9c4;
+  font-size: 18px;
+}
+
+.p-dialog :is(.p-dialog-content, .p-dialog-footer, label, input, textarea, select, button, small) {
+  font-family: 'Raleway', sans-serif;
+  font-size: 15px !important;
+  line-height: 1.45;
+}
+
+.p-dialog {
+  max-width: calc(100vw - 32px);
+}
+
+.p-dialog .p-dialog-content {
+  padding: 20px 24px !important;
+}
+
+.p-dialog :is(form.p-fluid, .flex.flex-column) {
+  display: grid !important;
+  gap: 16px !important;
+}
+
+.p-dialog .field {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 7px;
+  margin: 0 !important;
+}
+
+.p-dialog .field > label {
+  display: block !important;
+  margin: 0 !important;
+  color: #3e4a3f;
+  font-weight: 700;
+}
+
+.p-dialog .field :is(input, textarea, select, .p-select) {
+  box-sizing: border-box;
+  width: 100% !important;
+  min-height: 44px;
+  padding: 9px 12px;
+  color: #283127;
+  background: #fff;
+  border: 1px solid #cbd5cf;
+  border-radius: 6px;
+}
+
+.p-dialog .field textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.p-dialog .field .p-select {
+  padding: 0 12px;
+}
+
+.p-dialog .field-error,
+.p-dialog .p-error {
+  color: #a42118;
+  font-size: 14px !important;
+}
+
+.p-dialog .flex.justify-content-end {
+  display: flex !important;
+  justify-content: flex-end !important;
+  flex-wrap: wrap;
+  gap: 10px !important;
+  margin-top: 8px !important;
+}
+
+.p-dialog .p-dialog-footer .p-button,
+.p-dialog .flex.justify-content-end .p-button {
+  min-height: 42px;
+  padding: 9px 15px;
+  border-radius: 6px;
+}
+
+.p-dialog .p-dialog-footer {
+  border-top: 1px solid #e2e9e2;
+}
+
+.p-dialog .p-button:not(.p-button-text):not(.p-button-secondary) {
+  color: #fff;
+  background: #24704d;
+  border-color: #24704d;
+}
+
+.p-dialog .p-button:not(.p-button-text):not(.p-button-secondary):hover {
+  background: #185a3d;
+  border-color: #185a3d;
+}
+
+.p-paginator {
+  min-height: 68px;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 14px !important;
+  background: #f4faf6 !important;
+  border: 0 !important;
+  border-top: 1px solid #dbeae0 !important;
+  font-family: 'Raleway', sans-serif !important;
+}
+
+.p-paginator :is(.p-paginator-first, .p-paginator-prev, .p-paginator-page, .p-paginator-next, .p-paginator-last) {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  margin: 0;
+  padding: 0;
+  color: #648f7d !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  font: 600 15px/1 'Raleway', sans-serif !important;
+}
+
+.p-paginator :is(.p-paginator-first, .p-paginator-prev, .p-paginator-page, .p-paginator-next, .p-paginator-last):hover:not(:disabled) {
+  color: #06523f !important;
+  background: #e4f2e9 !important;
+}
+
+.p-paginator .p-paginator-page.p-highlight {
+  color: #06523f !important;
+  background: #e4f7eb !important;
+}
+
+.p-paginator :is(.p-paginator-first, .p-paginator-prev, .p-paginator-next, .p-paginator-last):disabled {
+  opacity: 0.45;
+}
+
+@media (max-width: 540px) {
+  .modal-backdrop:not(.error-backdrop) > :is(.modal-panel, .modal-container, .confirm-modal) {
+    max-height: calc(100dvh - 24px);
+  }
+}

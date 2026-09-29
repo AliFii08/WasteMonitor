@@ -21,7 +21,7 @@
             <td colspan="5" class="empty-state">Cargando operaciones...</td>
           </tr>
         } @else {
-          @for (item of historial; track item.id) {
+          @for (item of historialPaginado; track item.id) {
             <tr>
               <td class="col-fecha">{{ item.fechaHora }}</td>
               <td class="col-usuario">
@@ -47,4 +47,12 @@
       </tbody>
     </table>
   </div>
+  @if (!cargando && historial.length > 0) {
+    <app-table-pagination
+      [totalItems]="historial.length"
+      [page]="paginaActual"
+      [pageSize]="tamanoPagina"
+      (pageChange)="paginaActual = $event">
+    </app-table-pagination>
+  }
 </div>

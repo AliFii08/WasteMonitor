@@ -1,6 +1,6 @@
 <div class="home-container">
   <!-- Card Flotante de Información para el Usuario -->
-  <div class="info-card" *ngIf="!loading" [class.is-collapsed]="infoCardCollapsed">
+  <div class="info-card" *ngIf="userRole === 'user' && !loading" [class.is-collapsed]="infoCardCollapsed">
     <div class="info-card-content">
       <div class="card-header">
         <i class="pi pi-map-marker icon-location"></i>
@@ -33,7 +33,7 @@
   </div>
 
   <!-- Indicador de Carga -->
-  <div class="loading-overlay" *ngIf="loading">
+  <div class="loading-overlay" *ngIf="userRole === 'user' && loading">
     <div class="spinner"></div>
     <p>Localizando tu vivienda y trazando ruta cercana...</p>
   </div>

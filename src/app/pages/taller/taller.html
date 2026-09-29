@@ -60,9 +60,9 @@
         </thead>
 
         <tbody>
-          @for (item of registrosActivos; track item.idKey || $index) {
+          @for (item of registrosActivosPaginados; track item.idKey || $index) {
             @let i = getRealIndex(item);
-            <tr [class.hidden-row]="!tallerRowVisible[i]">
+            <tr>
               <td class="select-col">
                 <input
                   type="checkbox"
@@ -105,6 +105,12 @@
         </tbody>
       </table>
     </div>
+    <app-table-pagination
+      [totalItems]="registrosActivosFiltrados.length"
+      [page]="tallerActivosPage"
+      [pageSize]="tallerPageSize"
+      (pageChange)="tallerActivosPage = $event">
+    </app-table-pagination>
   </section>
 
   <!-- DESPLEGABLE: VEHÍCULOS LISTOS / FINALIZADOS -->
@@ -136,9 +142,9 @@
             </thead>
 
             <tbody>
-              @for (item of registrosListos; track item.idKey || $index) {
+              @for (item of registrosListosPaginados; track item.idKey || $index) {
                 @let i = getRealIndex(item);
-                <tr [class.hidden-row]="!tallerRowVisible[i]">
+                <tr>
                   <td class="select-col">
                     <input
                       type="checkbox"
@@ -170,6 +176,12 @@
             </tbody>
           </table>
         </div>
+        <app-table-pagination
+          [totalItems]="registrosListosFiltrados.length"
+          [page]="tallerListosPage"
+          [pageSize]="tallerPageSize"
+          (pageChange)="tallerListosPage = $event">
+        </app-table-pagination>
       </div>
     </details>
   }
@@ -182,9 +194,9 @@
       <div class="confirm-icon danger">
         <i class="pi pi-exclamation-triangle"></i>
       </div>
-      
+
       <h2>¿Confirmar eliminación?</h2>
-      
+
       <p>
         @if (deleteMode === 'single') {
           ¿Estás seguro de que deseas retirar este vehículo del taller? El registro pasará a inactivo y la unidad quedará liberada.

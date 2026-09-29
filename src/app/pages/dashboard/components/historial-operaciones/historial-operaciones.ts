@@ -2,11 +2,12 @@ import { Component, inject, OnInit, OnDestroy, ChangeDetectorRef } from '@angula
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { DashboardService, OperacionHistorial } from '../../../../@core/services/dashboard.service';
+import { TablePagination } from '../../../../@core/components/table-pagination/table-pagination';
 
 @Component({
   selector: 'app-historial-operaciones',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TablePagination],
   templateUrl: './historial-operaciones.html',
   styleUrl: './historial-operaciones.scss',
 })
@@ -17,6 +18,13 @@ export class HistorialOperaciones implements OnInit, OnDestroy {
 
   historial: OperacionHistorial[] = [];
   cargando: boolean = true;
+  paginaActual = 0;
+  readonly tamanoPagina = 10;
+
+  get historialPaginado(): OperacionHistorial[] {
+    const inicio = this.paginaActual * this.tamanoPagina;
+    return this.historial.slice(inicio, inicio + this.tamanoPagina);
+  }
 
   ngOnInit(): void {
     this.subOps = this.dashboardService.obtenerOperacionesEnTiempoReal().subscribe({

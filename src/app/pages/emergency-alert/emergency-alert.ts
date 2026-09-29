@@ -34,7 +34,7 @@ export class EmergencyAlertComponent implements OnInit, OnDestroy {
   }
 
   get canReport(): boolean {
-    return ['supervisor', 'crew', 'conductor'].includes(this.role);
+    return this.role === 'supervisor';
   }
 
   get canManage(): boolean {

@@ -1,0 +1,150 @@
+@if (visible) {
+  <div class="broadcast-backdrop" (click)="close()">
+    <section
+      class="broadcast-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="broadcast-title"
+      (click)="$event.stopPropagation()">
+      <header class="broadcast-header">
+        <div class="broadcast-title">
+          <i class="pi pi-bell"></i>
+          <h2 id="broadcast-title">Enviar notificación</h2>
+        </div>
+        <button type="button" class="close-button" aria-label="Cerrar" (click)="close()">
+          <i class="pi pi-times"></i>
+        </button>
+      </header>
+
+      <form class="broadcast-content" (ngSubmit)="send()">
+        @if (loading) {
+          <p class="loading-message">Cargando usuarios y destinos...</p>
+        }
+
+        <label class="field-label">
+          Título
+          <input name="title" [(ngModel)]="title" required maxlength="90" placeholder="Ej. Recolección suspendida hoy">
+        </label>
+        <label class="field-label">
+          Mensaje
+          <textarea name="message" [(ngModel)]="message" required maxlength="700" rows="3" placeholder="Indica qué ocurrió, a quién afecta y cuándo habrá una actualización"></textarea>
+        </label>
+
+        <fieldset class="audience-fieldset">
+          <legend>Destinatarios</legend>
+          <div class="audience-modes">
+            @for (option of [
+              { id: 'roles', label: 'Por rol' },
+              { id: 'truck', label: 'Por camión' },
+              { id: 'sector', label: 'Por sector' },
+              { id: 'route', label: 'Por ruta' },
+              { id: 'all', label: 'Todos' }
+            ]; track option.id) {
+              <label class="mode-option" [class.active]="audienceMode === option.id">
+                <input
+                  type="radio"
+                  name="audienceMode"
+                  [value]="$any(option.id)"
+                  [(ngModel)]="audienceMode"
+                  (ngModelChange)="onAudienceChange()">
+                {{ option.label }}
+              </label>
+            }
+          </div>
+
+          @if (audienceMode === 'roles') {
+            <div class="role-options">
+              @for (role of roleOptions; track role.id) {
+                <label class="role-option">
+                  <input
+                    type="checkbox"
+                    [name]="'role-' + role.id"
+                    [checked]="selectedRoles.includes(role.id)"
+                    (change)="toggleRole(role.id, $any($event.target).checked)">
+                  {{ role.label }}
+                </label>
+              }
+            </div>
+          }
+
+          @if (audienceMode === 'truck') {
+            <label class="field-label destination-field">
+              Camión
+              <select name="selectedTruckId" [(ngModel)]="selectedTruckId" (ngModelChange)="onAudienceChange()">
+                <option value="">Selecciona un camión</option>
+                @for (truck of trucks; track truck.id) {
+                  <option [value]="truck.id">{{ truck.label }}{{ truck.route ? ' · ' + truck.route : '' }}</option>
+                }
+              </select>
+            </label>
+          }
+
+          @if (audienceMode === 'sector') {
+            <label class="field-label destination-field">
+              Sector
+              <select name="selectedSector" [(ngModel)]="selectedSector" (ngModelChange)="onAudienceChange()">
+                <option value="">Selecciona un sector</option>
+                @for (sector of sectors; track sector) {
+                  <option [value]="sector.id">{{ sector.label }}</option>
+                }
+              </select>
+            </label>
+          }
+
+          @if (audienceMode === 'route') {
+            <label class="field-label destination-field">
+              Ruta
+              <select name="selectedRouteId" [(ngModel)]="selectedRouteId" (ngModelChange)="onAudienceChange()">
+                <option value="">Selecciona una ruta</option>
+                @for (route of routes; track route.id) {
+                  <option [value]="route.id">{{ route.label }}</option>
+                }
+              </select>
+            </label>
+            <p class="audience-hint">Incluye equipo asignado y usuarios cuya ubicación registrada está más cerca de esta ruta.</p>
+          }
+
+          <div class="recipient-heading">
+            <span>{{ selectedCount }} de {{ candidates.length }} destinatarios</span>
+            <div>
+              <button type="button" (click)="selectAllCandidates()">Todos</button>
+              <button type="button" (click)="clearCandidates()">Ninguno</button>
+            </div>
+          </div>
+
+          @if (!loading && candidates.length === 0) {
+            <p class="empty-recipients">No hay destinatarios para esta selección.</p>
+          } @else {
+            <div class="recipient-list">
+              @for (person of candidates; track person.uid) {
+                <label class="recipient-option">
+                  <input
+                    type="checkbox"
+                    [checked]="isSelected(person.uid)"
+                    (change)="togglePerson(person.uid, $any($event.target).checked)">
+                  <span>{{ person.name }}</span>
+                  <small>{{ roleLabel(person.role) }}{{ person.truckId ? ' · ' + person.truckId : '' }}</small>
+                </label>
+              }
+            </div>
+          }
+        </fieldset>
+
+        @if (errorMessage) {
+          <p class="feedback error" role="alert">{{ errorMessage }}</p>
+        }
+        @if (successMessage) {
+          <p class="feedback success" role="status">{{ successMessage }}</p>
+        }
+
+        <footer class="broadcast-footer">
+          <button type="button" class="cancel-action" (click)="close()">Cerrar</button>
+          <button type="submit" class="send-action" [disabled]="!canSend">
+            <i class="pi pi-send"></i>
+            {{ sending ? 'Enviando...' : 'Enviar notificación' }}
+          </button>
+        </footer>
+      </form>
+    </section>
+  </div>
+}

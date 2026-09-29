@@ -13,18 +13,18 @@ export class NotificationService {
   private db = inject(Database);
     private auth = inject(Auth);
     private ngZone = inject(NgZone);
-  
+
     // 🔹 La URL centralizada apuntando al endpoint de notificaciones
     private readonly API_NOTIFICACIONES = `${environment.firebaseConfig.databaseURL}/notificaciones.json`;
-  
+
     private notificationsSubject = new BehaviorSubject<NotificacionItem[]>([]);
     public notifications$: Observable<NotificacionItem[]> = this.notificationsSubject.asObservable();
-  
+
     private unreadCountSubject = new BehaviorSubject<number>(0);
     public unreadCount$: Observable<number> = this.unreadCountSubject.asObservable();
-  
+
     private unsubscribeListener: any = null;
-  
+
     constructor() {
       this.authSubscription();
     }
@@ -33,7 +33,7 @@ export class NotificationService {
     user(this.auth).subscribe(async (currentUser) => {
       if (currentUser) {
         const userRole = await this.obtenerRolDesdeBD(currentUser.uid);
-        this.iniciarEscuchaTiempoReal(userRole);
+        this.iniciarEscuchaTiempoReal(userRole, currentUser.uid);
       } else {
         this.limpiarEscucha();
       }
@@ -52,7 +52,7 @@ export class NotificationService {
     }
   }
 
-  private iniciarEscuchaTiempoReal(userRole: string): void {
+  private iniciarEscuchaTiempoReal(userRole: string, userId: string): void {
     this.limpiarEscucha();
     const notifRef = ref(this.db, 'notificaciones');
 
@@ -65,18 +65,26 @@ export class NotificationService {
         Object.keys(data).forEach((key) => {
           const item = data[key];
           const target = item.rolDestino;
+          const userTarget = item.uidDestino;
 
           let esVisible = false;
 
-          if (!target || target === 'todos') {
+          if (userTarget) {
+            const targetIds = Array.isArray(userTarget)
+              ? userTarget.map(String)
+              : typeof userTarget === 'object'
+                ? Object.values(userTarget).map(String)
+                : [String(userTarget)];
+            esVisible = targetIds.includes(userId);
+          } else if (!target || target === 'todos') {
             esVisible = true;
           } else if (Array.isArray(target)) {
             esVisible = target.includes(userRole) || userRole === 'admin';
           } else {
             const targetClean = target.toString().trim().toLowerCase();
-            esVisible = 
-              targetClean === userRole || 
-              userRole === 'admin' || 
+            esVisible =
+              targetClean === userRole ||
+              userRole === 'admin' ||
               userRole === 'supervisor';
           }
 
@@ -141,9 +149,9 @@ export class NotificationService {
      * Crear notificación vía REST usando la URL del environment
      */
     async crearNotificacion(
-      titulo: string, 
-      mensaje: string, 
-      tipo: string = 'info', 
+      titulo: string,
+      mensaje: string,
+      tipo: string = 'info',
       rolDestino: string = 'todos'
     ): Promise<void> {
       try {
@@ -155,16 +163,46 @@ export class NotificationService {
           timestamp: Date.now(),
           rolDestino
         };
-  
+
         await fetch(this.API_NOTIFICACIONES, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body)
         });
-  
+
         console.log('✅ Notificación guardada en Firebase por REST exitosamente');
       } catch (error) {
         console.error('❌ Error al enviar notificación:', error);
       }
+    }
+
+    async crearNotificacionParaUsuarios(
+      titulo: string,
+      mensaje: string,
+      userIds: string[],
+    ): Promise<void> {
+      const uniqueUserIds = [...new Set(userIds.filter(Boolean))];
+      if (uniqueUserIds.length === 0) throw new Error('Selecciona al menos un destinatario.');
+
+      const timestamp = Date.now();
+      const updates: Record<string, unknown> = {};
+
+      for (const userId of uniqueUserIds) {
+        const notificationRef = push(ref(this.db, 'notificaciones'));
+        if (!notificationRef.key) continue;
+
+        updates[`notificaciones/${notificationRef.key}`] = {
+          titulo,
+          mensaje,
+          tipo: 'info',
+          leida: false,
+          timestamp,
+          rolDestino: 'destinatario',
+          uidDestino: userId,
+        };
+      }
+
+      if (Object.keys(updates).length === 0) throw new Error('No se pudieron crear las notificaciones.');
+      await update(ref(this.db), updates);
     }
 }

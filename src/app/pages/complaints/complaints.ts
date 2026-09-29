@@ -17,6 +17,7 @@ import { CreateComplaints } from './components/create-complaints/create-complain
 import { ViewComplaints } from './components/view-complaints/view-complaints';
 import { UpdateComplaints } from './components/update-complaints/update-complaints';
 import { FormsModule } from '@angular/forms';
+import { TablePagination } from '../../@core/components/table-pagination/table-pagination';
 
 @Component({
   selector: 'app-complaints',
@@ -30,6 +31,7 @@ import { FormsModule } from '@angular/forms';
     CreateComplaints,
     ViewComplaints,
     UpdateComplaints,
+    TablePagination,
   ],
   templateUrl: './complaints.html',
   styleUrl: './complaints.scss',
@@ -56,6 +58,18 @@ export class Complaints implements OnInit {
         (q.descripcion && q.descripcion.toLowerCase().includes(texto)),
     );
   });
+
+  paginaQuejas = signal(0);
+  readonly tamanoPaginaQuejas = 10;
+  quejasPaginadas = computed(() => {
+    const inicio = this.paginaQuejas() * this.tamanoPaginaQuejas;
+    return this.quejasFiltradas().slice(inicio, inicio + this.tamanoPaginaQuejas);
+  });
+
+  cambiarFiltroTexto(texto: string): void {
+    this.filtroTexto.set(texto);
+    this.paginaQuejas.set(0);
+  }
 
   esAdmin = computed(() => {
     const user = this.userService.currentUserSignal();

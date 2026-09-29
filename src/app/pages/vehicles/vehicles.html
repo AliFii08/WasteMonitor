@@ -12,11 +12,12 @@
           placeholder="Buscar vehículo, placa o ruta..."
           class="search-input"
           [(ngModel)]="searchTerm"
+          (ngModelChange)="vehiclePage = 0"
         />
         <i class="pi pi-search"></i>
       </span>
 
-      <select [(ngModel)]="selectedVehicleType" class="filter-select">
+      <select [(ngModel)]="selectedVehicleType" (ngModelChange)="vehiclePage = 0" class="filter-select">
         <option value="">Filtrar por tipo</option>
         @for (vehicleType of vehicleTypes; track vehicleType) {
           <option [value]="vehicleType">{{ vehicleType | titlecase }}</option>
@@ -67,7 +68,7 @@
         </thead>
 
         <tbody>
-          @for (vehicle of filteredVehicles; track vehicle.id || $index) {
+          @for (vehicle of paginatedVehicles; track vehicle.id || $index) {
             <tr>
               <td class="select-col">
                 <input
@@ -123,6 +124,12 @@
         </tbody>
       </table>
     </div>
+    <app-table-pagination
+      [totalItems]="filteredVehicles.length"
+      [page]="vehiclePage"
+      [pageSize]="vehiclePageSize"
+      (pageChange)="vehiclePage = $event">
+    </app-table-pagination>
   </section>
 </div>
 

@@ -7,12 +7,13 @@ import { UpdateVehicleTaller } from './components/update-vehicle-taller/update-v
 import { DashboardService } from '../../@core/services/dashboard.service';
 import { UserService } from '../../@core/services/user.service';
 import { NotificationService } from '../../@core/services/notification.service';
+import { TablePagination } from '../../@core/components/table-pagination/table-pagination';
 
 
 @Component({
   selector: 'app-taller',
   standalone: true,
-  imports: [CommonModule, FormsModule, CreateVehicleTaller, UpdateVehicleTaller],
+  imports: [CommonModule, FormsModule, CreateVehicleTaller, UpdateVehicleTaller, TablePagination],
   templateUrl: './taller.html',
   styleUrl: './taller.scss',
 })
@@ -31,6 +32,9 @@ export class Taller implements OnInit {
   selectedTallerRows: boolean[] = [];
 
   tallerSearchTerm = '';
+  tallerActivosPage = 0;
+  tallerListosPage = 0;
+  readonly tallerPageSize = 10;
   allTallerSelected = false;
   loading = false;
   desplegableListosAbierto = false;
@@ -71,7 +75,27 @@ export class Taller implements OnInit {
     return this.tallerList.filter((item) => item.estado === 'listo');
   }
 
+  get registrosActivosFiltrados(): TallerRegistro[] {
+    return this.registrosActivos.filter((item) => this.tallerRowVisible[this.getRealIndex(item)]);
+  }
+
+  get registrosActivosPaginados(): TallerRegistro[] {
+    const start = this.tallerActivosPage * this.tallerPageSize;
+    return this.registrosActivosFiltrados.slice(start, start + this.tallerPageSize);
+  }
+
+  get registrosListosFiltrados(): TallerRegistro[] {
+    return this.registrosListos.filter((item) => this.tallerRowVisible[this.getRealIndex(item)]);
+  }
+
+  get registrosListosPaginados(): TallerRegistro[] {
+    const start = this.tallerListosPage * this.tallerPageSize;
+    return this.registrosListosFiltrados.slice(start, start + this.tallerPageSize);
+  }
+
   onTallerSearchChange(): void {
+    this.tallerActivosPage = 0;
+    this.tallerListosPage = 0;
     const term = this.tallerSearchTerm.toLowerCase().trim();
     if (!term) {
       this.tallerRowVisible = new Array(this.tallerList.length).fill(true);

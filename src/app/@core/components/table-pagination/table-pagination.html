@@ -1,0 +1,19 @@
+@if (totalItems > 0) {
+  <nav class="table-pagination" aria-label="Paginación de la tabla">
+    <button type="button" aria-label="Primera página" [disabled]="currentPage === 0" (click)="goToPage(0)">
+      <i class="pi pi-angle-double-left" aria-hidden="true"></i>
+    </button>
+    <button type="button" aria-label="Página anterior" [disabled]="currentPage === 0" (click)="goToPage(currentPage - 1)">
+      <i class="pi pi-angle-left" aria-hidden="true"></i>
+    </button>
+    <button type="button" class="current-page" aria-current="page" [attr.aria-label]="'Página ' + (currentPage + 1)">
+      {{ currentPage + 1 }}
+    </button>
+    <button type="button" aria-label="Página siguiente" [disabled]="currentPage >= totalPages - 1" (click)="goToPage(currentPage + 1)">
+      <i class="pi pi-angle-right" aria-hidden="true"></i>
+    </button>
+    <button type="button" aria-label="Última página" [disabled]="currentPage >= totalPages - 1" (click)="goToPage(totalPages - 1)">
+      <i class="pi pi-angle-double-right" aria-hidden="true"></i>
+    </button>
+  </nav>
+}

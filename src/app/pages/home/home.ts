@@ -40,6 +40,7 @@ export class Home implements AfterViewInit, OnDestroy {
   public userCoords: [number, number] | null = null;
   public routeDistanceKm: number | null = null;
   public loading: boolean = true;
+  public userRole: string | null = null;
   public infoCardCollapsed = false;
 
   // Capas del mapa Leaflet
@@ -94,6 +95,7 @@ export class Home implements AfterViewInit, OnDestroy {
 
     if (!currentUser || !currentUser.uid) {
       console.warn('No se encontró sesión activa');
+      this.userRole = null;
       this.loading = false;
       return;
     }
@@ -110,6 +112,7 @@ export class Home implements AfterViewInit, OnDestroy {
 
       const userData = snapshot.val();
       const userRole = userData.rol; // 'admin', 'user', 'supervisor', etc.
+      this.userRole = userRole ?? null;
       const address = userData.address;
 
       // 2. Posicionar el pin de la vivienda del usuario si posee coordenadas
@@ -127,10 +130,10 @@ export class Home implements AfterViewInit, OnDestroy {
       if (userRole === 'admin') {
         console.log('👑 Rol de Admin detectado: renderizando todas las rutas.');
         await this.drawAllRoutes();
-      } else if (this.userCoords) {
+      } else if (userRole === 'user' && this.userCoords) {
         console.log('👤 Rol estándar detectado: calculando ruta más cercana.');
         await this.findAndDrawNearestRoute(this.userCoords);
-      } else {
+      } else if (userRole === 'user') {
         console.warn('Usuario estándar sin coordenadas válidas para buscar rutas.');
       }
 

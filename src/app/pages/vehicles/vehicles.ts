@@ -6,6 +6,7 @@ import { CreateVehicleComponent, RouteOption } from './components/create-vehicle
 import { UpdateVehicleComponent } from './components/update-vehicle/update-vehicle';
 import { RoutesService } from '../../@core/services/routes.service';
 import { VehiculoService } from '../../@core/services/vehiculos.service';
+import { TablePagination } from '../../@core/components/table-pagination/table-pagination';
 
 @Component({
   selector: 'app-vehicles',
@@ -15,6 +16,7 @@ import { VehiculoService } from '../../@core/services/vehiculos.service';
     FormsModule,
     CreateVehicleComponent,
     UpdateVehicleComponent,
+    TablePagination,
   ],
   templateUrl: './vehicles.html',
   styleUrls: ['./vehicles.scss'],
@@ -34,6 +36,8 @@ export class Vehicles implements OnInit {
   vehicleTypes = [...VEHICLE_TYPES];
   selectedVehicleType: VehicleType | '' = '';
   searchTerm: string = '';
+  vehiclePage = 0;
+  readonly vehiclePageSize = 10;
   allVehiclesSelected = false;
 
   availableRoutes: RouteOption[] = [];
@@ -58,6 +62,13 @@ export class Vehicles implements OnInit {
 
       return matchType && matchSearch;
     });
+  }
+
+  get paginatedVehicles(): Vehicle[] {
+    return this.filteredVehicles.slice(
+      this.vehiclePage * this.vehiclePageSize,
+      (this.vehiclePage + 1) * this.vehiclePageSize,
+    );
   }
 
   async ngOnInit(): Promise<void> {

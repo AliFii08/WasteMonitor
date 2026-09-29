@@ -10,6 +10,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { RoutesService, RouteData, RoutePoint } from '../../@core/services/routes.service';
 import { MapaComponent, PointWithLabel } from './mapa.component';
+import { TablePagination } from '../../@core/components/table-pagination/table-pagination';
 
 export interface DisplayPoint {
   index: number;
@@ -22,7 +23,7 @@ export interface DisplayPoint {
 @Component({
   selector: 'app-route-drivers',
   standalone: true,
-  imports: [CommonModule, MapaComponent],
+  imports: [CommonModule, MapaComponent, TablePagination],
   templateUrl: './route-drivers.html',
   styleUrl: './route-drivers.scss',
 })
@@ -39,6 +40,12 @@ export class RouteDrivers implements AfterViewInit, OnDestroy {
   awaitingLocalPoint = signal<boolean>(false);
   isSelectingFromMap = signal<boolean>(false);
   editingPointKey = signal<string | null>(null);
+  routePointsPage = signal(0);
+  readonly routePointsPageSize = 10;
+  paginatedRoutePoints = computed(() => {
+    const start = this.routePointsPage() * this.routePointsPageSize;
+    return this.currentPoints().slice(start, start + this.routePointsPageSize);
+  });
   editLat = signal<string>('');
   editLng = signal<string>('');
 
@@ -176,6 +183,7 @@ export class RouteDrivers implements AfterViewInit, OnDestroy {
   async onRouteSelect(event: Event): Promise<void> {
     const routeId = (event.target as HTMLSelectElement).value;
     this.selectedRouteId.set(routeId);
+    this.routePointsPage.set(0);
 
     this.isBuildingLocalRoute.set(false);
     this.localRoutePoints.set([]);
@@ -210,6 +218,7 @@ export class RouteDrivers implements AfterViewInit, OnDestroy {
   // Método para limpiar campos al iniciar la creación local:
   createLocalRoute(): void {
     this.isBuildingLocalRoute.set(true);
+    this.routePointsPage.set(0);
     this.localRoutePoints.set([]);
     this.awaitingLocalPoint.set(false);
     this.selectedRouteId.set('');

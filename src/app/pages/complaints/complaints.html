@@ -13,7 +13,7 @@
           class="search-input"
           placeholder="Buscar problemática..."
           [ngModel]="filtroTexto()"
-          (ngModelChange)="filtroTexto.set($event)"
+          (ngModelChange)="cambiarFiltroTexto($event)"
         />
         <i class="pi pi-search"></i>
       </div>
@@ -39,7 +39,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (queja of quejasFiltradas(); track queja.id) {
+          @for (queja of quejasPaginadas(); track queja.id) {
             <tr>
               <td><strong>{{ queja.asunto }}</strong></td>
               <td>{{ queja.descripcion }}</td>
@@ -59,7 +59,7 @@
                   >
                     <i class="pi pi-eye"></i>
                   </button>
-          
+
                   @if (esAdmin()) {
                     <button
                       type="button"
@@ -81,22 +81,28 @@
         </tbody>
       </table>
     </div>
+    <app-table-pagination
+      [totalItems]="quejasFiltradas().length"
+      [page]="paginaQuejas()"
+      [pageSize]="tamanoPaginaQuejas"
+      (pageChange)="paginaQuejas.set($event)">
+    </app-table-pagination>
   </section>
 </div>
 
 <!-- Modales -->
-<app-create-complaints 
-  [(visible)]="mostrarModalCrear" 
+<app-create-complaints
+  [(visible)]="mostrarModalCrear"
   (quejaCreada)="cargarQuejas()">
 </app-create-complaints>
 
-<app-view-complaints 
-  [(visible)]="mostrarModalVer" 
+<app-view-complaints
+  [(visible)]="mostrarModalVer"
   [queja]="quejaSeleccionada">
 </app-view-complaints>
 
-<app-update-complaints 
-  [(visible)]="mostrarModalEditar" 
-  [queja]="quejaSeleccionada" 
+<app-update-complaints
+  [(visible)]="mostrarModalEditar"
+  [queja]="quejaSeleccionada"
   (quejaActualizada)="cargarQuejas()">
 </app-update-complaints>

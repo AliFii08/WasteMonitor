@@ -6,6 +6,7 @@ import { CreateDriver } from './components/create-driver/create-driver';
 import { UpdateDriver } from './components/update-driver/update-driver';
 import { VehiculoService } from '../../@core/services/vehiculos.service';
 import { DeleteDriverModal } from './components/delete-driver-modal/delete-driver-modal';
+import { TablePagination } from '../../@core/components/table-pagination/table-pagination';
 
 @Component({
   selector: 'app-drivers',
@@ -15,7 +16,8 @@ import { DeleteDriverModal } from './components/delete-driver-modal/delete-drive
     FormsModule,
     CreateDriver,
     UpdateDriver,
-    DeleteDriverModal
+    DeleteDriverModal,
+    TablePagination,
 ],
   templateUrl: './drivers.html',
   styleUrl: './drivers.scss',
@@ -27,6 +29,8 @@ export class Drivers implements OnInit {
 
   driversList: ConductorTabla[] = [];
   driverSearchTerm = '';
+  driverPage = 0;
+  readonly driverPageSize = 10;
   selectedDriverRows: boolean[] = [];
   driverRowVisible: boolean[] = [];
   allDriversSelected = false;
@@ -59,12 +63,24 @@ export class Drivers implements OnInit {
     return this.selectedDriverRows.some((isSelected) => isSelected);
   }
 
+  get visibleDriverCount(): number {
+    return this.driverRowVisible.filter(Boolean).length;
+  }
+
+  get paginatedDrivers(): { driver: ConductorTabla; index: number }[] {
+    return this.driversList
+      .map((driver, index) => ({ driver, index }))
+      .filter((row) => this.driverRowVisible[row.index])
+      .slice(this.driverPage * this.driverPageSize, (this.driverPage + 1) * this.driverPageSize);
+  }
+
   openCreateModal(): void {
     this.isCreateModalOpen = true;
   }
 
   onDriverSearchChange(): void {
     const term = this.driverSearchTerm.trim().toLowerCase();
+    this.driverPage = 0;
 
     this.driverRowVisible = this.driversList.map((driver) => {
       const searchIndex = `${driver.driverId} ${driver.nombreCompleto} ${driver.cargo} ${driver.camionAsignado} ${driver.rutaAsignada}`.toLowerCase();

@@ -1,0 +1,51 @@
+:host {
+  display: block;
+}
+
+.table-pagination {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 68px;
+  padding: 8px 14px;
+  background: #f4faf6;
+  border-top: 1px solid #dbeae0;
+
+  button {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    color: #648f7d;
+    background: transparent;
+    border: 0;
+    border-radius: 6px;
+    font: 600 15px/1 'Raleway', sans-serif;
+    cursor: pointer;
+    transition: background-color 150ms ease, color 150ms ease;
+
+    &:hover:not(:disabled) {
+      color: #06523f;
+      background: #e4f2e9;
+    }
+
+    &:focus-visible {
+      outline: 2px solid #24704d;
+      outline-offset: 2px;
+    }
+
+    &:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    &.current-page {
+      color: #06523f;
+      background: #e4f7eb;
+    }
+  }
+}

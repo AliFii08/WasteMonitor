@@ -10,10 +10,11 @@ import { AuthService } from '../services/auth.service'; // Adjust the relative p
 import { NotificationPopover } from '../../pages/notification-popover/notification-popover';
 import { NotificationService } from '../services/notification.service';
 import { EmergencyAlertComponent } from '../../pages/emergency-alert/emergency-alert';
+import { GeneralNotificationComponent } from '../../pages/general-notification/general-notification';
 
 @Component({
   selector: 'app-layout',
-  imports: [RouterOutlet, RouterLink, CommonModule, ButtonModule, TooltipModule, NotificationPopover, EmergencyAlertComponent],
+  imports: [RouterOutlet, RouterLink, CommonModule, ButtonModule, TooltipModule, NotificationPopover, EmergencyAlertComponent, GeneralNotificationComponent],
   templateUrl: './layout.html',
   styleUrl: './layout.scss',
 })
@@ -26,6 +27,9 @@ export class Layout {
 
   showNotificationsPopover: boolean = false;
   showEmergencyModal = false;
+  showGeneralNotificationModal = false;
+  showLogoutConfirmation = false;
+  logoutConfirmationClosing = false;
   mobileMenuOpen = false;
 
   toggleMobileMenu(): void {
@@ -33,12 +37,14 @@ export class Layout {
     if (this.mobileMenuOpen) {
       this.showNotificationsPopover = false;
       this.showEmergencyModal = false;
+      this.showGeneralNotificationModal = false;
     }
   }
 
   closeMobileMenu(): void {
     this.mobileMenuOpen = false;
     this.showNotificationsPopover = false;
+    this.showGeneralNotificationModal = false;
   }
 
   toggleNotifications(): void {
@@ -47,13 +53,49 @@ export class Layout {
     }
 
       this.showNotificationsPopover = !this.showNotificationsPopover;
-      if (this.showNotificationsPopover) this.showEmergencyModal = false;
+      if (this.showNotificationsPopover) {
+        this.showEmergencyModal = false;
+        this.showGeneralNotificationModal = false;
+      }
     }
 
   openEmergencyModal(): void {
-    if (this.mobileMenuOpen) return;
+    if (this.mobileMenuOpen || !this.authService.hasRole(['admin', 'supervisor', 'mecanico'])) return;
     this.showNotificationsPopover = false;
     this.showEmergencyModal = true;
+    this.showGeneralNotificationModal = false;
+  }
+
+  openGeneralNotificationModal(): void {
+    if (this.mobileMenuOpen || !this.authService.hasRole(['admin'])) return;
+    this.showNotificationsPopover = false;
+    this.showEmergencyModal = false;
+    this.showGeneralNotificationModal = true;
+  }
+
+  requestLogout(): void {
+    this.closeMobileMenu();
+    this.logoutConfirmationClosing = false;
+    this.showLogoutConfirmation = true;
+  }
+
+  cancelLogout(): void {
+    this.closeLogoutConfirmation(false);
+  }
+
+  confirmLogout(): void {
+    this.closeLogoutConfirmation(true);
+  }
+
+  private closeLogoutConfirmation(logoutAfterClose: boolean): void {
+    if (!this.showLogoutConfirmation || this.logoutConfirmationClosing) return;
+
+    this.logoutConfirmationClosing = true;
+    setTimeout(() => {
+      this.showLogoutConfirmation = false;
+      this.logoutConfirmationClosing = false;
+      if (logoutAfterClose) void this.logout();
+    }, 180);
   }
 
   @HostListener('document:click', ['$event'])
@@ -62,6 +104,7 @@ export class Layout {
     if (target instanceof Element && !target.closest('.notification-btn-wrapper')) {
       this.showNotificationsPopover = false;
       this.showEmergencyModal = false;
+      this.showGeneralNotificationModal = false;
     }
   }
 

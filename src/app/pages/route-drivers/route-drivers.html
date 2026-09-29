@@ -54,7 +54,7 @@
         </thead>
         <tbody>
           <!-- Filas de puntos existentes -->
-          <tr *ngFor="let point of currentPoints(); let i = index; trackBy: trackByPointKey">
+          <tr *ngFor="let point of paginatedRoutePoints(); trackBy: trackByPointKey">
             @if (editingPointKey() !== point.key) {
             <!-- VISTA NORMAL -->
             <td class="point-number">
@@ -70,7 +70,7 @@
               <button type="button" class="btn-tbl-action edit" (click)="startEditing(point)" title="Editar punto">
                 <i class="pi pi-pencil"></i>
               </button>
-              <button type="button" class="btn-tbl-action delete" (click)="deletePoint(point, i)"
+              <button type="button" class="btn-tbl-action delete" (click)="deletePoint(point, point.index - 1)"
                 title="Eliminar punto">
                 <i class="pi pi-trash"></i>
               </button>
@@ -137,6 +137,12 @@
           </tr>
         </tbody>
       </table>
+      <app-table-pagination
+        [totalItems]="currentPoints().length"
+        [page]="routePointsPage()"
+        [pageSize]="routePointsPageSize"
+        (pageChange)="routePointsPage.set($event)">
+      </app-table-pagination>
     </div>
 
     <div class="footer-info">
