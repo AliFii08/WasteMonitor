@@ -1,40 +1,46 @@
 .logo img {
-  //innerWidth: 982px   innerHeight: 730px
-  display: flex;
-  position: fixed;
-  top: -55px;
-  left: 0;
-  margin-top: 0px;
-  margin-left: 0;
-  width: 1700px;
+  display: block;
+  width: 100%;
+  max-height: 100vh;
+  object-fit: contain;
 }
 
 .container {
   font-family: 'Raleway', sans-serif;
+  box-sizing: border-box;
   width: 45%;
-  height: 150vh;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100vh;
   position: fixed;
   top: 0;
   right: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  padding: clamp(24px, 4vw, 64px);
+  overflow-y: auto;
   background-color: #06523f;
 }
 
 h2 {
   font-family: 'Raleway', sans-serif;
-  font-size: 70px;
+  font-size: clamp(30px, 4vw, 56px);
   font-weight: 400;
   color: #fff;
-  margin-top: 110px;
-  margin-bottom: 110px;
+  text-align: center;
+  margin: 0 0 clamp(38px, 7vh, 82px);
+}
+
+form {
+  width: min(100%, 356px);
 }
 
 
 label {
   font-family: 'Raleway', sans-serif;
-  font-size: 30px;
+  font-size: clamp(18px, 1.8vw, 24px);
   font-weight: 500;
   color: #ffffff;
   display: block;
@@ -42,10 +48,9 @@ label {
 
 input {
   font-family: 'Raleway', sans-serif;
-  font-size: 25px;
-  padding: 28px;
-  width: 400px;
-  height: 60px;
+  width: 100%;
+  height: 54px;
+  padding: 0 20px;
   color: #000000;
   background-color: #ffffff;
   outline: none;
@@ -57,7 +62,7 @@ input {
   outline: none;
   background: #fff;
   color: #123f32;
-  font: 500 25px 'Raleway', sans-serif;
+  font: 500 clamp(16px, 1.5vw, 20px) 'Raleway', sans-serif;
   transition: border-color .2s ease, box-shadow .2s ease;
 }
 
@@ -131,15 +136,15 @@ i {
 
 button {
   font-family: 'Raleway', sans-serif;
-  font-size: 25px;
+  font-size: 18px;
   font-weight: 700;
   color: #fff;
   background-color: #68a357;
   border: none;
-  width: 250px;
-  height: 60px;
+  width: min(100%, 222px);
+  height: 54px;
   border-radius: 10px;
-  margin-top: 55px;
+  margin-top: 44px;
   transition: 0.5s;
 }
 
@@ -163,7 +168,7 @@ form>button[type="submit"] {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  font-size: 20px;
+  font-size: clamp(14px, 1.3vw, 17px);
 }
 
 .options a {
@@ -185,37 +190,38 @@ form>button[type="submit"] {
 small {
   font-family: 'Raleway', sans-serif;
   font-weight: 500;
-  font-size: 18px;
+  font-size: 14px;
   color: #ff0000;
   font-style: italic;
   position: absolute;
   top: calc(100% - 2px);
   margin-top: 5px;
   left: 8px;
-  white-space: nowrap;
+  white-space: normal;
   width: max-content;
-  max-width: none;
+  max-width: calc(100% - 16px);
 }
 
-/* En escritorio maximizado el panel debe ocupar solo el viewport visible. */
-@media (min-width: 1000px) {
-  .container {
-    height: 100vh;
-    min-height: 100vh;
-    overflow-y: auto;
-    justify-content: center;
-    align-content: center;
+@media (min-width: 768px) {
+  .logo {
+    position: fixed;
+    inset: 0 auto 0 0;
+    display: flex;
+    align-items: center;
+    width: 55%;
+    overflow: hidden;
+    background-color: #f1ffed;
   }
 
   .logo img {
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: auto;
+    height: 100%;
+    max-height: none;
+    object-fit: cover;
+    object-position: left center;
   }
 
-  .container h2 {
-    margin-top: 0;
+  .container {
+    width: 45%;
   }
 }
 

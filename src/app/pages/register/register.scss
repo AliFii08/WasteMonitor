@@ -1,4 +1,9 @@
 :host {
+  --register-panel-width: min(53.5vw, 820px);
+  --register-gutter-width: max(0px, calc((100vw - var(--register-panel-width)) / 2));
+  --register-brand-size: clamp(64px, 13.2vw, 180px);
+  --register-brand-half-size: clamp(24px, 4.4vw, 60px);
+  --register-brand-gap: clamp(12px, 1.5vw, 20px);
   display: block;
   min-height: 100vh;
   font-family: 'Raleway', sans-serif;
@@ -11,57 +16,77 @@
   pointer-events: none;
 }
 
+.fondo1,
+.fondo2 {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: var(--register-gutter-width);
+}
+
+.fondo1 {
+  left: 0;
+}
+
+.fondo2 {
+  right: 0;
+}
+
 .linea1,
 .linea2 {
-  position: fixed;
+  position: absolute;
   z-index: 0;
-  width: 27px;
-  height: 512px;
+  width: clamp(14px, 1.8vw, 27px);
+  height: clamp(180px, 60vh, 512px);
 }
 
 .linea1 {
   bottom: 0;
-  left: 330px;
+  left: 42%;
   background-color: #06523f;
 }
 
 .linea2 {
   top: 0;
-  right: 325px;
+  right: auto;
+  left: 50%;
   background-color: #68a357;
 }
 
 #waste {
-  z-index: 0;
+  z-index: 1;
   font-family: 'LoveloBlack', sans-serif;
-  font-size: 185px;
+  font-size: var(--register-brand-size);
+  line-height: 1;
+  white-space: nowrap;
   display: inline-block;
-  position: fixed;
-  top: 37%;
-  right: 1125px;
-  transform: rotate(-90deg);
+  position: absolute;
+  top: 50%;
+  left: calc(100% - var(--register-brand-half-size) - var(--register-brand-gap));
+  transform: translate(-50%, -50%) rotate(-90deg);
   font-weight: bold;
   color: #68a357;
 }
 
 #monitor {
   color: #003628;
-  z-index: 0;
+  z-index: 1;
   font-family: 'LoveloBlack', sans-serif;
-  font-size: 185PX;
+  font-size: clamp(64px, calc(21.23vh - 5px), 500px);
+  line-height: 1;
+  white-space: nowrap;
   font-weight: bold;
-  position: fixed;
+  position: absolute;
   top: 50%;
-  bottom: 50%;
-  left: 1130px;
-  transform: rotate(90deg);
+  left: calc(var(--register-brand-half-size) + var(--register-brand-gap));
+  transform: translate(-50%, -50%) rotate(90deg);
 }
 
 .container {
   box-sizing: border-box;
   position: relative;
   z-index: 1;
-  width: min(58%, 820px);
+  width: var(--register-panel-width);
   min-height: 100vh;
   margin: 0 auto;
   padding: 34px clamp(28px, 5vw, 72px) 60px;

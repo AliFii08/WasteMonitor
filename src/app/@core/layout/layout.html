@@ -25,27 +25,26 @@
     <p-button pTooltip="Horarios" class="mb-2 nav-link" label="Horarios" icon="pi pi-fw pi-calendar" routerLink="/home/schedules" (click)="closeMobileMenu()"></p-button>
 
     <!-- Se muestra solo si el usuario NO es un rol 'user' estándar -->
-    @if (authService.hasRole(['admin', 'supervisor', 'crew', 'conductor'])) {
-    <p-button pTooltip="Dashboard" class="mb-2 nav-link" label="Dashboard" icon="pi pi-cog" routerLink="/home/dashboard" (click)="closeMobileMenu()"></p-button>
+     @if (authService.hasRole(['admin'])) {
+      <p-button pTooltip="Dashboard" class="mb-2 nav-link" label="Dashboard" icon="pi pi-cog" routerLink="/home/dashboard" (click)="closeMobileMenu()"></p-button>
+      <p-button pTooltip="Rutas" class="mb-2 nav-link" label="Rutas" icon="pi pi-fw pi-map" routerLink="/home/routes" (click)="closeMobileMenu()"></p-button>
+      <p-button pTooltip="Vehículos" class="mb-2 nav-link" label="Vehículos" icon="pi pi-fw pi-truck" routerLink="/home/vehicles" (click)="closeMobileMenu()"></p-button>
+      <p-button pTooltip="Conductores" class="mb-2 nav-link" label="Conductores" icon="pi pi-fw pi-users" routerLink="/home/drivers" (click)="closeMobileMenu()"></p-button>
     }
 
-    @if (authService.hasRole(['admin', 'supervisor', 'crew', 'conductor'])) {
-  <p-button pTooltip="Conductores" class="mb-2 nav-link" label="Conductores" icon="pi pi-fw pi-users" routerLink="/home/drivers" (click)="closeMobileMenu()"></p-button>
-} <!-- <- Asegúrate de cerrar el bloque aquí -->
+    @if (authService.hasRole(['admin', 'supervisor', 'crew', 'conductor', 'mecanico'])) {
+      <p-button pTooltip="Usuarios" class="mb-2 nav-link" label="Usuarios" icon="pi pi-fw pi-user-edit" routerLink="/home/users" (click)="closeMobileMenu()"></p-button>
+    }
 
-@if (authService.hasRole(['admin', 'supervisor', 'crew', 'conductor'])) {
-  <p-button pTooltip="Vehículos" class="mb-2 nav-link" label="Vehículos" icon="pi pi-fw pi-truck" routerLink="/home/vehicles" (click)="closeMobileMenu()"></p-button>
-}
-  @if (authService.hasRole(['admin', 'supervisor', 'crew', 'conductor', 'mecanico'])) {
-    <p-button pTooltip="Taller" class="mb-2 nav-link" label="Taller" icon="pi pi-fw pi-wrench" [routerLink]="['/home/taller']" (click)="closeMobileMenu()"></p-button>
-  }
-     @if (authService.hasRole(['admin'])) {
-    <p-button pTooltip="Rutas" class="mb-2 nav-link" label="Rutas" icon="pi pi-fw pi-map" routerLink="/home/routes" (click)="closeMobileMenu()"></p-button>
-     }
-    <p-button pTooltip="Quejas" class="mb-2 nav-link" label="Quejas" icon="pi pi-fw pi-inbox" routerLink="/home/complaints" (click)="closeMobileMenu()"></p-button>
+    @if (authService.hasRole(['admin', 'mecanico', 'supervisor'])) {
+      <p-button pTooltip="Taller" class="mb-2 nav-link" label="Taller" icon="pi pi-fw pi-wrench" [routerLink]="['/home/taller']" (click)="closeMobileMenu()"></p-button>
+    }
+    @if (authService.hasRole(['admin'])) {
+      <p-button pTooltip="Quejas" class="mb-2 nav-link" label="Quejas" icon="pi pi-fw pi-inbox" routerLink="/home/complaints" (click)="closeMobileMenu()"></p-button>
+    }
 
     @if (authService.hasRole(['admin', 'supervisor'])) {
-    <p-button pTooltip="Informe de Jornada" class="mb-2 nav-link" label="Informe de Jornada" icon="pi pi-fw pi-file-edit" routerLink="/home/journey-report" (click)="closeMobileMenu()"></p-button>
+      <p-button pTooltip="Informe de Jornada" class="mb-2 nav-link" label="Informe de Jornada" icon="pi pi-fw pi-file-edit" routerLink="/home/journey-report" (click)="closeMobileMenu()"></p-button>
     }
   </div>
 
@@ -73,10 +72,28 @@
     </ng-template>
   </p-button>
 
+  @if (authService.hasRole(['admin', 'supervisor', 'crew', 'conductor', 'mecanico'])) {
+    <button
+      type="button"
+      class="emergency-trigger"
+      title="Emergencias"
+      aria-label="Abrir emergencias"
+      (click)="openEmergencyModal()">
+      <i class="pi pi-bell"></i>
+    </button>
+  }
+
   <app-notification-popover
     [visible]="showNotificationsPopover"
     (visibleChange)="showNotificationsPopover = $event">
   </app-notification-popover>
+
+  @if (authService.hasRole(['admin', 'supervisor', 'crew', 'conductor', 'mecanico'])) {
+    <app-emergency-alert
+      [visible]="showEmergencyModal"
+      (visibleChange)="showEmergencyModal = $event">
+    </app-emergency-alert>
+  }
 </div>
 
 <div class="content">

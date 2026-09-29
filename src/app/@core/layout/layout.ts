@@ -9,10 +9,11 @@ import { AuthService } from '../services/auth.service'; // Adjust the relative p
 
 import { NotificationPopover } from '../../pages/notification-popover/notification-popover';
 import { NotificationService } from '../services/notification.service';
+import { EmergencyAlertComponent } from '../../pages/emergency-alert/emergency-alert';
 
 @Component({
   selector: 'app-layout',
-  imports: [RouterOutlet, RouterLink, CommonModule, ButtonModule, TooltipModule, NotificationPopover],
+  imports: [RouterOutlet, RouterLink, CommonModule, ButtonModule, TooltipModule, NotificationPopover, EmergencyAlertComponent],
   templateUrl: './layout.html',
   styleUrl: './layout.scss',
 })
@@ -24,12 +25,14 @@ export class Layout {
   public notificationService = inject(NotificationService);
 
   showNotificationsPopover: boolean = false;
+  showEmergencyModal = false;
   mobileMenuOpen = false;
 
   toggleMobileMenu(): void {
     this.mobileMenuOpen = !this.mobileMenuOpen;
     if (this.mobileMenuOpen) {
       this.showNotificationsPopover = false;
+      this.showEmergencyModal = false;
     }
   }
 
@@ -44,13 +47,21 @@ export class Layout {
     }
 
       this.showNotificationsPopover = !this.showNotificationsPopover;
+      if (this.showNotificationsPopover) this.showEmergencyModal = false;
     }
+
+  openEmergencyModal(): void {
+    if (this.mobileMenuOpen) return;
+    this.showNotificationsPopover = false;
+    this.showEmergencyModal = true;
+  }
 
   @HostListener('document:click', ['$event'])
   closeNotificationsOnOutsideClick(event: MouseEvent): void {
     const target = event.target;
     if (target instanceof Element && !target.closest('.notification-btn-wrapper')) {
       this.showNotificationsPopover = false;
+      this.showEmergencyModal = false;
     }
   }
 

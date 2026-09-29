@@ -1,0 +1,111 @@
+@if (visible) {
+  <div class="emergency-backdrop" (click)="close()">
+    <section
+      class="emergency-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="emergency-title"
+      (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <div class="modal-title">
+          <i class="pi pi-exclamation-triangle"></i>
+          <h2 id="emergency-title">Emergencias de vehículos</h2>
+        </div>
+        <button type="button" class="close-button" aria-label="Cerrar" (click)="close()">
+          <i class="pi pi-times"></i>
+        </button>
+      </header>
+
+      <div class="modal-content">
+        @if (canReport) {
+          <form class="report-form" (ngSubmit)="report()">
+            <h3>Reportar una avería</h3>
+            <label>
+              Camión
+              <input name="vehicle" [(ngModel)]="vehicle" required maxlength="60" placeholder="Número o identificación del camión">
+            </label>
+            <label>
+              Tipo de problema
+              <select name="kind" [(ngModel)]="kind">
+                <option value="delay">Podemos resolverlo, pero habrá retraso</option>
+                <option value="mechanic">Necesitamos un mecánico</option>
+                <option value="tow">El camión no puede continuar, necesitamos grúa</option>
+              </select>
+            </label>
+            <label>
+              ¿Qué ocurrió?
+              <textarea name="description" [(ngModel)]="description" required maxlength="500" rows="3" placeholder="Describe el problema y la ubicación"></textarea>
+            </label>
+            <button class="primary-action report-action" type="submit" [disabled]="saving || !vehicle.trim() || !description.trim()">
+              <i class="pi pi-send"></i> {{ saving ? 'Enviando...' : 'Enviar emergencia' }}
+            </button>
+          </form>
+        }
+
+        @if (errorMessage) {
+          <p class="error-message" role="alert">{{ errorMessage }}</p>
+        }
+
+        <section class="alerts-section" aria-label="Emergencias registradas">
+          <h3>{{ canReport ? 'Reportes recientes' : 'Emergencias activas' }}</h3>
+          @if (displayedAlerts.length === 0) {
+            <p class="empty-state">No hay emergencias registradas.</p>
+          } @else {
+            <div class="alert-list">
+              @for (alert of displayedAlerts; track alert.id) {
+                <article class="alert-item" [class.resolved]="!isActive(alert)">
+                  <div class="alert-heading">
+                    <div>
+                      <strong>{{ alert.vehicle }}</strong>
+                      <span class="kind-label">{{ kindLabel(alert.kind) }}</span>
+                    </div>
+                    <span class="status-pill" [attr.data-status]="alert.status">{{ statusLabel(alert.status) }}</span>
+                  </div>
+                  <p class="alert-description">{{ alert.description }}</p>
+                  <small class="reported-by">Reportó {{ alert.createdBy }} · {{ alert.createdAt | date:'dd/MM, HH:mm' }}</small>
+
+                  @if (alert.events.length > 1) {
+                    <ol class="event-list">
+                      @for (event of alert.events.slice(1); track event.timestamp) {
+                        <li><span>{{ event.message }}</span><small>{{ event.author }} · {{ event.timestamp | date:'HH:mm' }}</small></li>
+                      }
+                    </ol>
+                  }
+
+                  @if (isActive(alert) && canManage) {
+                    <div class="action-row">
+                      <button type="button" class="secondary-action" (click)="updateAlert(alert, 'ayuda-en-camino', 'Administración informó: la ayuda va en camino.')">Ayuda en camino</button>
+                      <button type="button" class="secondary-action" (click)="updateAlert(alert, 'mecanico-solicitado', 'Administración solicitó que un mecánico acuda al camión.')">Solicitar mecánico</button>
+                      <button type="button" class="secondary-action" (click)="updateAlert(alert, 'grua-en-camino', 'Administración informó: se envió una grúa.')">Enviar grúa</button>
+                      <button type="button" class="secondary-action" (click)="updateAlert(alert, 'resuelta', 'Administración cerró la emergencia.')">Marcar resuelta</button>
+                    </div>
+                  }
+
+                  @if (isActive(alert) && canRespondAsMechanic) {
+                    <div class="action-row">
+                      @if (alert.status === 'mecanico-solicitado' || (alert.status === 'reportada' && alert.kind === 'mechanic')) {
+                        <button type="button" class="secondary-action" (click)="updateAlert(alert, 'mecanico-en-camino', 'El mecánico confirmó que va hacia el camión.')">Voy al camión</button>
+                      }
+                      @if (alert.status === 'mecanico-en-camino') {
+                        <button type="button" class="secondary-action" (click)="updateAlert(alert, 'en-sitio', 'El mecánico llegó al camión.')">Ya llegué</button>
+                      }
+                      @if (alert.status === 'en-sitio' || alert.status === 'grua-en-camino') {
+                        <button type="button" class="secondary-action" (click)="updateAlert(alert, 'resuelta', 'El camión fue recuperado y está de vuelta.')">Camión de vuelta</button>
+                      }
+                    </div>
+                  }
+
+                  @if (isActive(alert) && canReport && alert.kind === 'delay') {
+                    <div class="action-row">
+                      <button type="button" class="secondary-action" (click)="updateAlert(alert, 'resuelta', 'Supervisión resolvió el problema y el camión está de vuelta en ruta.')">Marcar resuelta</button>
+                    </div>
+                  }
+                </article>
+              }
+            </div>
+          }
+        </section>
+      </div>
+    </section>
+  </div>
+}

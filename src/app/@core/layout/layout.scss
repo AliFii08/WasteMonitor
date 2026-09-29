@@ -140,6 +140,10 @@ button {
   top: 12px;
   right: 16px;
   z-index: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
 
   ::ng-deep .p-button {
     background-color: #e2f0e8 !important;
@@ -176,6 +180,24 @@ button {
       line-height: 1;
       border: 2px solid #ffffff;
     }
+  }
+
+  .emergency-trigger {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    color: #b42318 !important;
+    background: #fee2e2 !important;
+    border: 1px solid #efb1ac !important;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, transform 0.15s ease;
+
+    .pi { color: #b42318 !important; font-size: 1.5em; }
+    &:hover { background: #fecaca !important; border-color: #fca5a5 !important; }
+    &:focus-visible { outline: 3px solid #f7b6ae; outline-offset: 2px; }
   }
 }
 
