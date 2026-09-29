@@ -70,6 +70,13 @@ export const routes: Routes = [
           import('./pages/route-drivers/route-drivers').then((m) => m.RouteDrivers),
       },
       {
+        path: 'home/users',
+        title: 'Usuarios',
+        canActivate: [roleGuard(['admin', 'supervisor', 'crew', 'conductor', 'mecanico'])],
+        loadComponent: () =>
+          import('./pages/users/users').then((m) => m.Users),
+      },
+      {
         path: 'home/taller',
         title: 'Taller',
         loadComponent: () =>

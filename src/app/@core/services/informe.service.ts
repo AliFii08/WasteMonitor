@@ -14,7 +14,7 @@ export interface DatosViajeInput {
 export interface InformeReporte {
   id?: string;
   nombreUsuario?: string;
-  uidUsuario?: string;
+  idUsuario?: string;
   camionId?: string;
   rutaId?: string;
   firmado?: boolean;

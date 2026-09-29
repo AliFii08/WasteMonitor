@@ -64,6 +64,7 @@ export class Profile implements OnInit, AfterViewInit, OnDestroy {
 
   passwordFieldType: 'password' | 'text' = 'password';
   confirmPasswordFieldType: 'password' | 'text' = 'password';
+  showAddressSection = true;
 
   // Variables para Leaflet
   private map!: L.Map;
@@ -84,13 +85,19 @@ export class Profile implements OnInit, AfterViewInit, OnDestroy {
         validators: [Validators.minLength(6), Validators.maxLength(16)],
       }),
       confirmPassword: new FormControl('', { nonNullable: true }),
-      sector: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+      sector: new FormControl('', { nonNullable: true }),
     },
     { validators: passwordMatchValidator },
   );
 
   ngOnInit(): void {
     const user = this.userService.currentUserSignal();
+    this.showAddressSection = user?.rol === 'user';
+
+    if (this.showAddressSection) {
+      this.profileForm.controls.sector.setValidators(Validators.required);
+      this.profileForm.controls.sector.updateValueAndValidity();
+    }
 
     if (user) {
       this.profileForm.patchValue({
@@ -117,7 +124,9 @@ export class Profile implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this.initMap();
+    if (this.showAddressSection) {
+      this.initMap();
+    }
   }
 
   private initMap(): void {
@@ -210,7 +219,7 @@ export class Profile implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    if (!this.selectedCoords) {
+    if (this.showAddressSection && !this.selectedCoords) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Ubicación requerida',
@@ -229,18 +238,25 @@ export class Profile implements OnInit, AfterViewInit, OnDestroy {
 
     try {
       const userNodeRef = ref(this.db, `usuarios/${currentUser.uid}`);
-      const currentRol = this.userService.currentUserSignal()?.rol || 'user';
+      const currentProfile = this.userService.currentUserSignal();
+      const currentRol = currentProfile?.rol || 'user';
 
       const updatedUser = {
         name,
         lastName,
         email: email.trim().toLowerCase(),
         phone,
-        address: {
-          sector,
-          lat: this.selectedCoords.lat,
-          lng: this.selectedCoords.lng,
-        },
+        ...(this.showAddressSection
+          ? {
+              address: {
+                sector,
+                lat: this.selectedCoords!.lat,
+                lng: this.selectedCoords!.lng,
+              },
+            }
+          : currentProfile?.address
+            ? { address: currentProfile.address }
+            : {}),
         rol: currentRol,
         activo: true,
       };

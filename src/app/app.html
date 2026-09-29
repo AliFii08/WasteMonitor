@@ -2,3 +2,11 @@
   <p-toast position="top-center"></p-toast>
   <router-outlet></router-outlet>
 </div>
+
+@if (isNavigating()) {
+  <div class="page-loader" role="progressbar" aria-label="Cargando página" aria-live="polite">
+    <div class="page-loader__spinner" aria-hidden="true">
+      <span class="page-loader__icon pi pi-trash"></span>
+    </div>
+  </div>
+}

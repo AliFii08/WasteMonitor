@@ -1,4 +1,4 @@
-<div class="container">
+<div class="container" [class.employee-profile]="!showAddressSection">
   <div class="title">
     <h1>Perfil</h1>
     <span>Información personal y configuración de la cuenta</span>
@@ -55,7 +55,7 @@
       </div>
     </div>
 
-    <div class="form-group">
+    <div class="form-group password-group">
       <div class="field-row">
         <label for="password">Contraseña Nueva</label>
         <div class="input-block error-slot">
@@ -78,7 +78,7 @@
       </div>
     </div>
 
-    <div class="form-group">
+    <div class="form-group password-group">
       <div class="field-row">
         <label for="confirmPassword">Confirmar Contraseña Nueva</label>
         <div class="input-block error-slot">
@@ -101,39 +101,41 @@
       </div>
     </div>
 
-    <h3>Dirección</h3>
+    @if (showAddressSection) {
+      <h3>Dirección</h3>
 
-    <div class="form-group">
-      <div class="field-row">
-        <label for="sector">Sector/Urbanización*</label>
-        <div class="input-block error-slot">
-          <div class="select-container">
-            <select formControlName="sector" [class.invalid]="isValidField(profileForm.controls.sector)">
-              <option value="" hidden>Seleccione</option>
-              <option value="Urb-Jacinto">San Jacinto</option>
-              <option value="Urb-Trinidad">La Trinidad</option>
-              <option value="Sect-Ziruma">Ziruma</option>
-              <option value="Sect-Naranjal">El Naranjal</option>
-              <option value="Sect-LaPiedra">La Piedra</option>
-            </select>
-            <i class="pi pi-angle-down select-icon"></i>
+      <div class="form-group">
+        <div class="field-row">
+          <label for="sector">Sector/Urbanización*</label>
+          <div class="input-block error-slot">
+            <div class="select-container">
+              <select formControlName="sector" [class.invalid]="isValidField(profileForm.controls.sector)">
+                <option value="" hidden>Seleccione</option>
+                <option value="Urb-Jacinto">San Jacinto</option>
+                <option value="Urb-Trinidad">La Trinidad</option>
+                <option value="Sect-Ziruma">Ziruma</option>
+                <option value="Sect-Naranjal">El Naranjal</option>
+                <option value="Sect-LaPiedra">La Piedra</option>
+              </select>
+              <i class="pi pi-angle-down select-icon"></i>
+            </div>
+            @if (isValidField(profileForm.controls.sector)) {
+            <small>{{ getErrorMessage(profileForm.controls.sector) }}</small>
+            }
           </div>
-          @if (isValidField(profileForm.controls.sector)) {
-          <small>{{ getErrorMessage(profileForm.controls.sector) }}</small>
-          }
         </div>
       </div>
-    </div>
 
-    <div class="form-group">
-      <div class="field-row">
-        <label>Ubicación de la Vivienda (Haz clic en el mapa para marcar tu casa)*</label>
-        <div id="profile-map" class="map-container"></div>
-        <small *ngIf="selectedCoords" class="coords-info">
-          📍 Coordenadas seleccionadas: {{ selectedCoords.lat.toFixed(6) }}, {{ selectedCoords.lng.toFixed(6) }}
-        </small>
+      <div class="form-group">
+        <div class="field-row">
+          <label>Ubicación de la Vivienda (Haz clic en el mapa para marcar tu casa)*</label>
+          <div id="profile-map" class="map-container"></div>
+          <small *ngIf="selectedCoords" class="coords-info">
+            📍 Coordenadas seleccionadas: {{ selectedCoords.lat.toFixed(6) }}, {{ selectedCoords.lng.toFixed(6) }}
+          </small>
+        </div>
       </div>
-    </div>
+    }
 
     <div class="action-row">
       <button type="submit" class="btn-submit">Guardar Cambios</button>

@@ -3,7 +3,7 @@
   min-height: 100vh;
   font-family: 'Raleway', sans-serif !important;
 
-  * {
+  :not(.pi) {
     font-family: 'Raleway', sans-serif !important;
   }
 }
@@ -282,6 +282,48 @@
   padding: 2rem !important;
   color: #64748b;
   font-family: 'Raleway', sans-serif !important;
+}
+
+.option-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  color: #0f4b3a;
+  background: #fff;
+  border: 1px solid #c2dbce;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background: #e7f3ec;
+    border-color: #68a357;
+  }
+
+  .pi {
+    font-family: 'primeicons' !important;
+    font-size: 15px;
+    line-height: 1;
+  }
+
+  &.danger {
+    color: #b42318;
+    border-color: #f0c7c3;
+
+    &:hover {
+      background: #fff0ee;
+      border-color: #d62828;
+    }
+  }
 }
 
 @media (max-width: 720px) {

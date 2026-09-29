@@ -1,7 +1,6 @@
 import {
   Component,
   AfterViewInit,
-  OnDestroy,
   ViewChild,
   inject,
   signal,
@@ -27,7 +26,7 @@ export interface DisplayPoint {
   templateUrl: './route-drivers.html',
   styleUrl: './route-drivers.scss',
 })
-export class RouteDrivers implements AfterViewInit, OnDestroy {
+export class RouteDrivers implements AfterViewInit {
   @ViewChild(MapaComponent) mapaComponent!: MapaComponent;
 
   private routesService = inject(RoutesService);
@@ -182,14 +181,27 @@ export class RouteDrivers implements AfterViewInit, OnDestroy {
 
   async onRouteSelect(event: Event): Promise<void> {
     const routeId = (event.target as HTMLSelectElement).value;
+    await this.selectRouteById(routeId);
+  }
+
+  async selectRouteById(routeId: string): Promise<void> {
+    if (this.isBuildingLocalRoute()) return;
+
     this.selectedRouteId.set(routeId);
     this.routePointsPage.set(0);
+    this.isSelectingFromMap.set(false);
+    this.newPointLat.set('');
+    this.newPointLng.set('');
 
-    this.isBuildingLocalRoute.set(false);
-    this.localRoutePoints.set([]);
-    this.awaitingLocalPoint.set(false);
+    if (this.editingPointKey()) {
+      this.cancelEditing();
+    }
 
     await this.refreshSelectedRouteView(routeId);
+  }
+
+  getRoutePointCount(route: RouteData): number {
+    return Object.keys(route).filter((key) => /^p\d+$/.test(key)).length;
   }
 
   private async refreshSelectedRouteView(routeId: string): Promise<void> {
@@ -223,6 +235,17 @@ export class RouteDrivers implements AfterViewInit, OnDestroy {
     this.awaitingLocalPoint.set(false);
     this.selectedRouteId.set('');
     this.routeNameInput.set(''); // Limpia el nombre anterior
+    this.mapaComponent.clearAll();
+  }
+
+  cancelLocalRoute(): void {
+    this.isBuildingLocalRoute.set(false);
+    this.localRoutePoints.set([]);
+    this.awaitingLocalPoint.set(false);
+    this.isSelectingFromMap.set(false);
+    this.routeNameInput.set('');
+    this.newPointLat.set('');
+    this.newPointLng.set('');
     this.mapaComponent.clearAll();
   }
 
@@ -404,9 +427,4 @@ export class RouteDrivers implements AfterViewInit, OnDestroy {
     return point.key;
   }
 
-  ngOnDestroy(): void {
-    if (this.mapaComponent) {
-      this.mapaComponent.destroyMap();
-    }
-  }
 }

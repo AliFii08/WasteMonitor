@@ -14,7 +14,7 @@
       @if (isAdmin) {
       <label class="select-all-wrap" for="selectAllDrivers">
         <input id="selectAllDrivers" type="checkbox" [checked]="allReportsSelected"
-          (change)="toggleSelectedAllInformes()" />
+          (change)="toggleSelectedAllInformes($any($event.target).checked)" />
         Seleccionar todos
       </label>
       }
@@ -61,11 +61,11 @@
               </span>
             </td>
             <td>
-              <span [class]="reporte.estado ? 'badge-success' : 'badge-warning'">
-                {{ reporte.estado ? 'Firmado' : 'Pendiente' }}
+              <span [class]="isReportSigned(reporte) ? 'badge-success' : 'badge-warning'">
+                {{ isReportSigned(reporte) ? 'Firmado' : 'Pendiente' }}
               </span>
             </td>
-            <td>{{ reporte.creadoEn | date:'dd/MM/yyyy, hh:mm a' }}</td>
+            <td>{{ (reporte.creadoEn | date:'dd/MM/yyyy, hh:mm a') || 'N/A' }}</td>
             <td>
               <div class="option-actions">
                 @if (isAdmin) {
@@ -79,10 +79,10 @@
                   <i class="pi pi-pencil"></i>
                 </button>
                 @if (isAdmin) {
-    <button type="button" class="icon-btn danger" title="Eliminar" (click)="openSingleDeleteModal(reporte)">
-      <i class="pi pi-trash"></i>
-    </button>
-  }
+                <button type="button" class="icon-btn danger" title="Eliminar" (click)="openSingleDeleteModal(reporte)">
+                  <i class="pi pi-trash"></i>
+                </button>
+                }
               </div>
             </td>
           </tr>

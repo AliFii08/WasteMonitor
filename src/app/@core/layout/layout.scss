@@ -74,7 +74,17 @@ button {
     color: #003628 !important;
   }
 
+  .nav-link.active .p-button {
+    background-color: #68a357 !important;
+    border-color: #68a357 !important;
+    color: #003628 !important;
+  }
+
   .p-button:hover .pi {
+    color: #003628 !important;
+  }
+
+  .nav-link.active .p-button .pi {
     color: #003628 !important;
   }
 

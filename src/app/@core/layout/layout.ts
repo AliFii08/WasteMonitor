@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, inject } from '@angular/core';
-import { Router, RouterLink, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Auth, signOut } from '@angular/fire/auth';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
@@ -14,7 +14,7 @@ import { GeneralNotificationComponent } from '../../pages/general-notification/g
 
 @Component({
   selector: 'app-layout',
-  imports: [RouterOutlet, RouterLink, CommonModule, ButtonModule, TooltipModule, NotificationPopover, EmergencyAlertComponent, GeneralNotificationComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, ButtonModule, TooltipModule, NotificationPopover, EmergencyAlertComponent, GeneralNotificationComponent],
   templateUrl: './layout.html',
   styleUrl: './layout.scss',
 })

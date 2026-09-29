@@ -1,0 +1,190 @@
+<main class="users-page">
+  <div class="title">
+    <h1>Usuarios</h1>
+    <span>Administradores, supervisores y personal operativo</span>
+  </div>
+
+  @if (pageError) {
+    <p class="error-message" role="alert">{{ pageError }}</p>
+  }
+
+  <div class="table-toolbar">
+    <div class="search-row">
+      <div class="search-input-wrap">
+        <input type="text" class="search-input" placeholder="Buscar usuario..." [(ngModel)]="searchTerm"
+          (input)="applySearch()" aria-label="Buscar usuarios" />
+        <i class="pi pi-search"></i>
+      </div>
+      <select class="filter-select" [(ngModel)]="roleFilter" (ngModelChange)="applySearch()"
+        aria-label="Filtrar usuarios por rol">
+        @for (role of roleFilters; track role.value) {
+          <option [value]="role.value">{{ role.label }}</option>
+        }
+      </select>
+      <span class="result-count">{{ filteredUsers.length }} usuarios</span>
+    </div>
+    @if (isAdmin) {
+      <button type="button" class="create-btn" (click)="openCreateForm()">
+        <i class="pi pi-plus"></i>
+        Registrar usuario
+      </button>
+    }
+  </div>
+
+  <section class="preview-section" aria-label="Directorio de usuarios internos">
+    <div class="preview-table-wrap">
+      <table class="preview-table">
+        <thead>
+          <tr>
+            <th>Nombre</th><th>Correo electrónico</th><th>Teléfono</th><th>Rol</th><th class="options-header">Opciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (loading) {
+            <tr><td colspan="5" class="empty-row">Cargando usuarios...</td></tr>
+          } @else if (filteredUsers.length === 0) {
+            <tr><td colspan="5" class="empty-row">
+              {{ searchTerm ? 'No hay coincidencias.' : 'Aún no hay usuarios registrados.' }}
+            </td></tr>
+          } @else {
+            @for (user of paginatedUsers; track user.uid) {
+              <tr>
+                <td><strong>{{ user.name }} {{ user.lastName }}</strong></td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.phone || 'Sin teléfono' }}</td>
+                <td><span class="role-chip" [ngClass]="user.rol">
+                  {{ user.rol === 'admin' ? 'Administrador' : (user.rol | titlecase) }}
+                </span></td>
+                <td class="options-header">
+                  @if (isAdmin && user.rol !== 'admin' && user.uid !== authService.getCurrentUserId()) {
+                    <div class="option-actions">
+                      <button type="button" class="icon-btn" title="Editar usuario"
+                        aria-label="Editar usuario" (click)="openEditForm(user)">
+                        <i class="pi pi-pencil"></i>
+                      </button>
+                      <button type="button" class="icon-btn" [class.danger]="user.activo !== false"
+                        [title]="user.activo === false ? 'Activar usuario' : 'Desactivar usuario'"
+                        [attr.aria-label]="user.activo === false ? 'Activar usuario' : 'Desactivar usuario'"
+                        [disabled]="saving" (click)="openStatusConfirmation(user)">
+                        <i class="pi" [ngClass]="user.activo === false ? 'pi-check-circle' : 'pi-ban'"></i>
+                      </button>
+                    </div>
+                  } @else {
+                    <span aria-label="Sin opciones">-</span>
+                  }
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+    <app-table-pagination
+      [totalItems]="filteredUsers.length"
+      [page]="page"
+      [pageSize]="pageSize"
+      (pageChange)="page = $event">
+    </app-table-pagination>
+  </section>
+</main>
+
+@if (modalOpen) {
+  <div class="modal-backdrop" (click)="closeCreateForm()">
+    <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="create-title"
+      (click)="$event.stopPropagation()" (keydown.escape)="closeCreateForm()">
+      <header class="modal-header">
+        <div class="modal-title">
+          <i class="pi" [ngClass]="selectedUser ? 'pi-pencil' : 'pi-user-plus'"></i>
+          <div>
+            <p class="modal-eyebrow">{{ selectedUser ? 'CUENTA INTERNA' : 'NUEVA CUENTA INTERNA' }}</p>
+            <h2 id="create-title">{{ selectedUser ? 'Editar usuario' : 'Registrar usuario' }}</h2>
+          </div>
+        </div>
+        <button type="button" class="close-btn" aria-label="Cerrar" (click)="closeCreateForm()">
+          <i class="pi pi-times"></i>
+        </button>
+      </header>
+      <div class="modal-body">
+        <form [formGroup]="userForm" (ngSubmit)="saveUser()">
+          <div class="form-grid">
+            <label>Nombre<input type="text" formControlName="name" autocomplete="given-name" /></label>
+            <label>Apellido<input type="text" formControlName="lastName" autocomplete="family-name" /></label>
+            <label class="full-width">Correo electrónico<input type="email" formControlName="email" autocomplete="email" /></label>
+            <label>Teléfono<input type="tel" formControlName="phone" autocomplete="tel" /></label>
+            <label>Rol
+              <select formControlName="rol">
+                <option value="" disabled>Seleccionar rol</option>
+                @for (role of roles; track role.value) { <option [value]="role.value">{{ role.label }}</option> }
+              </select>
+            </label>
+          </div>
+          @if (userForm.invalid && userForm.touched) {
+            <p class="field-hint">Completa todos los campos con un correo válido.</p>
+          }
+          @if (formError) { <p class="error-message" role="alert">{{ formError }}</p> }
+          @if (!selectedUser) {
+            <p class="password-note">Se enviará un enlace al correo para establecer la contraseña.</p>
+          }
+          <footer class="modal-footer">
+            <button type="button" class="btn-cancel" (click)="closeCreateForm()" [disabled]="saving">Cancelar</button>
+            <button type="submit" class="btn-submit" [disabled]="saving">
+              @if (saving) {
+                <i class="pi pi-spin pi-spinner"></i>
+                Guardando...
+              } @else {
+                <i class="pi" [ngClass]="selectedUser ? 'pi-pencil' : 'pi-user-plus'"></i>
+                {{ selectedUser ? 'Guardar cambios' : 'Registrar usuario' }}
+              }
+            </button>
+          </footer>
+        </form>
+      </div>
+    </section>
+  </div>
+}
+
+@if (selectedStatusUser; as statusUser) {
+  <div class="modal-backdrop" (click)="closeStatusConfirmation()">
+    <section class="modal-panel" [class.danger-theme]="statusUser.activo !== false"
+      [class.success-theme]="statusUser.activo === false" role="dialog" aria-modal="true"
+      aria-labelledby="status-title" aria-describedby="status-description"
+      (click)="$event.stopPropagation()" (keydown.escape)="closeStatusConfirmation()">
+      <header class="modal-header">
+        <div class="modal-title">
+          <i class="pi" [ngClass]="statusUser.activo === false ? 'pi-check-circle' : 'pi-exclamation-triangle'"></i>
+          <h2 id="status-title">{{ statusUser.activo === false ? 'Confirmar activación' : 'Confirmar desactivación' }}</h2>
+        </div>
+        <button type="button" class="close-btn" aria-label="Cerrar" (click)="closeStatusConfirmation()">
+          <i class="pi pi-times"></i>
+        </button>
+      </header>
+      <div class="modal-body">
+        <p id="status-description" class="confirm-text">
+          ¿Deseas {{ statusUser.activo === false ? 'activar' : 'desactivar' }} a
+          <strong>{{ statusUser.name }} {{ statusUser.lastName }}</strong>?
+        </p>
+        <p class="sub-text">
+          La cuenta no se eliminará. {{ statusUser.activo === false
+            ? 'El usuario podrá volver a iniciar sesión.'
+            : 'El usuario no podrá iniciar sesión mientras esté desactivada.' }}
+        </p>
+        @if (confirmationError) {
+          <div class="error-message" role="alert"><i class="pi pi-exclamation-circle"></i>{{ confirmationError }}</div>
+        }
+      </div>
+      <footer class="modal-footer">
+        <button type="button" class="btn-cancel" (click)="closeStatusConfirmation()" [disabled]="saving">Cancelar</button>
+        <button type="button" [class.btn-danger]="statusUser.activo !== false"
+          [class.btn-submit]="statusUser.activo === false" (click)="confirmStatusChange()" [disabled]="saving">
+          @if (saving) {
+            <i class="pi pi-spin pi-spinner"></i>
+            Procesando...
+          } @else {
+            <i class="pi" [ngClass]="statusUser.activo === false ? 'pi-check' : 'pi-ban'"></i>
+            {{ statusUser.activo === false ? 'Sí, activar' : 'Sí, desactivar' }}
+          }
+        </button>
+      </footer>
+    </section>
+  </div>
+}

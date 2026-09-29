@@ -4,6 +4,11 @@
   font-family: 'Raleway', sans-serif;
 }
 
+:host:has(.employee-profile) {
+  display: grid;
+  place-items: center;
+}
+
 .container {
   box-sizing: border-box;
   width: min(58%, 820px);
@@ -222,9 +227,55 @@ h3:first-child {
   margin-top: 6px !important;
 }
 
+.container.employee-profile {
+  width: min(72%, 900px);
+  min-height: 0;
+  margin: 24px auto;
+  padding: 38px clamp(28px, 5vw, 64px) 42px;
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(0, 35, 25, 0.2);
+}
+
+.employee-profile .title {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.employee-profile form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 24px;
+}
+
+.employee-profile h3,
+.employee-profile .form-group.two-columns,
+.employee-profile .action-row {
+  grid-column: 1 / -1;
+}
+
+.employee-profile h3 {
+  margin-top: 0;
+}
+
+.employee-profile .form-group {
+  margin-bottom: 20px;
+}
+
+.employee-profile .password-group {
+  grid-column: span 1;
+}
+
+.employee-profile .action-row {
+  margin-top: 4px;
+}
+
 @media (max-width: 900px) {
   .container {
     width: 68%;
+  }
+
+  .container.employee-profile {
+    width: min(88%, 720px);
   }
 }
 
@@ -236,6 +287,27 @@ h3:first-child {
 
   .form-group.two-columns {
     grid-template-columns: 1fr;
+  }
+
+  .container.employee-profile {
+    width: calc(100% - 32px);
+    padding: 28px 22px 36px;
+  }
+
+  :host:has(.employee-profile) {
+    padding-top: 0;
+  }
+
+  .employee-profile form {
+    grid-template-columns: 1fr;
+  }
+
+  .employee-profile .form-group.two-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .employee-profile .password-group {
+    grid-column: 1 / -1;
   }
 }
 

@@ -4,6 +4,25 @@ body {
   font-family: 'Raleway', sans-serif !important;
 }
 
+:host {
+  display: block;
+  min-height: 100vh;
+  font-family: 'Raleway', sans-serif !important;
+}
+
+.routes-page {
+  min-width: 0;
+  padding-bottom: 24px;
+}
+
+.routes-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(270px, 320px);
+  align-items: start;
+  gap: 18px;
+  margin: 20px;
+}
+
 
 .title {
   display: flex;
@@ -16,17 +35,24 @@ body {
 .title h1 {
   font-size: 45px;
   margin-bottom: 10px;
+  font-family: 'Raleway', sans-serif !important;
 }
 
 .title span {
   font-size: 20px;
   color: #06523f;
+  font-family: 'Raleway', sans-serif !important;
 }
 
 .map-container {
-  padding: 20px;
-  max-width: 900px;
-  margin: 20px auto;
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 18px;
+  margin: 0;
+  border: 1px solid #d8e4de;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #f8fcfa 0%, #f1f8f4 100%);
+  box-shadow: 0 10px 24px rgba(6, 82, 63, 0.08);
   font-family: 'Raleway', sans-serif;
 }
 
@@ -43,15 +69,249 @@ body {
 .header-map {
   margin-bottom: 15px;
 
-  .title {
-    font-family: 'LoveloBlack', sans-serif;
-    color: #0b3d2f;
+  .subtitle {
+    margin: 0 0 14px;
+    color: #607b70;
+    font-size: 14px;
+    font-family: 'Raleway', sans-serif !important;
+    line-height: 1.45;
+  }
+}
+
+.route-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.route-actions button {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 9px 14px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  font: 700 14px 'Raleway', sans-serif;
+  cursor: pointer;
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btn-create,
+.btn-save {
+  color: #fff;
+  background: #24704d;
+
+  &:hover:not(:disabled) {
+    background: #185a3d;
+  }
+}
+
+.btn-add {
+  color: #174c39;
+  background: #e7f3ec;
+  border-color: #c2dbce !important;
+
+  &:hover:not(:disabled),
+  &.active {
+    background: #d5eadb;
+    border-color: #68a357 !important;
+  }
+}
+
+.btn-cancel-route {
+  color: #8f2920;
+  background: #fff;
+  border-color: #efcbc7 !important;
+
+  &:hover:not(:disabled) {
+    background: #fff0ee;
+  }
+}
+
+.route-name-input {
+  box-sizing: border-box;
+  flex: 1 1 220px;
+  min-width: 170px;
+  min-height: 42px;
+  padding: 9px 12px;
+  color: #123f32;
+  background: #fff;
+  border: 1px solid #c2dbce;
+  border-radius: 7px;
+  font: 500 14px 'Raleway', sans-serif;
+
+  &:focus {
+    outline: 2px solid rgba(104, 163, 87, 0.3);
+    border-color: #68a357;
+  }
+}
+
+.routes-sidebar {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 420px;
+  max-height: calc(100vh - 170px);
+  overflow: hidden;
+  border: 1px solid #d8e4de;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #f8fcfa 0%, #f1f8f4 100%);
+  box-shadow: 0 10px 24px rgba(6, 82, 63, 0.08);
+}
+
+.routes-sidebar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  background: #e7f3ec;
+  border-bottom: 1px solid #d8e4de;
+
+  h2 {
     margin: 0;
+    color: #0f4b3a;
+    font-size: 17px;
+    font-weight: 800;
   }
 
-  .subtitle {
-    color: #68a357;
-    font-weight: 600;
+  p {
+    margin: 5px 0 0;
+    color: #607b70;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+}
+
+.route-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  color: #fff;
+  background: #06523f;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.routes-list {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  gap: 8px;
+  padding: 12px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.route-list-item {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 62px;
+  padding: 9px 10px;
+  text-align: left;
+  color: #174c39;
+  background: #fff;
+  border: 1px solid #d8e4de;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.16s ease, background-color 0.16s ease;
+
+  &:hover:not(:disabled) {
+    background: #f2f8f3;
+    border-color: #9bc6a8;
+  }
+
+  &.active {
+    background: #e7f3ec;
+    border-color: #24704d;
+    box-shadow: inset 3px 0 #24704d;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.route-list-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  color: #24704d;
+  background: #e7f3ec;
+  border-radius: 7px;
+}
+
+.route-list-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 4px;
+
+  strong {
+    overflow: hidden;
+    color: #174c39;
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  small {
+    color: #607b70;
+    font-size: 11px;
+  }
+}
+
+.route-list-arrow {
+  color: #789185;
+  font-size: 13px;
+}
+
+.routes-empty {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  flex: 1;
+  min-height: 220px;
+  padding: 18px;
+  color: #607b70;
+  text-align: center;
+
+  > i {
+    margin-bottom: 10px;
+    color: #24704d;
+    font-size: 24px;
+  }
+
+  p {
+    margin: 0;
+    color: #174c39;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  small {
+    margin-top: 5px;
+    font-size: 12px;
   }
 }
 
@@ -89,18 +349,6 @@ body {
   &:hover {
     background: #1a5c48;
   }
-}
-
-.route-selector {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-  border-radius: 8px;
-  border: 1px solid #68a357;
-  font-family: 'Raleway', sans-serif;
-  background-color: white;
-  color: #0b3d2f;
-  font-weight: 600;
 }
 
 .local-point-icon {
@@ -249,11 +497,16 @@ body {
 }
 
 @media (max-width: 1024px) {
+  .routes-layout {
+    grid-template-columns: minmax(0, 1fr);
+    margin: 12px;
+  }
+
   .map-container {
     box-sizing: border-box;
-    width: calc(100% - 24px);
+    width: 100%;
     max-width: none;
-    margin: 12px;
+    margin: 0;
     padding: 14px;
   }
 
@@ -261,19 +514,14 @@ body {
     height: clamp(300px, 48dvh, 520px);
   }
 
-  .route-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
   .route-actions > * {
     min-width: 0;
     max-width: 100%;
   }
 
-  .route-selector {
-    flex: 1 1 100%;
+  .routes-sidebar {
+    min-height: 280px;
+    max-height: 420px;
   }
 
   .points-table-container {
@@ -293,6 +541,14 @@ body {
 @media (max-width: 600px) {
   .map-container {
     padding: 10px;
+  }
+
+  .route-actions > * {
+    flex: 1 1 100%;
+  }
+
+  .route-name-input {
+    flex-basis: 100%;
   }
 
   .title h1 {

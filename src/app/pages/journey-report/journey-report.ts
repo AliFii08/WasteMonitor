@@ -27,6 +27,7 @@ import { DeleteJourneyReport } from './components/delete-journey-report/delete-j
 })
 export class JourneyReport implements OnInit, OnDestroy {
   reportes: any[] = [];
+  private allReportes: any[] = [];
   reportSearchTerm: string = '';
 
   private cdr = inject(ChangeDetectorRef);
@@ -38,6 +39,7 @@ export class JourneyReport implements OnInit, OnDestroy {
 
 
 selectedReportsList: any[] = [];
+  private selectedReportIds = new Set<string>();
 
 
   // Modales
@@ -68,14 +70,17 @@ selectedReportsList: any[] = [];
         // Filtrar únicamente los informes que están activos (activo !== false)
         const informesActivos = (informes || []).filter((informe) => informe.activo !== false);
 
-        this.reportes = informesActivos.map((informe) => {
+        this.allReportes = informesActivos.map((informe) => {
           const uidUsuario = informe.uidUsuario || informe.usuario || '';
           const usuarioData = usuarios?.[uidUsuario] || null;
 
           const nombre = usuarioData?.name || usuarioData?.nombre || '';
           const apellido = usuarioData?.lastName || usuarioData?.apellido || '';
           const nombreCompleto = usuarioData?.nombreUsuario || `${nombre} ${apellido}`.trim();
-          const creadoEn = informe?.creadoEl || 'No agarra';
+          const fechaCreacion = informe?.creadoEl == null ? null : new Date(informe.creadoEl);
+          const creadoEn = fechaCreacion && !Number.isNaN(fechaCreacion.getTime())
+            ? fechaCreacion
+            : null;
 
           const camionId = informe.camionId || informe.camion || '';
           const rutaId = informe.rutaId || informe.ruta || '';
@@ -91,7 +96,13 @@ selectedReportsList: any[] = [];
           };
         });
 
-        this.selectedReportRows = new Array(this.reportes.length).fill(false);
+        const availableReportIds = new Set(
+          this.allReportes.map((reporte) => String(reporte.id ?? '')).filter(Boolean),
+        );
+        this.selectedReportIds = new Set(
+          [...this.selectedReportIds].filter((id) => availableReportIds.has(id)),
+        );
+        this.onReportSearchChange();
         this.cdr.detectChanges();
       },
       error: (err) => console.error('Error al cargar informes:', err),
@@ -99,19 +110,63 @@ selectedReportsList: any[] = [];
   }
 
   onReportSearchChange(): void {
-    // Lógica para filtrar reportes
+    const searchTerm = this.reportSearchTerm.trim().toLocaleLowerCase();
+    this.reportes = searchTerm
+      ? this.allReportes.filter((reporte) => {
+          const values = [
+            reporte.nombreUsuario,
+            reporte.camionId,
+            reporte.rutaId,
+            this.isReportSigned(reporte) ? 'Firmado' : 'Pendiente',
+            reporte.creadoEn?.toLocaleDateString(),
+          ];
+          return values.some((value) =>
+            String(value ?? '').toLocaleLowerCase().includes(searchTerm),
+          );
+        })
+      : [...this.allReportes];
+
+    this.syncReportSelection();
   }
 
   toggleReportRow(index: number, isChecked: boolean): void {
-    this.selectedReportRows[index] = isChecked;
-    this.hasSelectedReport = this.selectedReportRows.some((val) => val);
-    this.allReportsSelected = this.selectedReportRows.every((val) => val);
+    const reportId = String(this.reportes[index]?.id ?? '');
+    if (!reportId) return;
+
+    if (isChecked) {
+      this.selectedReportIds.add(reportId);
+    } else {
+      this.selectedReportIds.delete(reportId);
+    }
+    this.syncReportSelection();
   }
 
-  toggleSelectedAllInformes(): void {
-    this.allReportsSelected = !this.allReportsSelected;
-    this.selectedReportRows = new Array(this.reportes.length).fill(this.allReportsSelected);
-    this.hasSelectedReport = this.allReportsSelected && this.reportes.length > 0;
+  toggleSelectedAllInformes(isSelected: boolean): void {
+    this.reportes.forEach((reporte) => {
+      const reportId = String(reporte.id ?? '');
+      if (!reportId) return;
+
+      if (isSelected) {
+        this.selectedReportIds.add(reportId);
+      } else {
+        this.selectedReportIds.delete(reportId);
+      }
+    });
+    this.syncReportSelection();
+  }
+
+  private syncReportSelection(): void {
+    this.selectedReportRows = this.reportes.map((reporte) =>
+      this.selectedReportIds.has(String(reporte.id ?? '')),
+    );
+    this.hasSelectedReport = this.selectedReportIds.size > 0;
+    this.allReportsSelected =
+      this.reportes.length > 0 &&
+      this.reportes.every((reporte) => this.selectedReportIds.has(String(reporte.id ?? '')));
+  }
+
+  isReportSigned(reporte: any): boolean {
+    return reporte?.estado === true || String(reporte?.estado ?? '').toLocaleLowerCase() === 'firmado';
   }
 
   // Modales y Acciones
@@ -129,7 +184,12 @@ selectedReportsList: any[] = [];
     const currentUserId = this.authService.getCurrentUserId();
 
     // 2. Extraer el UID del creador (tomando 'reporte.usuario' que es como está en Firebase)
-    const creadorId = reporte?.usuario || reporte?.usuarioId || reporte?.userId;
+    const creadorId =
+      reporte?.uidUsuario ||
+      reporte?.idUsuario ||
+      reporte?.usuario ||
+      reporte?.usuarioId ||
+      reporte?.userId;
 
     // 3. Validar coincidencia de IDs
     if ((!currentUserId || creadorId !== currentUserId) && !this.isAdmin) {
@@ -147,25 +207,27 @@ selectedReportsList: any[] = [];
   // Al presionar el botón de la barra superior para eliminar seleccionados:
   deleteSelectedReport(): void {
     // Extrae los reportes cuya casilla esté en true
-    this.selectedReportsList = this.reportes.filter((item, index) => {
-      return Boolean(this.selectedReportRows[index]) || Boolean(item.selected);
-    });
-  
+    this.selectedReportsList = this.allReportes.filter((reporte) =>
+      this.selectedReportIds.has(String(reporte.id ?? '')),
+    );
+
     console.log('📋 Reportes filtrados para eliminar:', this.selectedReportsList);
-  
+
     this.selectedReport = null; // Limpiar selección individual
     this.isDeleteModalOpen = true;
   }
-  
+
   openSingleDeleteModal(reporte: any): void {
     this.selectedReport = reporte;
     this.selectedReportsList = []; // Limpiar selección múltiple
     this.isDeleteModalOpen = true;
   }
-  
+
   onReportesEliminados(): void {
     this.selectedReportRows = [];
     this.allReportsSelected = false;
+    this.selectedReportIds.clear();
+    this.hasSelectedReport = false;
     this.selectedReportsList = [];
     this.selectedReport = null;
   }

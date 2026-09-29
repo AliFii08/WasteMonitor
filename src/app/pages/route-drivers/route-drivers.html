@@ -1,39 +1,62 @@
-<body>
+<div class="routes-page">
 
   <div class="title">
     <h1>Gestión de Rutas</h1>
     <span>Cree, edite o asigne rutas.</span>
   </div>
 
-  <div class="map-container card">
+  <div class="routes-layout">
+  <main class="map-container card">
     <div class="header-map">
-      <h2 class="title"><i class="pi pi-map-marker"></i> Gestión de Rutas</h2>
       <p class="subtitle">Haz clic en el mapa para añadir puntos a la ruta seleccionada</p>
 
       <div class="route-actions">
-        <select class="route-selector" (change)="onRouteSelect($event)">
-          <option value="">-- Selecciona una ruta --</option>
-          <option *ngFor="let route of availableRoutes(); trackBy: trackByRouteId" [value]="route.id">
-            {{ route.nombreRuta || route.id }}
-          </option>
-        </select>
-
-        <button type="button" class="btn-create" (click)="createLocalRoute()">
-          <i class="pi pi-plus"></i> Crear ruta local
-        </button>
-
-        <!-- Input para asignar nombre a la nueva ruta -->
-        <input *ngIf="isBuildingLocalRoute()" type="text" class="route-name-input" placeholder="Nombre de la ruta..."
-          [value]="routeNameInput()" (input)="routeNameInput.set($any($event.target).value)" />
-
-        <button type="button" class="btn-add" (click)="prepareAddLocalPoint()" [disabled]="!isBuildingLocalRoute()">
-          <i class="pi pi-map-marker"></i> Agregar punto
-        </button>
-
-        <button type="button" class="btn-save" (click)="saveLocalRouteToFirebase()"
-          [disabled]="!isBuildingLocalRoute() || localRoutePoints().length === 0">
-          <i class="pi pi-save"></i> Guardar ruta
-        </button>
+        @if (isBuildingLocalRoute()) {
+          <input
+            id="route-name"
+            type="text"
+            class="route-name-input"
+            placeholder="Nombre de la ruta"
+            aria-label="Nombre de la nueva ruta"
+            [value]="routeNameInput()"
+            (input)="routeNameInput.set($any($event.target).value)"
+          />
+          <button
+            type="button"
+            class="btn-add"
+            (click)="prepareAddLocalPoint()"
+            [disabled]="awaitingLocalPoint()"
+          >
+            <i class="pi pi-map-marker"></i>
+            {{ awaitingLocalPoint() ? 'Haz clic en el mapa' : 'Marcar punto' }}
+          </button>
+          <button
+            type="button"
+            class="btn-save"
+            (click)="saveLocalRouteToFirebase()"
+            [disabled]="localRoutePoints().length === 0 || !routeNameInput().trim()"
+          >
+            <i class="pi pi-save"></i> Guardar ruta
+          </button>
+          <button type="button" class="btn-cancel-route" (click)="cancelLocalRoute()">
+            Cancelar
+          </button>
+        } @else {
+          <button type="button" class="btn-create" (click)="createLocalRoute()">
+            <i class="pi pi-plus"></i> Nueva ruta
+          </button>
+          @if (selectedRouteId()) {
+            <button
+              type="button"
+              class="btn-add"
+              [class.active]="isSelectingFromMap()"
+              (click)="enableMapSelection()"
+            >
+              <i class="pi pi-map-marker"></i>
+              {{ isSelectingFromMap() ? 'Haz clic en el mapa' : 'Agregar punto' }}
+            </button>
+          }
+        }
       </div>
     </div>
 
@@ -154,5 +177,42 @@
         <i class="pi pi-search-plus"></i> Reajustar Vista
       </button>
     </div>
+  </main>
+
+  <aside class="routes-sidebar" aria-label="Rutas creadas">
+    <div class="routes-sidebar-head">
+      <div>
+        <h2>Rutas creadas</h2>
+        <p>Selecciona una ruta para verla en el mapa</p>
+      </div>
+      <span class="route-count">{{ availableRoutes().length }}</span>
+    </div>
+
+    <div class="routes-list">
+      @for (route of availableRoutes(); track route.id) {
+        <button
+          type="button"
+          class="route-list-item"
+          [class.active]="selectedRouteId() === route.id"
+          [attr.aria-pressed]="selectedRouteId() === route.id"
+          [disabled]="isBuildingLocalRoute()"
+          (click)="selectRouteById(route.id)"
+        >
+          <span class="route-list-icon"><i class="pi pi-map-marker"></i></span>
+          <span class="route-list-copy">
+            <strong>{{ route.nombreRuta || route.id }}</strong>
+            <small>{{ getRoutePointCount(route) }} puntos</small>
+          </span>
+          <i class="pi pi-angle-right route-list-arrow" aria-hidden="true"></i>
+        </button>
+      } @empty {
+        <div class="routes-empty">
+          <i class="pi pi-map" aria-hidden="true"></i>
+          <p>Aún no hay rutas creadas.</p>
+          <small>Usa “Nueva ruta” para empezar.</small>
+        </div>
+      }
+    </div>
+  </aside>
   </div>
-</body>
+</div>
