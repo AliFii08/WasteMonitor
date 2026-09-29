@@ -51,6 +51,7 @@
     "@angular/cli": "^21.1.0",
     "@angular/compiler-cli": "^21.1.4",
     "@angular/fire": "21.0.0-rc.0",
+    "@angular/language-server": "^22.2.0",
     "@types/express": "^5.0.1",
     "@types/node": "^20.17.19",
     "jsdom": "^27.1.0",

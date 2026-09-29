@@ -39,7 +39,7 @@
     @if (authService.hasRole(['admin', 'mecanico', 'supervisor'])) {
       <p-button pTooltip="Taller" class="mb-2 nav-link" label="Taller" icon="pi pi-fw pi-wrench" [routerLink]="['/home/taller']" (click)="closeMobileMenu()"></p-button>
     }
-    @if (authService.hasRole(['admin'])) {
+    @if (authService.hasRole(['admin', 'user'])) {
       <p-button pTooltip="Quejas" class="mb-2 nav-link" label="Quejas" icon="pi pi-fw pi-inbox" routerLink="/home/complaints" (click)="closeMobileMenu()"></p-button>
     }
 
