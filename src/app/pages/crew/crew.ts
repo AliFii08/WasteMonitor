@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { TripulacionService, TripulacionTabla } from '../../@core/services/tripulacion.service';
 import { CreateCrew } from './components/create-crew/create-crew';
 import { UpdateCrew } from './components/update-crew/update-crew';
-import { VehiculoService } from '../../@core/services/vehiculos.service';
 import { DeleteCrewModal } from './components/delete-crew-modal/delete-crew-modal';
 import { TablePagination } from '../../@core/components/table-pagination/table-pagination';
 
@@ -18,14 +17,13 @@ import { TablePagination } from '../../@core/components/table-pagination/table-p
     UpdateCrew,
     DeleteCrewModal,
     TablePagination,
-],
+  ],
   templateUrl: './crew.html',
   styleUrl: './crew.scss',
 })
 export class Crew implements OnInit {
   private tripulacionService = inject(TripulacionService);
   private cdr = inject(ChangeDetectorRef);
-
 
   driversList: TripulacionTabla[] = [];
   driverSearchTerm = '';
@@ -34,29 +32,32 @@ export class Crew implements OnInit {
   selectedDriverRows: boolean[] = [];
   driverRowVisible: boolean[] = [];
   allDriversSelected = false;
-  camionesList: string[] = [];
 
   isCreateModalOpen = false;
-
   isDeleteModalOpen = false;
   uidsToDelete: string[] = [];
   deleteDriverName = '';
+
+  selectedDriverForUpdate: TripulacionTabla | null = null;
+  isUpdateModalOpen = false;
+  selectedCrew: TripulacionTabla | null = null;
+  isDetailsModalOpen = false;
 
   ngOnInit(): void {
     this.loadDrivers();
   }
 
-
-
   async loadDrivers(): Promise<void> {
-    this.cdr.detectChanges();
     this.driversList = await this.tripulacionService.getTripulacion();
 
-    // Mantenemos el estado de selección e visibilidad idéntico al código de tu equipo
     this.selectedDriverRows = new Array(this.driversList.length).fill(false);
     this.driverRowVisible = new Array(this.driversList.length).fill(true);
 
-    this.cdr.detectChanges();
+    if (this.driverSearchTerm.trim()) {
+      this.onDriverSearchChange();
+    } else {
+      this.cdr.detectChanges();
+    }
   }
 
   get hasSelectedDrivers(): boolean {
@@ -83,7 +84,7 @@ export class Crew implements OnInit {
     this.driverPage = 0;
 
     this.driverRowVisible = this.driversList.map((driver) => {
-      const searchIndex = `${driver.driverId} ${driver.encargado} ${driver.camionAsignado} ${driver.rutaAsignada}`.toLowerCase();
+      const searchIndex = `${driver.driverId} ${driver.encargado} ${driver.camionAsignado} ${driver.rutaAsignada} ${driver.conductor}`.toLowerCase();
       return searchIndex.includes(term);
     });
 
@@ -108,14 +109,13 @@ export class Crew implements OnInit {
 
   openSingleDeleteModal(driver: TripulacionTabla): void {
     this.uidsToDelete = [driver.uid];
-    this.deleteDriverName = driver.nombreCompleto;
+    this.deleteDriverName = driver.encargado;
     this.isDeleteModalOpen = true;
   }
 
   deleteSelectedDrivers(): void {
     if (!this.hasSelectedDrivers) return;
 
-    // Extraer los UIDs de las filas seleccionadas y visibles
     this.uidsToDelete = this.driversList
       .filter((_, index) => this.selectedDriverRows[index] && this.driverRowVisible[index])
       .map((driver) => driver.uid);
@@ -126,7 +126,6 @@ export class Crew implements OnInit {
 
   async onDriversChanged(): Promise<void> {
     await this.loadDrivers();
-    this.selectedDriverRows = new Array(this.driversList.length).fill(false);
     this.allDriversSelected = false;
   }
 
@@ -138,12 +137,6 @@ export class Crew implements OnInit {
     this.allDriversSelected =
       visibleIndexes.length > 0 && visibleIndexes.every((index) => this.selectedDriverRows[index]);
   }
-
-  // Agregar propiedad y método para abrir el modal de edición
-  selectedDriverForUpdate: TripulacionTabla | null = null;
-  isUpdateModalOpen = false;
-  selectedCrew: TripulacionTabla | null = null;
-  isDetailsModalOpen = false;
 
   openDetailsModal(driver: TripulacionTabla): void {
     this.selectedCrew = driver;
@@ -159,6 +152,4 @@ export class Crew implements OnInit {
     this.selectedDriverForUpdate = driver;
     this.isUpdateModalOpen = true;
   }
-
-
 }

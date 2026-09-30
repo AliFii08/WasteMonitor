@@ -1,109 +1,96 @@
-import { inject, Injectable, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
-import { Database, ref, update } from '@angular/fire/database';
+import { Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 
 export interface TripulacionTabla {
-  uid: string;
-  driverId: string;
-  nombreCompleto: string;
-  cargo: 'supervisor' | 'crew' | 'mecanico' | 'conductor' | string;
-  encargado: string;
-  camionAsignado: string;
-  rutaAsignada: string;
+  uid: string;              // ID del grupo (ej: -P2nw1cIA8_dLQJDbMr2)
+  driverId: string;         // ID legible / driverId del supervisor
+  nombreCompleto: string;   // Nombre del supervisor o identificador
+  encargado: string;        // Nombre completo del supervisor
+  camionAsignado: string;   // ID del camión (ej: VEH-002)
+  rutaAsignada: string;     // Nombre de la ruta (ej: route8)
+  conductor: string;        // Nombre completo del conductor
+  crewIntegrantes: string[];// Lista con los nombres de los miembros del crew
 }
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class TripulacionService {
-  private database = inject(Database);
-  private platformId = inject(PLATFORM_ID);
-
-  private readonly BASE_URL = environment.firebaseConfig.databaseURL;
+  private databaseUrl = environment.firebaseConfig.databaseURL;
 
   async getTripulacion(): Promise<TripulacionTabla[]> {
-    if (!isPlatformBrowser(this.platformId)) return [];
-
     try {
-      // 1. Obtener usuarios y camiones simultáneamente vía Fetch REST
-      const [usersRes, camionesRes] = await Promise.all([
-        fetch(`${this.BASE_URL}/usuarios.json`),
-        fetch(`${this.BASE_URL}/camiones.json`),
+      const [resGrupos, resUsers, resCamiones, resRoutes] = await Promise.all([
+        fetch(`${this.databaseUrl}/grupoTripulacion.json`),
+        fetch(`${this.databaseUrl}/usuarios.json`),
+        fetch(`${this.databaseUrl}/camiones.json`),
+        fetch(`${this.databaseUrl}/routes.json`)
       ]);
 
-      if (!usersRes.ok) throw new Error(`HTTP error usuarios: ${usersRes.status}`);
-      if (!camionesRes.ok) throw new Error(`HTTP error camiones: ${camionesRes.status}`);
+      const gruposData = resGrupos.ok ? await resGrupos.json() : {};
+      const usersData = resUsers.ok ? await resUsers.json() : {};
+      const camionesData = resCamiones.ok ? await resCamiones.json() : {};
+      const routesData = resRoutes.ok ? await resRoutes.json() : {};
 
-      const usersData = await usersRes.json();
-      const camionesData = (await camionesRes.json()) || {};
+      if (!gruposData) return [];
 
-      if (!usersData) return [];
+      const resultado: TripulacionTabla[] = [];
 
-      // 2. Calcular el mayor número correlativo DRV-XXX guardado globalmente
-      let maxNum = 0;
-      Object.values<any>(usersData).forEach((u) => {
-        if (u && u.driverId) {
-          const match = /^DRV-(\d+)$/i.exec(u.driverId.trim());
-          if (match) {
-            const num = parseInt(match[1], 10);
-            if (num > maxNum) maxNum = num;
-          }
+      Object.entries<any>(gruposData).forEach(([grupoKey, grupo]) => {
+        if (!grupo || typeof grupo !== 'object') return;
+
+        // Omitir grupos de prueba con IDs ficticios
+        if (grupo.camion === 'idcamion' || grupo.supervisor === 'idusuario') return;
+
+        // 1. Resolver Supervisor
+        const supData = usersData?.[grupo.supervisor];
+        const supervisorNombre = supData
+          ? `${supData.name || supData.nombreUsuario || ''} ${supData.lastName || ''}`.trim()
+          : 'Sin supervisor';
+
+        // 2. Resolver Conductor
+        const condData = usersData?.[grupo.conductor];
+        const conductorNombre = condData
+          ? `${condData.name || condData.nombreUsuario || ''} ${condData.lastName || ''}`.trim()
+          : 'Sin conductor';
+
+        // 3. Resolver Camión y Ruta
+        const camionId = grupo.camion || 'Sin camión';
+        const camionInfo = camionesData?.[camionId];
+        const rutaKey = camionInfo?.ruta || 'Sin ruta';
+
+        let rutaNombre = rutaKey;
+        if (routesData && routesData[rutaKey]?.nombreRuta) {
+          rutaNombre = routesData[rutaKey].nombreRuta;
         }
-      });
 
-      const supervisoresPorCamion = new Map<string, string>();
-      Object.values<any>(usersData).forEach((user) => {
-        if (user?.rol === 'supervisor' && user.camionId) {
-          const nombre = `${user.name || ''} ${user.lastName || ''}`.trim();
-          if (nombre) supervisoresPorCamion.set(user.camionId, nombre);
-        }
-      });
-
-      const tripulacion: TripulacionTabla[] = [];
-
-      // 3. Mapear conductores obteniendo la ruta desde el nodo camiones
-      for (const [uid, user] of Object.entries<any>(usersData)) {
-        if (
-          user &&
-          (user.rol === 'supervisor' ||
-            user.rol === 'crew' ||
-            user.rol === 'mecanico' ||
-            user.rol === 'conductor')
-        ) {
-          let driverId = user.driverId;
-
-          // Guardar correlativo en Firebase si no posee uno
-          if (!driverId) {
-            maxNum++;
-            driverId = `DRV-${String(maxNum).padStart(3, '0')}`;
-            await update(ref(this.database, `usuarios/${uid}`), { driverId });
-          }
-
-          const idCamion = user.camionId || '';
-          const nombreCompleto = `${user.name || ''} ${user.lastName || ''}`.trim() || 'Sin Nombre';
-
-          // Buscar la ruta en el objeto del vehículo (ej. camiones['VEH-001'].ruta)
-          let rutaEncontrada = 'Sin ruta';
-          if (idCamion && camionesData[idCamion] && camionesData[idCamion].ruta) {
-            rutaEncontrada = camionesData[idCamion].ruta;
-          }
-
-          tripulacion.push({
-            uid,
-            driverId,
-            nombreCompleto,
-            cargo: user.rol,
-            encargado: supervisoresPorCamion.get(idCamion) || 'Sin supervisor',
-            camionAsignado: idCamion || 'Sin asignar',
-            rutaAsignada: rutaEncontrada,
+        // 4. Resolver Integrantes del Crew
+        const crewNombres: string[] = [];
+        if (grupo.crew && typeof grupo.crew === 'object') {
+          Object.values<string>(grupo.crew).forEach((crewUid) => {
+            const u = usersData?.[crewUid];
+            if (u) {
+              const n = `${u.name || u.nombreUsuario || ''} ${u.lastName || ''}`.trim();
+              if (n) crewNombres.push(n);
+            }
           });
         }
-      }
 
-      return tripulacion;
+        resultado.push({
+          uid: grupoKey,
+          driverId: supData?.driverId || grupoKey.substring(0, 8),
+          nombreCompleto: supervisorNombre,
+          encargado: supervisorNombre,
+          camionAsignado: camionId,
+          rutaAsignada: rutaNombre,
+          conductor: conductorNombre,
+          crewIntegrantes: crewNombres,
+        });
+      });
+
+      return resultado;
     } catch (error) {
-      console.error('Error al obtener la lista de conductores mediante fetch:', error);
+      console.error('Error al obtener la lista de tripulación:', error);
       return [];
     }
   }

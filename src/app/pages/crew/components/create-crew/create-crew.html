@@ -4,7 +4,7 @@
       <header class="modal-header">
         <div class="modal-title">
           <i class="pi pi-users"></i>
-          <h2>Crear grupo</h2>
+          <h2>Crear Grupo de Tripulación</h2>
         </div>
         <button type="button" class="close-btn" (click)="cerrarModal()" aria-label="Cerrar">
           <i class="pi pi-times"></i>
@@ -12,7 +12,7 @@
       </header>
 
       <form (ngSubmit)="onSubmit()" class="modal-body" #f="ngForm">
-        <!-- Un grupo debe tener exactamente un supervisor. -->
+        <!-- Supervisor -->
         <div class="form-field">
           <label for="supervisorUid">Supervisor <span class="req">*</span></label>
           <select
@@ -27,15 +27,16 @@
             </option>
             @for (u of supervisoresDisponibles; track u.uid) {
               <option [value]="u.uid">
-                {{ u.nombreCompleto }} ({{ u.email }})
+                {{ u.nombreCompleto }}
               </option>
             }
           </select>
           @if (!loadingData && supervisoresDisponibles.length === 0) {
-            <small class="hint">No hay supervisores disponibles.</small>
+            <small class="hint">No hay supervisores disponibles sin asignación.</small>
           }
         </div>
 
+        <!-- Conductor -->
         <div class="form-field">
           <label for="conductorUid">Conductor</label>
           <select
@@ -44,15 +45,19 @@
             [(ngModel)]="form.conductorUid"
             [disabled]="saving || loadingData"
           >
-            <option value="">Sin conductor</option>
+            <option value="">Sin conductor asignado</option>
             @for (u of conductoresDisponibles; track u.uid) {
               <option [value]="u.uid">
-                {{ u.nombreCompleto }} ({{ u.email }})
+                {{ u.nombreCompleto }}
               </option>
             }
           </select>
+          @if (!loadingData && conductoresDisponibles.length === 0) {
+            <small class="hint">No hay conductores disponibles sin asignación.</small>
+          }
         </div>
 
+        <!-- Integrantes de Crew -->
         <div class="form-field">
           <label>Crew (máximo 4)</label>
           <div class="crew-options">
@@ -69,11 +74,11 @@
             }
           </div>
           @if (!loadingData && crewDisponibles.length === 0) {
-            <small class="hint">No hay crew disponible.</small>
+            <small class="hint">No hay personal de crew disponible.</small>
           }
         </div>
 
-        <!-- Selección de Camión Disponible -->
+        <!-- Vehículo -->
         <div class="form-field">
           <label for="idCamion">Vehículo / Camión <span class="req">*</span></label>
           <select
@@ -93,7 +98,7 @@
             }
           </select>
           @if (!loadingData && camionesDisponibles.length === 0) {
-            <small class="hint">No hay vehículos disponibles fuera de taller.</small>
+            <small class="hint">No hay vehículos disponibles en la flota.</small>
           }
         </div>
 

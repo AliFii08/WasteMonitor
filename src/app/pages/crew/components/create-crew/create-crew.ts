@@ -1,7 +1,7 @@
 import { Component, EventEmitter, inject, Input, Output, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Database, ref, get, update } from '@angular/fire/database';
+import { environment } from '../../../../../environments/environment';
 
 export interface UsuarioOption {
   uid: string;
@@ -24,8 +24,8 @@ export interface CamionOption {
   styleUrl: './create-crew.scss',
 })
 export class CreateCrew implements OnChanges {
-  private db = inject(Database);
   private cdr = inject(ChangeDetectorRef);
+  private databaseUrl = environment.firebaseConfig.databaseURL;
 
   @Input() visible = false;
   @Output() visibleChange = new EventEmitter<boolean>();
@@ -60,31 +60,44 @@ export class CreateCrew implements OnChanges {
     this.cdr.detectChanges();
 
     try {
-      // Solo se ofrecen personas sin camionId: ya pertenecen a otro grupo si tienen uno.
-      const usersSnap = await get(ref(this.db, 'usuarios'));
-      const usuariosTemp: UsuarioOption[] = [];
-      if (usersSnap.exists()) {
-        const usersData = usersSnap.val();
+      // 1. Obtener usuarios mediante FETCH
+      const resUsers = await fetch(`${this.databaseUrl}/usuarios.json`);
+      if (!resUsers.ok) throw new Error('No se pudo obtener la lista de usuarios.');
+      const usersData = await resUsers.json();
+
+      const supervisoresTemp: UsuarioOption[] = [];
+      const conductoresTemp: UsuarioOption[] = [];
+      const crewTemp: UsuarioOption[] = [];
+
+      if (usersData) {
         Object.entries<any>(usersData).forEach(([uid, user]) => {
-          if (user && ['supervisor', 'conductor', 'crew'].includes(user.rol) && !user.camionId) {
-            const nombre = `${user.name || ''} ${user.lastName || ''}`.trim() || 'Sin Nombre';
-            usuariosTemp.push({
-              uid,
-              nombreCompleto: nombre,
-              email: user.email || 'Sin email',
-              rol: user.rol,
-            });
+          // Omitir registros incompletos o de prueba sin identificador de nombre
+          if (!user || (!user.name && !user.nombreUsuario)) return;
+
+          const nombre = `${user.name || user.nombreUsuario || ''} ${user.lastName || ''}`.trim();
+          const email = user.email || user.correo || 'Sin email';
+          const userRol = user.rol;
+
+          // Clasificar según el rol asignado
+          if (userRol === 'supervisor') {
+            supervisoresTemp.push({ uid, nombreCompleto: nombre, email, rol: 'supervisor' });
+          } else if (userRol === 'conductor') {
+            conductoresTemp.push({ uid, nombreCompleto: nombre, email, rol: 'conductor' });
+          } else if (userRol === 'crew') {
+            crewTemp.push({ uid, nombreCompleto: nombre, email, rol: 'crew' });
           }
         });
       }
 
-      // 2. Obtener vehículos disponibles (activo !== false && !enTaller)
-      const camionesSnap = await get(ref(this.db, 'camiones'));
+      // 2. Obtener camiones disponibles
+      const resCamiones = await fetch(`${this.databaseUrl}/camiones.json`);
+      if (!resCamiones.ok) throw new Error('No se pudo obtener la lista de camiones.');
+      const camionesData = await resCamiones.json();
+
       const camionesTemp: CamionOption[] = [];
-      if (camionesSnap.exists()) {
-        const camionesData = camionesSnap.val();
+      if (camionesData) {
         Object.entries<any>(camionesData).forEach(([idKey, camion]) => {
-          if (camion && camion.activo !== false && !camion.enTaller && camion.estado === 'disponible') {
+          if (camion && camion.activo !== false && !camion.enTaller) {
             camionesTemp.push({
               idKey,
               placa: camion.placa,
@@ -94,12 +107,12 @@ export class CreateCrew implements OnChanges {
         });
       }
 
-      this.supervisoresDisponibles = usuariosTemp.filter((user) => user.rol === 'supervisor');
-      this.conductoresDisponibles = usuariosTemp.filter((user) => user.rol === 'conductor');
-      this.crewDisponibles = usuariosTemp.filter((user) => user.rol === 'crew');
+      this.supervisoresDisponibles = supervisoresTemp;
+      this.conductoresDisponibles = conductoresTemp;
+      this.crewDisponibles = crewTemp;
       this.camionesDisponibles = camionesTemp;
     } catch (err: any) {
-      this.errorMsg = 'Error al cargar los datos necesarios: ' + (err.message || err);
+      this.errorMsg = 'Error al cargar los datos: ' + (err.message || err);
     } finally {
       this.loadingData = false;
       this.cdr.detectChanges();
@@ -108,7 +121,7 @@ export class CreateCrew implements OnChanges {
 
   async onSubmit(): Promise<void> {
     if (!this.form.supervisorUid || !this.form.idCamion || this.form.crewUids.length > 4) {
-      this.errorMsg = 'Debes asignar un supervisor y como máximo 4 personas de crew.';
+      this.errorMsg = 'Debes asignar un supervisor, un vehículo y como máximo 4 personas de crew.';
       return;
     }
 
@@ -116,22 +129,45 @@ export class CreateCrew implements OnChanges {
     this.errorMsg = '';
 
     try {
-      const updates: Record<string, string> = {
-        [`usuarios/${this.form.supervisorUid}/rol`]: 'supervisor',
-        [`usuarios/${this.form.supervisorUid}/camionId`]: this.form.idCamion,
+      const crewMap: Record<string, string> = {};
+      this.form.crewUids.forEach((uid, index) => {
+        crewMap[`crew${index + 1}`] = uid;
+      });
+
+      const nuevoGrupo = {
+        camion: this.form.idCamion,
+        supervisor: this.form.supervisorUid,
+        conductor: this.form.conductorUid || '',
+        crew: crewMap,
       };
 
+      const resGrupo = await fetch(`${this.databaseUrl}/grupoTripulacion.json`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(nuevoGrupo),
+      });
+
+      if (!resGrupo.ok) throw new Error('Error al registrar el grupo de tripulación.');
+
+      const updatesUsuarios: Record<string, any> = {};
+
+      updatesUsuarios[`/usuarios/${this.form.supervisorUid}/camionId`] = this.form.idCamion;
+
       if (this.form.conductorUid) {
-        updates[`usuarios/${this.form.conductorUid}/rol`] = 'conductor';
-        updates[`usuarios/${this.form.conductorUid}/camionId`] = this.form.idCamion;
+        updatesUsuarios[`/usuarios/${this.form.conductorUid}/camionId`] = this.form.idCamion;
       }
 
       this.form.crewUids.forEach((uid) => {
-        updates[`usuarios/${uid}/rol`] = 'crew';
-        updates[`usuarios/${uid}/camionId`] = this.form.idCamion;
+        updatesUsuarios[`/usuarios/${uid}/camionId`] = this.form.idCamion;
       });
 
-      await update(ref(this.db), updates);
+      const resUpdates = await fetch(`${this.databaseUrl}/.json`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatesUsuarios),
+      });
+
+      if (!resUpdates.ok) throw new Error('Error al asignar el camión a los usuarios.');
 
       this.created.emit();
       this.cerrarModal();

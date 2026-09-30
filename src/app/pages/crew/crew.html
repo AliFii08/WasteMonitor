@@ -93,21 +93,22 @@
 <app-create-crew
   [(visible)]="isCreateModalOpen"
   (created)="onDriversChanged()"
- ></app-create-crew>
+></app-create-crew>
 
 <app-update-crew
   [(visible)]="isUpdateModalOpen"
   [driverData]="selectedDriverForUpdate"
   (updated)="onDriversChanged()"
- ></app-update-crew>
+></app-update-crew>
 
 <app-delete-crew-modal
   [(visible)]="isDeleteModalOpen"
   [targetUids]="uidsToDelete"
   [driverName]="deleteDriverName"
   (deleted)="onDriversChanged()"
- ></app-delete-crew-modal>
+></app-delete-crew-modal>
 
+<!-- Modal de Detalle de Tripulación -->
 @if (isDetailsModalOpen && selectedCrew; as crew) {
   <div class="details-backdrop" (click)="closeDetailsModal()">
     <section class="details-modal" role="dialog" aria-modal="true" aria-labelledby="crew-details-title"
@@ -117,7 +118,7 @@
           <i class="pi pi-users"></i>
           <div>
             <p>DETALLE DE TRIPULACIÓN</p>
-            <h2 id="crew-details-title">{{ crew.encargado }}</h2>
+            <h2 id="crew-details-title">Supervisor: {{ crew.encargado }}</h2>
           </div>
         </div>
         <button type="button" class="close-btn" aria-label="Cerrar" (click)="closeDetailsModal()">
@@ -125,13 +126,23 @@
         </button>
       </header>
       <div class="details-body">
-        <div class="detail-item"><span>ID</span><strong>{{ crew.driverId }}</strong></div>
-        <div class="detail-item"><span>Integrante</span><strong>{{ crew.nombreCompleto }}</strong></div>
-        <div class="detail-item"><span>Cargo</span><strong>{{ crew.cargo | titlecase }}</strong></div>
-        <div class="detail-item"><span>Encargado</span><strong>{{ crew.encargado }}</strong></div>
+        <div class="detail-item"><span>ID Supervisor</span><strong>{{ crew.driverId }}</strong></div>
+        <div class="detail-item"><span>Conductor</span><strong>{{ crew.conductor }}</strong></div>
         <div class="detail-item"><span>Camión asignado</span><strong>{{ crew.camionAsignado }}</strong></div>
         <div class="detail-item"><span>Ruta asignada</span><strong>{{ crew.rutaAsignada }}</strong></div>
-        <div class="detail-item full-detail"><span>UID</span><strong>{{ crew.uid }}</strong></div>
+        
+        <div class="detail-item full-detail">
+          <span>Personal de Crew</span>
+          <strong>
+            @if (crew.crewIntegrantes.length > 0) {
+              {{ crew.crewIntegrantes.join(', ') }}
+            } @else {
+              Sin personal asignado
+            }
+          </strong>
+        </div>
+
+        <div class="detail-item full-detail"><span>ID de Grupo</span><strong>{{ crew.uid }}</strong></div>
       </div>
       <footer class="details-footer">
         <button type="button" class="btn-cancel" (click)="closeDetailsModal()">Cerrar</button>
