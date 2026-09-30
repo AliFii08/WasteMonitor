@@ -42,17 +42,9 @@
       </div>
 
       <div class="tab-content" role="tabpanel">
-        @if (activeTab === 'vehicles') {
-          <app-dashboard-vehicles></app-dashboard-vehicles>
-        }
-
-        @if (activeTab === 'employees') {
-          <app-dashboard-employees></app-dashboard-employees>
-        }
-
-        @if (activeTab === 'operations') {
-          <app-historial-operaciones></app-historial-operaciones>
-        }
+        <app-dashboard-vehicles [hidden]="activeTab !== 'vehicles'"></app-dashboard-vehicles>
+        <app-dashboard-employees [hidden]="activeTab !== 'employees'"></app-dashboard-employees>
+        <app-historial-operaciones [hidden]="activeTab !== 'operations'"></app-historial-operaciones>
       </div>
     </section>
 

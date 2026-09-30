@@ -21,13 +21,13 @@ export interface CamionOption {
 }
 
 @Component({
-  selector: 'app-create-driver',
+  selector: 'app-create-crew',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './create-driver.html',
-  styleUrl: './create-driver.scss',
+  templateUrl: './create-crew.html',
+  styleUrl: './create-crew.scss',
 })
-export class CreateDriver implements OnChanges {
+export class CreateCrew implements OnChanges {
   private db = inject(Database);
   private cdr = inject(ChangeDetectorRef);
 

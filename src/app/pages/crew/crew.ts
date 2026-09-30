@@ -1,33 +1,33 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ConductoresService, ConductorTabla } from '../../@core/services/conductores.service';
-import { CreateDriver } from './components/create-driver/create-driver';
-import { UpdateDriver } from './components/update-driver/update-driver';
+import { TripulacionService, TripulacionTabla } from '../../@core/services/tripulacion.service';
+import { CreateCrew } from './components/create-crew/create-crew';
+import { UpdateCrew } from './components/update-crew/update-crew';
 import { VehiculoService } from '../../@core/services/vehiculos.service';
-import { DeleteDriverModal } from './components/delete-driver-modal/delete-driver-modal';
+import { DeleteCrewModal } from './components/delete-crew-modal/delete-crew-modal';
 import { TablePagination } from '../../@core/components/table-pagination/table-pagination';
 
 @Component({
-  selector: 'app-drivers',
+  selector: 'app-crew',
   standalone: true,
   imports: [
     CommonModule,
     FormsModule,
-    CreateDriver,
-    UpdateDriver,
-    DeleteDriverModal,
+    CreateCrew,
+    UpdateCrew,
+    DeleteCrewModal,
     TablePagination,
 ],
-  templateUrl: './drivers.html',
-  styleUrl: './drivers.scss',
+  templateUrl: './crew.html',
+  styleUrl: './crew.scss',
 })
-export class Drivers implements OnInit {
-  private conductoresService = inject(ConductoresService);
+export class Crew implements OnInit {
+  private tripulacionService = inject(TripulacionService);
   private cdr = inject(ChangeDetectorRef);
 
 
-  driversList: ConductorTabla[] = [];
+  driversList: TripulacionTabla[] = [];
   driverSearchTerm = '';
   driverPage = 0;
   readonly driverPageSize = 10;
@@ -50,7 +50,7 @@ export class Drivers implements OnInit {
 
   async loadDrivers(): Promise<void> {
     this.cdr.detectChanges();
-    this.driversList = await this.conductoresService.getConductores();
+    this.driversList = await this.tripulacionService.getTripulacion();
 
     // Mantenemos el estado de selección e visibilidad idéntico al código de tu equipo
     this.selectedDriverRows = new Array(this.driversList.length).fill(false);
@@ -67,7 +67,7 @@ export class Drivers implements OnInit {
     return this.driverRowVisible.filter(Boolean).length;
   }
 
-  get paginatedDrivers(): { driver: ConductorTabla; index: number }[] {
+  get paginatedDrivers(): { driver: TripulacionTabla; index: number }[] {
     return this.driversList
       .map((driver, index) => ({ driver, index }))
       .filter((row) => this.driverRowVisible[row.index])
@@ -106,7 +106,7 @@ export class Drivers implements OnInit {
     this.syncDriversSelection();
   }
 
-  openSingleDeleteModal(driver: ConductorTabla): void {
+  openSingleDeleteModal(driver: TripulacionTabla): void {
     this.uidsToDelete = [driver.uid];
     this.deleteDriverName = driver.nombreCompleto;
     this.isDeleteModalOpen = true;
@@ -140,10 +140,10 @@ export class Drivers implements OnInit {
   }
 
   // Agregar propiedad y método para abrir el modal de edición
-  selectedDriverForUpdate: ConductorTabla | null = null;
+  selectedDriverForUpdate: TripulacionTabla | null = null;
   isUpdateModalOpen = false;
 
-  openUpdateModal(driver: ConductorTabla): void {
+  openUpdateModal(driver: TripulacionTabla): void {
     this.selectedDriverForUpdate = driver;
     this.isUpdateModalOpen = true;
   }

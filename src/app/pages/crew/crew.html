@@ -1,7 +1,7 @@
-<div class="drivers-page">
+<div class="crew-page">
   <div class="title">
-    <h1>Conductores</h1>
-    <span>Miembros de la brigada de recolección de desechos sólidos</span>
+    <h1>Tripulación</h1>
+    <span>Grupos de los miembros de la brigada de recolección de desechos sólidos</span>
   </div>
 
   <div class="table-toolbar">
@@ -28,13 +28,13 @@
 
     <button type="button" class="create-btn" (click)="openCreateModal()">
       <i class="pi pi-plus"></i>
-      Crear conductor
+      Crear miembro
     </button>
   </div>
 
-  <section class="table-card" aria-label="Tabla de conductores">
+  <section class="table-card" aria-label="Tabla de tripulación">
     <div class="table-wrap">
-      <table class="drivers-table">
+      <table class="crew-table">
         <thead>
           <tr>
             <th>ID</th>
@@ -86,20 +86,20 @@
   </section>
 </div>
 
-<app-create-driver
+<app-create-crew
   [(visible)]="isCreateModalOpen"
   (created)="onDriversChanged()"
-></app-create-driver>
+ ></app-create-crew>
 
-<app-update-driver
+<app-update-crew
   [(visible)]="isUpdateModalOpen"
   [driverData]="selectedDriverForUpdate"
   (updated)="onDriversChanged()"
-></app-update-driver>
+ ></app-update-crew>
 
-<app-delete-driver-modal
+<app-delete-crew-modal
   [(visible)]="isDeleteModalOpen"
   [targetUids]="uidsToDelete"
   [driverName]="deleteDriverName"
   (deleted)="onDriversChanged()"
-></app-delete-driver-modal>
+ ></app-delete-crew-modal>

@@ -3,7 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Database, ref, update } from '@angular/fire/database';
 import { environment } from '../../../environments/environment';
 
-export interface ConductorTabla {
+export interface TripulacionTabla {
   uid: string;
   driverId: string;
   nombreCompleto: string;
@@ -15,13 +15,13 @@ export interface ConductorTabla {
 @Injectable({
   providedIn: 'root',
 })
-export class ConductoresService {
+export class TripulacionService {
   private database = inject(Database);
   private platformId = inject(PLATFORM_ID);
 
   private readonly BASE_URL = environment.firebaseConfig.databaseURL;
 
-  async getConductores(): Promise<ConductorTabla[]> {
+  async getTripulacion(): Promise<TripulacionTabla[]> {
     if (!isPlatformBrowser(this.platformId)) return [];
 
     try {
@@ -51,7 +51,7 @@ export class ConductoresService {
         }
       });
 
-      const conductores: ConductorTabla[] = [];
+      const tripulacion: TripulacionTabla[] = [];
 
       // 3. Mapear conductores obteniendo la ruta desde el nodo camiones
       for (const [uid, user] of Object.entries<any>(usersData)) {
@@ -79,7 +79,7 @@ export class ConductoresService {
             rutaEncontrada = camionesData[idCamion].ruta;
           }
 
-          conductores.push({
+          tripulacion.push({
             uid,
             driverId,
             nombreCompleto: `${user.name || ''} ${user.lastName || ''}`.trim() || 'Sin Nombre',
@@ -90,7 +90,7 @@ export class ConductoresService {
         }
       }
 
-      return conductores;
+      return tripulacion;
     } catch (error) {
       console.error('Error al obtener la lista de conductores mediante fetch:', error);
       return [];

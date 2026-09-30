@@ -3,13 +3,13 @@ import { CommonModule } from '@angular/common';
 import { Database, ref, update } from '@angular/fire/database';
 
 @Component({
-  selector: 'app-delete-driver-modal',
+  selector: 'app-delete-crew-modal',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './delete-driver-modal.html',
-  styleUrl: './delete-driver-modal.scss',
+  templateUrl: './delete-crew-modal.html',
+  styleUrl: './delete-crew-modal.scss',
 })
-export class DeleteDriverModal {
+export class DeleteCrewModal {
   private db = inject(Database);
   private cdr = inject(ChangeDetectorRef);
 

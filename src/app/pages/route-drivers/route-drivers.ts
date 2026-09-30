@@ -187,6 +187,11 @@ export class RouteDrivers implements AfterViewInit {
   async selectRouteById(routeId: string): Promise<void> {
     if (this.isBuildingLocalRoute()) return;
 
+    if (this.selectedRouteId() === routeId) {
+      this.clearSelectedRoute();
+      return;
+    }
+
     this.selectedRouteId.set(routeId);
     this.routePointsPage.set(0);
     this.isSelectingFromMap.set(false);
@@ -198,6 +203,17 @@ export class RouteDrivers implements AfterViewInit {
     }
 
     await this.refreshSelectedRouteView(routeId);
+  }
+
+  private clearSelectedRoute(): void {
+    this.selectedRouteId.set('');
+    this.routePointsPage.set(0);
+    this.isSelectingFromMap.set(false);
+    this.newPointLat.set('');
+    this.newPointLng.set('');
+    this.cancelEditing();
+    this.mapaComponent.clearAll();
+    this.mapaComponent.resetView();
   }
 
   getRoutePointCount(route: RouteData): number {

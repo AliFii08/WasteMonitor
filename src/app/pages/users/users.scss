@@ -216,13 +216,13 @@
   text-transform: capitalize;
 
   &.admin {
-    background: #ffe8bf;
-    color: #8a5b00;
+    background: #fee2e2;
+    color: #b91c1c;
   }
 
   &.supervisor {
-    background: #d0e1fd;
-    color: #1a56db;
+    background: #ccfbf1;
+    color: #0f766e;
   }
 
   &.crew {
@@ -231,13 +231,13 @@
   }
 
   &.conductor {
-    background: #dbeafe;
-    color: #1e40af;
+    background: #ffedd5;
+    color: #c2410c;
   }
 
   &.mecanico {
-    background: #ffe8bf;
-    color: #8a5b00;
+    background: #dbeafe;
+    color: #1d4ed8;
   }
 }
 
@@ -277,6 +277,7 @@
   align-items: center;
   justify-content: center;
   padding: 1rem;
+  overflow-y: auto;
   background: rgba(3, 30, 22, 0.45);
   backdrop-filter: blur(2px);
   animation: fade-in 0.15s ease-out;
@@ -286,7 +287,7 @@
   width: 100%;
   max-width: 520px;
   max-height: 90vh;
-  overflow-y: auto;
+  overflow: visible;
   border-radius: 16px;
   background: #fff;
   box-shadow: 0 24px 60px rgba(0, 54, 40, 0.28);

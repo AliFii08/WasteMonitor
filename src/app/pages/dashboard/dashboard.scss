@@ -40,7 +40,7 @@
 .tabs-card,
 .notifications-card {
   box-sizing: border-box;
-  height: 370px;
+  height: 540px;
   min-height: 0;
   border: 1px solid #d8e4de;
   border-radius: 14px;
@@ -197,7 +197,7 @@
   }
 
   .notifications-card {
-    height: 370px;
+    height: 540px;
   }
 }
 
@@ -226,5 +226,9 @@
 
   .tab-content {
     padding: 18px;
+  }
+
+  .tabs-card {
+    height: 560px;
   }
 }

@@ -1,3 +1,25 @@
-<p>employees works!</p>
+<div class="chart-panel">
+	<div class="chart-heading">
+		<div>
+			<h2>Empleados</h2>
+			<p>Personal registrado por rol</p>
+		</div>
+		<strong>{{ total }}</strong>
+	</div>
 
-<h1>algo</h1>
+	@if (loading) {
+		<div class="chart-loading" role="status" aria-label="Cargando datos">
+			<div class="spinner"></div>
+		</div>
+	} @else {
+		<div class="bar-chart" aria-label="Empleados por rol">
+			@for (item of items; track item.label) {
+				<div class="bar-row">
+					<div class="bar-value">{{ item.count }}<small>{{ item.percentage | number: '1.0-0' }}%</small></div>
+					<div class="bar-track"><span [class]="'role-' + item.role" [style.height.%]="item.percentage"></span></div>
+					<div class="bar-label">{{ item.label }}</div>
+				</div>
+			}
+		</div>
+	}
+</div>

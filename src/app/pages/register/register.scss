@@ -94,6 +94,10 @@
   color: #fff;
 }
 
+.mobile-logo {
+  display: none;
+}
+
 .container h2 {
   margin: 0 0 8px;
   font-size: clamp(36px, 4vw, 50px);
@@ -317,11 +321,156 @@
   margin-top: 6px !important;
 }
 
-/* Zonas disponibles para ajustes manuales; los estilos actuales se conservan. */
 @media (max-width: 767px) {
-  /* Agrega aquí los cambios visuales para teléfonos. */
+  :host {
+    position: relative;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  .fondo {
+    display: none;
+  }
+
+  .mobile-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 22dvh;
+    min-height: 150px;
+    overflow: hidden;
+    background-color: #f1ffed;
+  }
+
+  .mobile-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: left center;
+    transform: scale(1.2);
+    transform-origin: left center;
+  }
+
+  .fondo1,
+  .fondo2 {
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 11dvh;
+    background-color: #f1ffed;
+  }
+
+  .fondo1 {
+    top: 0;
+    bottom: auto;
+  }
+
+  .fondo2 {
+    top: auto;
+    bottom: 0;
+  }
+
+  .linea1,
+  .linea2 {
+    height: clamp(10px, 2.2vw, 16px);
+  }
+
+  .linea1 {
+    top: 16%;
+    left: 0;
+    width: 55%;
+    bottom: auto;
+    background-color: #06523f;
+  }
+
+  .linea2 {
+    top: auto;
+    left: auto;
+    right: 0;
+    width: 55%;
+    bottom: 16%;
+    background-color: #68a357;
+  }
+
+  #waste,
+  #monitor {
+    left: 50%;
+    font-size: clamp(42px, 16vw, 110px);
+    transform: translate(-50%, -50%);
+  }
+
+  #waste {
+    top: 62%;
+  }
+
+  #monitor {
+    top: 38%;
+  }
+
+  .container {
+    position: relative;
+    width: 100%;
+    min-height: calc(100dvh - 22dvh);
+    height: auto;
+    margin: 0;
+    padding: 34px 24px 60px;
+  }
+
+  .form-group.two-columns {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
 }
 
 @media (min-width: 768px) and (max-width: 1024px) {
-  /* Agrega aquí los cambios visuales para tablets. */
+  :host {
+    overflow-x: hidden;
+    background-color: #f1ffed;
+  }
+
+  .fondo {
+    display: none;
+  }
+
+  .mobile-logo {
+    display: none;
+  }
+
+  .container {
+    width: min(680px, calc(100% - 48px));
+    min-height: 0;
+    margin: 24px auto 40px;
+    padding: 32px clamp(28px, 5vw, 56px) 48px;
+    border-radius: 12px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+  .mobile-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: clamp(180px, 25vh, 260px);
+    overflow: hidden;
+    background-color: #f1ffed;
+  }
+
+  .mobile-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: left center;
+    transform: scale(1.2);
+    transform-origin: left center;
+  }
+
+  .container {
+    width: 100%;
+    min-height: calc(100dvh - 25dvh);
+    margin: 0;
+    padding: 40px clamp(32px, 8vw, 88px) 64px;
+    border-radius: 0;
+  }
 }

@@ -54,9 +54,6 @@
       <table class="preview-table">
         <thead>
           <tr>
-            <th class="select-col">
-              <i class="pi pi-check-square"></i>
-            </th>
             <th>ID</th>
             <th>Tipo</th>
             <th>Capacidad</th>
@@ -70,13 +67,6 @@
         <tbody>
           @for (vehicle of paginatedVehicles; track vehicle.id || $index) {
             <tr>
-              <td class="select-col">
-                <input
-                  type="checkbox"
-                  [checked]="isVehicleSelected(vehicle)"
-                  (change)="toggleVehicleSelection(vehicle, $any($event.target).checked)"
-                />
-              </td>
               <td><strong>{{ vehicle.id }}</strong></td>
               <td>{{ vehicle.type | titlecase }}</td>
               <td>{{ vehicle.weight | number: '1.0-0' }} t</td>
@@ -97,6 +87,13 @@
               </td>
               <td class="options-header">
                 <div class="option-actions">
+                  <input
+                    class="row-select"
+                    type="checkbox"
+                    [checked]="isVehicleSelected(vehicle)"
+                    [attr.aria-label]="'Seleccionar vehículo ' + vehicle.id"
+                    (change)="toggleVehicleSelection(vehicle, $any($event.target).checked)"
+                  />
                   <button
                     type="button"
                     class="icon-btn"
@@ -118,7 +115,7 @@
             </tr>
           } @empty {
             <tr>
-              <td colspan="8" class="empty-row">No hay vehículos registrados o activos.</td>
+              <td colspan="7" class="empty-row">No hay vehículos registrados o activos.</td>
             </tr>
           }
         </tbody>

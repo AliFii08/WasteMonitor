@@ -50,11 +50,11 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/dashboard/dashboard').then((m) => m.Dashboard),
       },
       {
-        path: 'home/drivers',
-        title: 'Conductores',
+        path: 'home/crew',
+        title: 'Tripulación',
 
         canActivate: [roleGuard(['admin', 'supervisor', 'crew', 'conductor'])],
-        loadComponent: () => import('./pages/drivers/drivers').then((m) => m.Drivers),
+        loadComponent: () => import('./pages/crew/crew').then((m) => m.Crew),
       },
       {
         path: 'home/vehicles',

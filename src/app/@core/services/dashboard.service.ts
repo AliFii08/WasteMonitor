@@ -18,10 +18,11 @@ export interface OperacionHistorial {
 export interface EstadisticasDashboard {
   empleados: {
     total: number;
+    administradores: number;
     supervisores: number;
     crew: number;
     conductores: number;
-    empleadosSinRolEspecifico: number;
+    mecanicos: number;
   };
   vehiculos: {
     total: number;
@@ -155,15 +156,22 @@ export class DashboardService {
       let supervisores = 0;
       let crew = 0;
       let conductores = 0;
-      let otrosEmpleados = 0;
+      let administradores = 0;
+      let mecanicos = 0;
 
       Object.values<any>(usersData).forEach((u) => {
         if (!u) return;
-        const rol = (u.rol || '').toLowerCase().trim();
+        const rol = (u.rol || '')
+          .toLowerCase()
+          .trim()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '');
         if (rol === 'supervisor') supervisores++;
         else if (rol === 'crew') crew++;
         else if (rol === 'conductor') conductores++;
-        else if (rol === 'empleado') otrosEmpleados++;
+        else if (rol === 'admin' || rol === 'administrador' || rol === 'administradores') {
+          administradores++;
+        } else if (rol === 'mecanico' || rol === 'mecanicos') mecanicos++;
       });
 
       let disponibles = 0;
@@ -184,7 +192,7 @@ export class DashboardService {
         if (c.conductorId) camionesConConductor++;
         else camionesSinConductor++;
 
-        const tipo = c.tipo || 'Sin Tipo';
+        const tipo = (c.tipo || 'Sin Tipo').toString().trim();
         porTipo[tipo] = (porTipo[tipo] || 0) + 1;
 
         const capKey = c.capacidad ? `${c.capacidad} Ton` : 'No especificada';
@@ -193,11 +201,12 @@ export class DashboardService {
 
       return {
         empleados: {
-          total: supervisores + crew + conductores + otrosEmpleados,
+          total: administradores + supervisores + crew + conductores + mecanicos,
+          administradores,
           supervisores,
           crew,
           conductores,
-          empleadosSinRolEspecifico: otrosEmpleados,
+          mecanicos,
         },
         vehiculos: {
           total: listaCamiones.length,

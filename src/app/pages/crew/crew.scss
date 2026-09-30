@@ -1,4 +1,4 @@
-.drivers-page {
+.crew-page {
   margin-top: 0;
   padding-top: 0;
   font-family: 'Raleway', sans-serif !important;
@@ -86,7 +86,7 @@
 }
 
 .select-all-wrap input[type='checkbox'],
-.select-col input[type='checkbox'] {
+.option-actions input[type='checkbox'] {
   width: 16px;
   height: 16px;
   accent-color: #06523f;
@@ -131,16 +131,16 @@
   overflow-x: auto;
 }
 
-.drivers-table {
+.crew-table {
   width: 100%;
   border-collapse: collapse;
   min-width: 920px;
 }
 
-.drivers-table thead th {
+.crew-table thead th {
   background: #e7f3ec;
   color: #0f4b3a;
-  text-align: left;
+  text-align: center;
   font-size: 0.83rem;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -149,22 +149,23 @@
   border-bottom: 1px solid #d2e3da;
 }
 
-.drivers-table tbody td {
+.crew-table tbody td {
   padding: 0.9rem 1rem;
   color: #173d32;
   border-bottom: 1px solid #e5efe9;
   font-size: 0.9rem;
+  text-align: center;
 }
 
-.drivers-table tbody tr:last-child td {
+.crew-table tbody tr:last-child td {
   border-bottom: 0;
 }
 
-.drivers-table tbody tr:nth-child(even) {
+.crew-table tbody tr:nth-child(even) {
   background-color: rgba(141, 190, 164, 0.11);
 }
 
-.drivers-table tbody tr:hover {
+.crew-table tbody tr:hover {
   background-color: rgba(104, 163, 87, 0.16);
 }
 
@@ -173,11 +174,6 @@
 }
 
 .options-header {
-  text-align: center;
-}
-
-.select-col {
-  width: 44px;
   text-align: center;
 }
 
@@ -282,3 +278,4 @@
     min-width: 0;
   }
 }
+

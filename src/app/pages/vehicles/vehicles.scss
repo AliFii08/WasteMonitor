@@ -132,9 +132,11 @@
   text-align: center;
 }
 
-.select-col {
-  width: 44px;
-  text-align: center;
+.row-select {
+  width: 16px;
+  height: 16px;
+  accent-color: #06523f;
+  cursor: pointer;
 }
 
 .blurred-background {
@@ -166,7 +168,7 @@
 .preview-table thead th {
   background: #e7f3ec;
   color: #0f4b3a;
-  text-align: left;
+  text-align: center;
   font-size: 0.83rem;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -180,6 +182,7 @@
   color: #173d32;
   border-bottom: 1px solid #e5efe9;
   font-size: 0.9rem;
+  text-align: center;
 }
 
 .preview-table tbody tr:last-child td {

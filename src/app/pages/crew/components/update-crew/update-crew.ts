@@ -11,7 +11,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Database, ref, get, update } from '@angular/fire/database';
-import { ConductorTabla } from '../../../../@core/services/conductores.service';
+import { TripulacionTabla } from '../../../../@core/services/tripulacion.service';
 
 export interface CamionOption {
   idKey: string;
@@ -20,18 +20,18 @@ export interface CamionOption {
 }
 
 @Component({
-  selector: 'app-update-driver',
+  selector: 'app-update-crew',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './update-driver.html',
-  styleUrl: './update-driver.scss',
+  templateUrl: './update-crew.html',
+  styleUrl: './update-crew.scss',
 })
-export class UpdateDriver implements OnChanges {
+export class UpdateCrew implements OnChanges {
   private db = inject(Database);
   private cdr = inject(ChangeDetectorRef);
 
   @Input() visible = false;
-  @Input() driverData: ConductorTabla | null = null;
+  @Input() driverData: TripulacionTabla | null = null;
 
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() updated = new EventEmitter<void>();

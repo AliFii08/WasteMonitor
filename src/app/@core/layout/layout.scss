@@ -109,22 +109,9 @@ button {
     filter: none !important;
   }
 
-  .notification-tooltip .p-tooltip-arrow {
-    transform: rotate(90deg);
-    right: -5px !important;
-    left: auto !important;
-  }
-
   .emergency-tooltip .p-tooltip-text {
     background-color: #dc2626;
     color: #fff;
-  }
-
-  .emergency-tooltip .p-tooltip-arrow {
-    border-bottom-color: #ffffff !important;
-    transform: rotate(90deg);
-    right: -5px !important;
-    left: auto !important;
   }
 
   .announcement-tooltip .p-tooltip-text {
@@ -132,11 +119,13 @@ button {
     color: #2a2a2a;
   }
 
+  .notification-tooltip .p-tooltip-arrow,
+  .emergency-tooltip .p-tooltip-arrow,
   .announcement-tooltip .p-tooltip-arrow {
-    border-bottom-color: #ffffff !important;
-    transform: rotate(90deg);
-    right: -5px !important;
-    left: auto !important;
+    top: 0 !important;
+    right: auto !important;
+    left: 50% !important;
+    transform: none !important;
   }
 
   .p-button .pi {
@@ -275,8 +264,8 @@ button {
   right: 16px;
   z-index: 600;
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  flex-direction: row;
+  align-items: flex-start;
   gap: 8px;
 
   ::ng-deep .p-button {
@@ -339,7 +328,6 @@ button {
     height: 52px;
     min-width: 52px;
     min-height: 52px;
-    margin-bottom: 10px;
     padding: 0;
     color: #b42318 !important;
     background: #fee2e2 !important;
@@ -526,9 +514,19 @@ button {
     padding-top: 20px;
   }
 
-  .content app-profile {
+  ::ng-deep .content > app-complaints,
+  ::ng-deep .content > app-dashboard,
+  ::ng-deep .content > app-crew,
+  ::ng-deep .content > app-journey-report,
+  ::ng-deep .content > app-profile,
+  ::ng-deep .content > app-route-drivers,
+  ::ng-deep .content > app-schedules,
+  ::ng-deep .content > app-taller,
+  ::ng-deep .content > app-users,
+  ::ng-deep .content > app-vehicles {
+    box-sizing: border-box;
     display: block;
-    padding-top: 44px;
+    padding-top: 43px;
   }
 
   .notification-btn-wrapper {

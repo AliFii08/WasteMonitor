@@ -78,6 +78,37 @@ body {
   opacity: 1 !important;
 }
 
+@media (max-width: 767px) {
+  .p-toast {
+    position: fixed !important;
+    top: 12px !important;
+    bottom: auto !important;
+    right: 12px !important;
+    left: 12px !important;
+    width: auto !important;
+    max-width: none !important;
+    transform: none !important;
+    z-index: 1100 !important;
+  }
+
+  .p-toast .p-toast-message {
+    width: 100% !important;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .p-toast .p-toast-message-content,
+  .p-toast .p-toast-message-text {
+    min-width: 0;
+  }
+
+  .p-toast .p-toast-summary,
+  .p-toast .p-toast-detail {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}
+
 /* Shared visual language for application dialogs (not the notification popover). */
 .modal-backdrop:not(.error-backdrop) > :is(.modal-panel, .modal-container, .confirm-modal) {
   box-sizing: border-box;
@@ -271,6 +302,32 @@ body {
 
 .emergency-modal .primary-action:hover:not(:disabled) {
   background: #921d15 !important;
+}
+
+/* Keep modal close controls black and cancellation actions neutral gray. */
+:is(.modal-backdrop, .broadcast-modal, .emergency-modal) :is(.close-btn, .close-button),
+.p-dialog .p-dialog-header-close {
+  color: #000 !important;
+}
+
+:is(.modal-backdrop, .broadcast-modal, .emergency-modal) :is(.close-btn, .close-button):hover,
+.p-dialog .p-dialog-header-close:hover {
+  color: #000 !important;
+  background: #f0f0f0 !important;
+}
+
+:is(.modal-backdrop, .broadcast-modal, .emergency-modal) :is(.btn-cancel, .cancel-action, .secondary-action),
+.p-dialog :is(.p-button-text, .p-button-secondary) {
+  color: #555 !important;
+  background: #e5e5e5 !important;
+  border-color: #e5e5e5 !important;
+}
+
+:is(.modal-backdrop, .broadcast-modal, .emergency-modal) :is(.btn-cancel, .cancel-action, .secondary-action):hover:not(:disabled),
+.p-dialog :is(.p-button-text, .p-button-secondary):hover:not(:disabled) {
+  color: #333 !important;
+  background: #d6d6d6 !important;
+  border-color: #d6d6d6 !important;
 }
 
 /* PrimeNG dialogs used by the vehicles and complaints screens. */

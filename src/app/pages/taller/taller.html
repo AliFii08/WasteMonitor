@@ -47,9 +47,6 @@
       <table class="preview-table">
         <thead>
           <tr>
-            <th class="select-col">
-              <i class="pi pi-check-square"></i>
-            </th>
             <th>Vehículo</th>
             <th>Razón de ingreso</th>
             <th>Descripción</th>
@@ -63,13 +60,6 @@
           @for (item of registrosActivosPaginados; track item.idKey || $index) {
             @let i = getRealIndex(item);
             <tr>
-              <td class="select-col">
-                <input
-                  type="checkbox"
-                  [checked]="selectedTallerRows[i]"
-                  (change)="toggleRow(i, $any($event.target).checked)"
-                />
-              </td>
               <td><strong>{{ item.idCamion }}</strong></td>
               <td>{{ item.razon }}</td>
               <td>{{ item.descripcion }}</td>
@@ -88,6 +78,13 @@
               <td>{{ item.creadoEl || 'N/A' }}</td>
               <td>
                 <div class="option-actions">
+                  <input
+                    class="row-select"
+                    type="checkbox"
+                    [checked]="selectedTallerRows[i]"
+                    [attr.aria-label]="'Seleccionar vehículo ' + item.idCamion"
+                    (change)="toggleRow(i, $any($event.target).checked)"
+                  />
                   <button type="button" class="icon-btn" title="Editar" (click)="editRegistro(item)">
                     <i class="pi pi-pencil"></i>
                   </button>
@@ -99,7 +96,7 @@
             </tr>
           } @empty {
             <tr>
-              <td colspan="7" class="empty-row">No hay vehículos activos en taller.</td>
+              <td colspan="6" class="empty-row">No hay vehículos activos en taller.</td>
             </tr>
           }
         </tbody>
@@ -129,9 +126,6 @@
           <table class="preview-table">
             <thead>
               <tr>
-                <th class="select-col">
-                  <i class="pi pi-check-square"></i>
-                </th>
                 <th>Vehículo</th>
                 <th>Razón de ingreso</th>
                 <th>Descripción</th>
@@ -145,13 +139,6 @@
               @for (item of registrosListosPaginados; track item.idKey || $index) {
                 @let i = getRealIndex(item);
                 <tr>
-                  <td class="select-col">
-                    <input
-                      type="checkbox"
-                      [checked]="selectedTallerRows[i]"
-                      (change)="toggleRow(i, $any($event.target).checked)"
-                    />
-                  </td>
                   <td><strong>{{ item.idCamion }}</strong></td>
                   <td>{{ item.razon }}</td>
                   <td>{{ item.descripcion }}</td>
@@ -163,6 +150,13 @@
                   <td>{{ item.creadoEl || 'N/A' }}</td>
                   <td>
                     <div class="option-actions">
+                      <input
+                        class="row-select"
+                        type="checkbox"
+                        [checked]="selectedTallerRows[i]"
+                        [attr.aria-label]="'Seleccionar vehículo ' + item.idCamion"
+                        (change)="toggleRow(i, $any($event.target).checked)"
+                      />
                       <button type="button" class="icon-btn" title="Editar" (click)="editRegistro(item)">
                         <i class="pi pi-pencil"></i>
                       </button>

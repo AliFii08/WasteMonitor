@@ -169,7 +169,7 @@
   .p-datatable-thead > tr > th {
     background: #e7f3ec !important;
     color: #0f4b3a !important;
-    text-align: left;
+    text-align: center;
     font-size: 0.83rem;
     letter-spacing: 0.02em;
     text-transform: uppercase;
@@ -203,6 +203,7 @@
       border-left: none;
       border-right: none;
       font-size: 0.9rem;
+      text-align: center;
       font-family: 'Raleway', sans-serif !important;
     }
 
@@ -287,6 +288,7 @@
 .option-actions {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   white-space: nowrap;
 }
