@@ -17,16 +17,6 @@
         <i class="pi pi-search"></i>
       </span>
 
-      <label class="select-all-wrap" for="selectAllTaller">
-        <input
-          id="selectAllTaller"
-          type="checkbox"
-          [checked]="allTallerSelected"
-          (change)="toggleSelectAll($any($event.target).checked)"
-        />
-        Seleccionar todos
-      </label>
-
       @if (hasSelectedItems) {
         <button type="button" class="bulk-delete-btn" (click)="confirmDeleteSelected()">
           <i class="pi pi-trash"></i>
@@ -47,6 +37,13 @@
       <table class="preview-table">
         <thead>
           <tr>
+              <th class="selection-header">
+                <button type="button" class="select-all-icon" [class.is-selected]="allTallerSelected"
+                  [attr.aria-pressed]="allTallerSelected" aria-label="Seleccionar todos"
+                  (click)="toggleSelectAll(!allTallerSelected)">
+                  <i class="pi pi-check-square"></i>
+                </button>
+              </th>
             <th>Vehículo</th>
             <th>Razón de ingreso</th>
             <th>Descripción</th>
@@ -60,6 +57,11 @@
           @for (item of registrosActivosPaginados; track item.idKey || $index) {
             @let i = getRealIndex(item);
             <tr>
+              <td>
+                <input class="row-select" type="checkbox" [checked]="selectedTallerRows[i]"
+                  [attr.aria-label]="'Seleccionar vehículo ' + item.idCamion"
+                  (change)="toggleRow(i, $any($event.target).checked)" />
+              </td>
               <td><strong>{{ item.idCamion }}</strong></td>
               <td>{{ item.razon }}</td>
               <td>{{ item.descripcion }}</td>
@@ -78,13 +80,6 @@
               <td>{{ item.creadoEl || 'N/A' }}</td>
               <td>
                 <div class="option-actions">
-                  <input
-                    class="row-select"
-                    type="checkbox"
-                    [checked]="selectedTallerRows[i]"
-                    [attr.aria-label]="'Seleccionar vehículo ' + item.idCamion"
-                    (change)="toggleRow(i, $any($event.target).checked)"
-                  />
                   <button type="button" class="icon-btn" title="Editar" (click)="editRegistro(item)">
                     <i class="pi pi-pencil"></i>
                   </button>
@@ -96,7 +91,7 @@
             </tr>
           } @empty {
             <tr>
-              <td colspan="6" class="empty-row">No hay vehículos activos en taller.</td>
+              <td colspan="7" class="empty-row">No hay vehículos activos en taller.</td>
             </tr>
           }
         </tbody>
@@ -126,6 +121,13 @@
           <table class="preview-table">
             <thead>
               <tr>
+                <th class="selection-header">
+                  <button type="button" class="select-all-icon" [class.is-selected]="allTallerSelected"
+                    [attr.aria-pressed]="allTallerSelected" aria-label="Seleccionar todos"
+                    (click)="toggleSelectAll(!allTallerSelected)">
+                    <i class="pi pi-check-square"></i>
+                  </button>
+                </th>
                 <th>Vehículo</th>
                 <th>Razón de ingreso</th>
                 <th>Descripción</th>
@@ -139,6 +141,11 @@
               @for (item of registrosListosPaginados; track item.idKey || $index) {
                 @let i = getRealIndex(item);
                 <tr>
+                  <td>
+                    <input class="row-select" type="checkbox" [checked]="selectedTallerRows[i]"
+                      [attr.aria-label]="'Seleccionar vehículo ' + item.idCamion"
+                      (change)="toggleRow(i, $any($event.target).checked)" />
+                  </td>
                   <td><strong>{{ item.idCamion }}</strong></td>
                   <td>{{ item.razon }}</td>
                   <td>{{ item.descripcion }}</td>
@@ -150,13 +157,6 @@
                   <td>{{ item.creadoEl || 'N/A' }}</td>
                   <td>
                     <div class="option-actions">
-                      <input
-                        class="row-select"
-                        type="checkbox"
-                        [checked]="selectedTallerRows[i]"
-                        [attr.aria-label]="'Seleccionar vehículo ' + item.idCamion"
-                        (change)="toggleRow(i, $any($event.target).checked)"
-                      />
                       <button type="button" class="icon-btn" title="Editar" (click)="editRegistro(item)">
                         <i class="pi pi-pencil"></i>
                       </button>
@@ -183,27 +183,31 @@
 
 <!-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN -->
 @if (showConfirmModal) {
-  <div class="modal-backdrop" (click)="closeConfirmModal()">
-    <div class="confirm-modal" (click)="$event.stopPropagation()">
-      <div class="confirm-icon danger">
-        <i class="pi pi-exclamation-triangle"></i>
+  <div class="confirmation-backdrop" (click)="closeConfirmModal()">
+    <div class="confirmation-modal" (click)="$event.stopPropagation()">
+      <div class="confirmation-header">
+        <div class="confirmation-title">
+          <i class="pi pi-exclamation-triangle"></i>
+          <h2>¿Confirmar eliminación?</h2>
+        </div>
       </div>
 
-      <h2>¿Confirmar eliminación?</h2>
-
-      <p>
+      <div class="confirmation-body">
+        <p>
         @if (deleteMode === 'single') {
           ¿Estás seguro de que deseas retirar este vehículo del taller? El registro pasará a inactivo y la unidad quedará liberada.
         } @else {
           ¿Estás seguro de que deseas retirar los <strong>{{ selectedCount }}</strong> vehículos seleccionados del taller?
         }
-      </p>
+        </p>
+        <span class="confirmation-subtext">El registro pasará a inactivo y la unidad quedará liberada.</span>
+      </div>
 
-      <div class="confirm-actions">
+      <div class="confirmation-footer">
         <button type="button" class="btn-cancel" [disabled]="deleting" (click)="closeConfirmModal()">
           Cancelar
         </button>
-        <button type="button" class="btn-confirm-danger" [disabled]="deleting" (click)="processDelete()">
+        <button type="button" class="confirmation-danger" [disabled]="deleting" (click)="processDelete()">
           @if (deleting) {
             <i class="pi pi-spin pi-spinner"></i> Procesando...
           } @else {

@@ -1,14 +1,17 @@
 @if (visible) {
-  <div class="modal-backdrop" (click)="closeModal()">
-    <div class="modal-container" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <div class="icon-warning">
+  <div class="confirmation-backdrop" (click)="closeModal()">
+    <div class="confirmation-modal" (click)="$event.stopPropagation()">
+      <div class="confirmation-header">
+        <div class="confirmation-title">
           <i class="pi pi-exclamation-triangle"></i>
+          <div>
+            <p class="confirmation-eyebrow">INFORME DE JORNADA</p>
+            <h2>Confirmar eliminación</h2>
+          </div>
         </div>
-        <h2>Ocultar Informe</h2>
       </div>
 
-      <div class="modal-body">
+      <div class="confirmation-body">
         <p>
           @if (listaAEliminar.length > 1) {
             ¿Estás seguro de que deseas ocultar los <strong>{{ listaAEliminar.length }}</strong> informes seleccionados?
@@ -16,14 +19,14 @@
             ¿Estás seguro de que deseas ocultar este informe de viaje?
           }
         </p>
-        <span class="subtext">El registro ya no estará visible en la lista principal.</span>
+        <span class="confirmation-subtext">El registro ya no estará visible en la lista principal.</span>
       </div>
 
-      <div class="modal-footer">
+      <div class="confirmation-footer">
         <button type="button" class="btn-cancel" (click)="closeModal()" [disabled]="isDeleting">
           Cancelar
         </button>
-        <button type="button" class="btn-danger" (click)="confirmDelete()" [disabled]="isDeleting">
+        <button type="button" class="confirmation-danger" (click)="confirmDelete()" [disabled]="isDeleting">
           {{ isDeleting ? 'Ocultando...' : 'Confirmar y Ocultar' }}
         </button>
       </div>

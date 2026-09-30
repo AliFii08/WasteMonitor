@@ -83,7 +83,7 @@ export class Crew implements OnInit {
     this.driverPage = 0;
 
     this.driverRowVisible = this.driversList.map((driver) => {
-      const searchIndex = `${driver.driverId} ${driver.nombreCompleto} ${driver.cargo} ${driver.camionAsignado} ${driver.rutaAsignada}`.toLowerCase();
+      const searchIndex = `${driver.driverId} ${driver.encargado} ${driver.camionAsignado} ${driver.rutaAsignada}`.toLowerCase();
       return searchIndex.includes(term);
     });
 
@@ -142,6 +142,18 @@ export class Crew implements OnInit {
   // Agregar propiedad y método para abrir el modal de edición
   selectedDriverForUpdate: TripulacionTabla | null = null;
   isUpdateModalOpen = false;
+  selectedCrew: TripulacionTabla | null = null;
+  isDetailsModalOpen = false;
+
+  openDetailsModal(driver: TripulacionTabla): void {
+    this.selectedCrew = driver;
+    this.isDetailsModalOpen = true;
+  }
+
+  closeDetailsModal(): void {
+    this.isDetailsModalOpen = false;
+    this.selectedCrew = null;
+  }
 
   openUpdateModal(driver: TripulacionTabla): void {
     this.selectedDriverForUpdate = driver;

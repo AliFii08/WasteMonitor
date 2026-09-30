@@ -195,6 +195,15 @@
       background-color: rgba(104, 163, 87, 0.16) !important;
     }
 
+    &.clickable-row {
+      cursor: pointer;
+    }
+
+    &.clickable-row:focus-visible {
+      outline: 2px solid #68a357;
+      outline-offset: -2px;
+    }
+
     > td {
       padding: 0.9rem 1rem;
       color: #173d32;
@@ -289,42 +298,37 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  white-space: nowrap;
+  gap: 0.25rem;
 }
 
 .icon-btn {
-  display: inline-grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  color: #0f4b3a;
-  background: #fff;
-  border: 1px solid #c2dbce;
-  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #1e5b48;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
 
   &:hover {
-    background: #e7f3ec;
-    border-color: #68a357;
-  }
-
-  .pi {
-    font-family: 'primeicons' !important;
-    font-size: 15px;
-    line-height: 1;
+    background: rgba(6, 82, 63, 0.14);
   }
 
   &.danger {
-    color: #b42318;
-    border-color: #f0c7c3;
+    color: #8d1f1f;
+  }
 
-    &:hover {
-      background: #fff0ee;
-      border-color: #d62828;
-    }
+  &.danger:hover {
+    background: rgba(214, 40, 40, 0.16);
+  }
+
+  &:disabled {
+    cursor: wait;
+    opacity: 0.5;
   }
 }
 

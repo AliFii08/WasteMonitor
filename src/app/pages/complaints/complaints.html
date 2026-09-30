@@ -40,7 +40,8 @@
         </thead>
         <tbody>
           @for (queja of quejasPaginadas(); track queja.id) {
-            <tr>
+            <tr class="clickable-row" tabindex="0" (click)="verQueja(queja)"
+              (keydown.enter)="verQueja(queja)" (keydown.space)="$event.preventDefault(); verQueja(queja)">
               <td><strong>{{ queja.asunto }}</strong></td>
               <td>{{ queja.descripcion }}</td>
               <td>{{ queja.fecha | date:'dd/MM/yyyy, hh:mm a' }}</td>
@@ -55,7 +56,7 @@
                     type="button"
                     class="icon-btn"
                     title="Ver Queja"
-                    (click)="verQueja(queja)"
+                    (click)="$event.stopPropagation(); verQueja(queja)"
                   >
                     <i class="pi pi-eye"></i>
                   </button>
@@ -65,7 +66,7 @@
                       type="button"
                       class="icon-btn"
                       title="Editar Queja"
-                      (click)="editarQueja(queja)"
+                      (click)="$event.stopPropagation(); editarQueja(queja)"
                     >
                       <i class="pi pi-pencil"></i>
                     </button>

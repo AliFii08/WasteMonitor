@@ -7,6 +7,7 @@ import { UpdateVehicleComponent } from './components/update-vehicle/update-vehic
 import { RoutesService } from '../../@core/services/routes.service';
 import { VehiculoService } from '../../@core/services/vehiculos.service';
 import { TablePagination } from '../../@core/components/table-pagination/table-pagination';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-vehicles',
@@ -25,6 +26,7 @@ export class Vehicles implements OnInit {
   private vehiculoService = inject(VehiculoService);
   private routesService = inject(RoutesService);
   private cdr = inject(ChangeDetectorRef);
+  private messageService = inject(MessageService);
 
   vehicles: Vehicle[] = [];
   selectedVehicles: Vehicle[] = [];
@@ -169,6 +171,11 @@ export class Vehicles implements OnInit {
       this.selectedVehicles = [];
       this.allVehiclesSelected = false;
       this.closeDeleteModal();
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Desactivado correctamente',
+        detail: targets.length === 1 ? 'El vehículo fue desactivado.' : 'Los vehículos fueron desactivados.',
+      });
     } catch (error) {
       console.error('Error al desactivar vehículos:', error);
     }

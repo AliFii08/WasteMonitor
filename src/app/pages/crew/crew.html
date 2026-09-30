@@ -12,12 +12,6 @@
         <i class="pi pi-search"></i>
       </span>
 
-      <label class="select-all-wrap" for="selectAllDrivers">
-        <input id="selectAllDrivers" type="checkbox" [checked]="allDriversSelected"
-          (change)="toggleSelectAllDrivers($any($event.target).checked)" />
-        Seleccionar todos
-      </label>
-
       @if (hasSelectedDrivers) {
       <button type="button" class="bulk-delete-btn" (click)="deleteSelectedDrivers()">
         <i class="pi pi-trash"></i>
@@ -28,7 +22,7 @@
 
     <button type="button" class="create-btn" (click)="openCreateModal()">
       <i class="pi pi-plus"></i>
-      Crear miembro
+      Crear grupo
     </button>
   </div>
 
@@ -37,9 +31,15 @@
       <table class="crew-table">
         <thead>
           <tr>
+            <th class="selection-header">
+              <button type="button" class="select-all-icon" [class.is-selected]="allDriversSelected"
+                [attr.aria-pressed]="allDriversSelected" aria-label="Seleccionar todos"
+                (click)="toggleSelectAllDrivers(!allDriversSelected)">
+                <i class="pi pi-check-square"></i>
+              </button>
+            </th>
             <th>ID</th>
-            <th>Nombre</th>
-            <th>Cargo</th>
+            <th>Encargado</th>
             <th>Camión asignado</th>
             <th>Ruta asignada</th>
             <th class="options-header">Opciones</th>
@@ -49,25 +49,29 @@
         <tbody>
           @for (row of paginatedDrivers; track row.driver.uid) {
           @let i = row.index;
-          <tr>
-            <td>{{ row.driver.driverId }}</td>
-            <td>{{ row.driver.nombreCompleto }}</td>
+          <tr class="clickable-row" tabindex="0" (click)="openDetailsModal(row.driver)"
+            (keydown.enter)="openDetailsModal(row.driver)" (keydown.space)="$event.preventDefault(); openDetailsModal(row.driver)">
             <td>
-              <span class="role-chip"
-                [ngClass]="{ 'supervisor': row.driver.cargo === 'supervisor', 'crew': row.driver.cargo === 'crew', 'mecanico': row.driver.cargo === 'mecanico', 'conductor': row.driver.cargo === 'conductor' }">
-                {{ row.driver.cargo | titlecase }}
-              </span>
+              <input type="checkbox" [checked]="selectedDriverRows[i]"
+                (click)="$event.stopPropagation()"
+                (change)="toggleDriverRow(i, $any($event.target).checked)" />
             </td>
+            <td>{{ row.driver.driverId }}</td>
+            <td>{{ row.driver.encargado }}</td>
             <td>{{ row.driver.camionAsignado }}</td>
             <td>{{ row.driver.rutaAsignada }}</td>
             <td>
               <div class="option-actions">
-                <input type="checkbox" [checked]="selectedDriverRows[i]"
-                  (change)="toggleDriverRow(i, $any($event.target).checked)" />
-                <button type="button" class="icon-btn" title="Editar" (click)="openUpdateModal(row.driver)">
+                <button type="button" class="icon-btn" title="Ver detalles"
+                  (click)="$event.stopPropagation(); openDetailsModal(row.driver)">
+                  <i class="pi pi-eye"></i>
+                </button>
+                <button type="button" class="icon-btn" title="Editar"
+                  (click)="$event.stopPropagation(); openUpdateModal(row.driver)">
                   <i class="pi pi-pencil"></i>
                 </button>
-                <button type="button" class="icon-btn danger" title="Eliminar" (click)="openSingleDeleteModal(row.driver)">
+                <button type="button" class="icon-btn danger" title="Eliminar"
+                  (click)="$event.stopPropagation(); openSingleDeleteModal(row.driver)">
                   <i class="pi pi-trash"></i>
                 </button>
               </div>
@@ -103,3 +107,35 @@
   [driverName]="deleteDriverName"
   (deleted)="onDriversChanged()"
  ></app-delete-crew-modal>
+
+@if (isDetailsModalOpen && selectedCrew; as crew) {
+  <div class="details-backdrop" (click)="closeDetailsModal()">
+    <section class="details-modal" role="dialog" aria-modal="true" aria-labelledby="crew-details-title"
+      (click)="$event.stopPropagation()" (keydown.escape)="closeDetailsModal()">
+      <header class="details-header">
+        <div class="details-title">
+          <i class="pi pi-users"></i>
+          <div>
+            <p>DETALLE DE TRIPULACIÓN</p>
+            <h2 id="crew-details-title">{{ crew.encargado }}</h2>
+          </div>
+        </div>
+        <button type="button" class="close-btn" aria-label="Cerrar" (click)="closeDetailsModal()">
+          <i class="pi pi-times"></i>
+        </button>
+      </header>
+      <div class="details-body">
+        <div class="detail-item"><span>ID</span><strong>{{ crew.driverId }}</strong></div>
+        <div class="detail-item"><span>Integrante</span><strong>{{ crew.nombreCompleto }}</strong></div>
+        <div class="detail-item"><span>Cargo</span><strong>{{ crew.cargo | titlecase }}</strong></div>
+        <div class="detail-item"><span>Encargado</span><strong>{{ crew.encargado }}</strong></div>
+        <div class="detail-item"><span>Camión asignado</span><strong>{{ crew.camionAsignado }}</strong></div>
+        <div class="detail-item"><span>Ruta asignada</span><strong>{{ crew.rutaAsignada }}</strong></div>
+        <div class="detail-item full-detail"><span>UID</span><strong>{{ crew.uid }}</strong></div>
+      </div>
+      <footer class="details-footer">
+        <button type="button" class="btn-cancel" (click)="closeDetailsModal()">Cerrar</button>
+      </footer>
+    </section>
+  </div>
+}

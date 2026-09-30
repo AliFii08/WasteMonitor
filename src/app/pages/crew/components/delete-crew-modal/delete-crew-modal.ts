@@ -1,6 +1,7 @@
 import { Component, EventEmitter, inject, Input, Output, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Database, ref, update } from '@angular/fire/database';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-delete-crew-modal',
@@ -12,6 +13,7 @@ import { Database, ref, update } from '@angular/fire/database';
 export class DeleteCrewModal {
   private db = inject(Database);
   private cdr = inject(ChangeDetectorRef);
+  private messageService = inject(MessageService);
 
   @Input() visible = false;
   /**
@@ -46,6 +48,11 @@ export class DeleteCrewModal {
 
       await update(ref(this.db), updates);
 
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Eliminado correctamente',
+        detail: this.targetUids.length === 1 ? 'El integrante fue removido del grupo.' : 'Los integrantes fueron removidos del grupo.',
+      });
       this.deleted.emit();
       this.cerrarModal();
     } catch (err: any) {

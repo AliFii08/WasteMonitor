@@ -195,13 +195,14 @@ export class Users implements OnInit {
     this.confirmationError = '';
     try {
       await this.usersService.setStaffUserActive(user.uid, nextActiveState);
+      user.activo = nextActiveState;
+      this.applySearch();
       this.selectedStatusUser = null;
       this.messageService.add({
         severity: 'success',
         summary: 'Éxito',
         detail: `Usuario ${nextActiveState ? 'activado' : 'desactivado'}.`,
       });
-      await this.loadUsers();
     } catch {
       this.confirmationError = 'No se pudo actualizar el estado del usuario.';
     } finally {

@@ -22,6 +22,15 @@
   animation: slideUp 0.2s ease-out;
 }
 
+.modal-panel,
+.modal-panel * {
+  font-family: 'Raleway', sans-serif;
+}
+
+.modal-panel .pi {
+  font-family: 'primeicons' !important;
+}
+
 .modal-header {
   display: flex;
   align-items: center;

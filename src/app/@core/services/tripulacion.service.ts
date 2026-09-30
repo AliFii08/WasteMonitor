@@ -8,6 +8,7 @@ export interface TripulacionTabla {
   driverId: string;
   nombreCompleto: string;
   cargo: 'supervisor' | 'crew' | 'mecanico' | 'conductor' | string;
+  encargado: string;
   camionAsignado: string;
   rutaAsignada: string;
 }
@@ -51,6 +52,14 @@ export class TripulacionService {
         }
       });
 
+      const supervisoresPorCamion = new Map<string, string>();
+      Object.values<any>(usersData).forEach((user) => {
+        if (user?.rol === 'supervisor' && user.camionId) {
+          const nombre = `${user.name || ''} ${user.lastName || ''}`.trim();
+          if (nombre) supervisoresPorCamion.set(user.camionId, nombre);
+        }
+      });
+
       const tripulacion: TripulacionTabla[] = [];
 
       // 3. Mapear conductores obteniendo la ruta desde el nodo camiones
@@ -72,7 +81,8 @@ export class TripulacionService {
           }
 
           const idCamion = user.camionId || '';
-          
+          const nombreCompleto = `${user.name || ''} ${user.lastName || ''}`.trim() || 'Sin Nombre';
+
           // Buscar la ruta en el objeto del vehículo (ej. camiones['VEH-001'].ruta)
           let rutaEncontrada = 'Sin ruta';
           if (idCamion && camionesData[idCamion] && camionesData[idCamion].ruta) {
@@ -82,8 +92,9 @@ export class TripulacionService {
           tripulacion.push({
             uid,
             driverId,
-            nombreCompleto: `${user.name || ''} ${user.lastName || ''}`.trim() || 'Sin Nombre',
+            nombreCompleto,
             cargo: user.rol,
+            encargado: supervisoresPorCamion.get(idCamion) || 'Sin supervisor',
             camionAsignado: idCamion || 'Sin asignar',
             rutaAsignada: rutaEncontrada,
           });

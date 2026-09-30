@@ -8,6 +8,7 @@ import { DashboardService } from '../../@core/services/dashboard.service';
 import { UserService } from '../../@core/services/user.service';
 import { NotificationService } from '../../@core/services/notification.service';
 import { TablePagination } from '../../@core/components/table-pagination/table-pagination';
+import { MessageService } from 'primeng/api';
 
 
 @Component({
@@ -23,6 +24,7 @@ export class Taller implements OnInit {
   private dashboardService = inject(DashboardService);
   private notificationService = inject(NotificationService);
   private userService = inject(UserService);
+  private messageService = inject(MessageService);
 
   @ViewChild(CreateVehicleTaller) createModal!: CreateVehicleTaller;
   @ViewChild(UpdateVehicleTaller) updateModal!: UpdateVehicleTaller;
@@ -195,6 +197,11 @@ export class Taller implements OnInit {
       }
       this.showConfirmModal = false;
       await this.loadTaller();
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Eliminado correctamente',
+        detail: this.deleteMode === 'single' ? 'El registro fue eliminado y el vehículo liberado.' : 'Los registros fueron eliminados correctamente.',
+      });
     } catch (error) {
       console.error('Error al eliminar registro(s):', error);
     } finally {

@@ -7,11 +7,7 @@ export interface UsuarioOption {
   uid: string;
   nombreCompleto: string;
   email: string;
-}
-
-export interface RolOption {
-  id: string;
-  nombre: string;
+  rol: 'supervisor' | 'conductor' | 'crew';
 }
 
 export interface CamionOption {
@@ -39,21 +35,15 @@ export class CreateCrew implements OnChanges {
   loadingData = false;
   errorMsg = '';
 
-  usuariosDisponibles: UsuarioOption[] = [];
-  
-  // Lista fija de roles solicitados
-  rolesDisponibles: RolOption[] = [
-    { id: 'mecanico', nombre: 'Mecánico' },
-    { id: 'crew', nombre: 'Crew' },
-    { id: 'conductor', nombre: 'Conductor' },
-    { id: 'supervisor', nombre: 'Supervisor' },
-  ];
-  
+  supervisoresDisponibles: UsuarioOption[] = [];
+  conductoresDisponibles: UsuarioOption[] = [];
+  crewDisponibles: UsuarioOption[] = [];
   camionesDisponibles: CamionOption[] = [];
 
   form = {
-    uidUsuario: '',
-    rol: '',
+    supervisorUid: '',
+    conductorUid: '',
+    crewUids: [] as string[],
     idCamion: '',
   };
 
@@ -66,22 +56,23 @@ export class CreateCrew implements OnChanges {
   async cargarDatos(): Promise<void> {
     this.loadingData = true;
     this.errorMsg = '';
-    this.form = { uidUsuario: '', rol: '', idCamion: '' };
+    this.form = { supervisorUid: '', conductorUid: '', crewUids: [], idCamion: '' };
     this.cdr.detectChanges();
 
     try {
-      // 1. Obtener usuarios y filtrar por rol === 'user'
+      // Solo se ofrecen personas sin camionId: ya pertenecen a otro grupo si tienen uno.
       const usersSnap = await get(ref(this.db, 'usuarios'));
       const usuariosTemp: UsuarioOption[] = [];
       if (usersSnap.exists()) {
         const usersData = usersSnap.val();
         Object.entries<any>(usersData).forEach(([uid, user]) => {
-          if (user && user.rol === 'user') {
+          if (user && ['supervisor', 'conductor', 'crew'].includes(user.rol) && !user.camionId) {
             const nombre = `${user.name || ''} ${user.lastName || ''}`.trim() || 'Sin Nombre';
             usuariosTemp.push({
               uid,
               nombreCompleto: nombre,
               email: user.email || 'Sin email',
+              rol: user.rol,
             });
           }
         });
@@ -103,7 +94,9 @@ export class CreateCrew implements OnChanges {
         });
       }
 
-      this.usuariosDisponibles = usuariosTemp;
+      this.supervisoresDisponibles = usuariosTemp.filter((user) => user.rol === 'supervisor');
+      this.conductoresDisponibles = usuariosTemp.filter((user) => user.rol === 'conductor');
+      this.crewDisponibles = usuariosTemp.filter((user) => user.rol === 'crew');
       this.camionesDisponibles = camionesTemp;
     } catch (err: any) {
       this.errorMsg = 'Error al cargar los datos necesarios: ' + (err.message || err);
@@ -114,17 +107,31 @@ export class CreateCrew implements OnChanges {
   }
 
   async onSubmit(): Promise<void> {
-    if (!this.form.uidUsuario || !this.form.rol || !this.form.idCamion) return;
+    if (!this.form.supervisorUid || !this.form.idCamion || this.form.crewUids.length > 4) {
+      this.errorMsg = 'Debes asignar un supervisor y como máximo 4 personas de crew.';
+      return;
+    }
 
     this.saving = true;
     this.errorMsg = '';
 
     try {
-      // Actualizar el rol seleccionado y asignar el camión elegido al usuario
-      await update(ref(this.db, `usuarios/${this.form.uidUsuario}`), {
-        rol: this.form.rol,
-        camionId: this.form.idCamion,
+      const updates: Record<string, string> = {
+        [`usuarios/${this.form.supervisorUid}/rol`]: 'supervisor',
+        [`usuarios/${this.form.supervisorUid}/camionId`]: this.form.idCamion,
+      };
+
+      if (this.form.conductorUid) {
+        updates[`usuarios/${this.form.conductorUid}/rol`] = 'conductor';
+        updates[`usuarios/${this.form.conductorUid}/camionId`] = this.form.idCamion;
+      }
+
+      this.form.crewUids.forEach((uid) => {
+        updates[`usuarios/${uid}/rol`] = 'crew';
+        updates[`usuarios/${uid}/camionId`] = this.form.idCamion;
       });
+
+      await update(ref(this.db), updates);
 
       this.created.emit();
       this.cerrarModal();
@@ -134,6 +141,17 @@ export class CreateCrew implements OnChanges {
       this.saving = false;
       this.cdr.detectChanges();
     }
+  }
+
+  toggleCrew(uid: string, selected: boolean): void {
+    if (selected) {
+      if (this.form.crewUids.length < 4 && !this.form.crewUids.includes(uid)) {
+        this.form.crewUids = [...this.form.crewUids, uid];
+      }
+      return;
+    }
+
+    this.form.crewUids = this.form.crewUids.filter((crewUid) => crewUid !== uid);
   }
 
   cerrarModal(): void {

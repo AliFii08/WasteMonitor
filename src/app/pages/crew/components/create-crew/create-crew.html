@@ -3,8 +3,8 @@
     <div class="modal-panel" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
       <header class="modal-header">
         <div class="modal-title">
-          <i class="pi pi-user-plus"></i>
-          <h2>Asignar Conductor</h2>
+          <i class="pi pi-users"></i>
+          <h2>Crear grupo</h2>
         </div>
         <button type="button" class="close-btn" (click)="cerrarModal()" aria-label="Cerrar">
           <i class="pi pi-times"></i>
@@ -12,47 +12,65 @@
       </header>
 
       <form (ngSubmit)="onSubmit()" class="modal-body" #f="ngForm">
-        <!-- Selección de Usuario con Rol 'user' -->
+        <!-- Un grupo debe tener exactamente un supervisor. -->
         <div class="form-field">
-          <label for="uidUsuario">Usuario <span class="req">*</span></label>
+          <label for="supervisorUid">Supervisor <span class="req">*</span></label>
           <select
-            id="uidUsuario"
-            name="uidUsuario"
-            [(ngModel)]="form.uidUsuario"
+            id="supervisorUid"
+            name="supervisorUid"
+            [(ngModel)]="form.supervisorUid"
             required
             [disabled]="saving || loadingData"
           >
             <option value="" disabled selected>
-              {{ loadingData ? 'Cargando usuarios...' : 'Seleccione un usuario' }}
+              {{ loadingData ? 'Cargando supervisores...' : 'Seleccione un supervisor' }}
             </option>
-            @for (u of usuariosDisponibles; track u.uid) {
+            @for (u of supervisoresDisponibles; track u.uid) {
               <option [value]="u.uid">
                 {{ u.nombreCompleto }} ({{ u.email }})
               </option>
             }
           </select>
-          @if (!loadingData && usuariosDisponibles.length === 0) {
-            <small class="hint">No hay usuarios disponibles con rol 'user'.</small>
+          @if (!loadingData && supervisoresDisponibles.length === 0) {
+            <small class="hint">No hay supervisores disponibles.</small>
           }
         </div>
 
-        <!-- Selección del Rol -->
         <div class="form-field">
-          <label for="rol">Rol <span class="req">*</span></label>
+          <label for="conductorUid">Conductor</label>
           <select
-            id="rol"
-            name="rol"
-            [(ngModel)]="form.rol"
-            required
+            id="conductorUid"
+            name="conductorUid"
+            [(ngModel)]="form.conductorUid"
             [disabled]="saving || loadingData"
           >
-            <option value="" disabled selected>Seleccione un rol</option>
-            @for (r of rolesDisponibles; track r.id) {
-              <option [value]="r.id">
-                {{ r.nombre }}
+            <option value="">Sin conductor</option>
+            @for (u of conductoresDisponibles; track u.uid) {
+              <option [value]="u.uid">
+                {{ u.nombreCompleto }} ({{ u.email }})
               </option>
             }
           </select>
+        </div>
+
+        <div class="form-field">
+          <label>Crew (máximo 4)</label>
+          <div class="crew-options">
+            @for (u of crewDisponibles; track u.uid) {
+              <label class="crew-option">
+                <input
+                  type="checkbox"
+                  [checked]="form.crewUids.includes(u.uid)"
+                  [disabled]="saving || loadingData || (!form.crewUids.includes(u.uid) && form.crewUids.length >= 4)"
+                  (change)="toggleCrew(u.uid, $any($event.target).checked)"
+                />
+                <span>{{ u.nombreCompleto }}</span>
+              </label>
+            }
+          </div>
+          @if (!loadingData && crewDisponibles.length === 0) {
+            <small class="hint">No hay crew disponible.</small>
+          }
         </div>
 
         <!-- Selección de Camión Disponible -->
@@ -93,14 +111,14 @@
           <button
             type="submit"
             class="btn-submit"
-            [disabled]="saving || !form.uidUsuario || !form.rol || !form.idCamion"
+            [disabled]="saving || loadingData || !form.supervisorUid || !form.idCamion || form.crewUids.length > 4"
           >
             @if (saving) {
               <i class="pi pi-spin pi-spinner"></i>
               Guardando...
             } @else {
               <i class="pi pi-check"></i>
-              Asignar Conductor
+              Crear grupo
             }
           </button>
         </footer>

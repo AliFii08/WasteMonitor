@@ -229,23 +229,33 @@
 }
 
 .icon-btn {
-  background: none;
-  border: none;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #1e5b48;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  color: #123f32;
-  font-size: 1rem;
-  padding: 6px;
-  border-radius: 6px;
-  transition: color 0.2s ease, background-color 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
 
   &:hover {
-    color: #06523f;
-    background-color: rgba(6, 82, 63, 0.12);
+    background: rgba(6, 82, 63, 0.14);
+  }
+
+  &.danger {
+    color: #8d1f1f;
   }
 
   &.danger:hover {
-    color: #d62828;
-    background-color: rgba(214, 40, 40, 0.12);
+    background: rgba(214, 40, 40, 0.16);
+  }
+
+  &:disabled {
+    cursor: wait;
+    opacity: 0.5;
   }
 }
 

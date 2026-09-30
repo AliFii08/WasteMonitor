@@ -212,6 +212,139 @@
   background: rgba(214, 40, 40, 0.16);
 }
 
+.clickable-row {
+  cursor: pointer;
+}
+
+.clickable-row:focus-visible {
+  outline: 2px solid #68a357;
+  outline-offset: -2px;
+}
+
+.details-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(3, 30, 22, 0.45);
+  backdrop-filter: blur(2px);
+}
+
+.details-modal {
+  width: 100%;
+  max-width: 560px;
+  overflow: hidden;
+  border: 1px solid #dce8dd;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 24px 60px rgba(0, 54, 40, 0.24);
+  font-family: 'Raleway', sans-serif !important;
+  animation: details-slide-up 0.2s ease-out;
+}
+
+.details-modal * {
+  font-family: 'Raleway', sans-serif !important;
+}
+
+.details-modal .pi {
+  font-family: 'primeicons' !important;
+}
+
+.details-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.4rem;
+  background: #e2f0e8;
+  border-bottom: 1px solid #b8d9c4;
+}
+
+.details-title {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: #06523f;
+
+  i { font-size: 1.25rem; }
+
+  p {
+    margin: 0 0 3px;
+    color: #5d7568;
+    font-size: 0.68rem;
+    font-weight: 800;
+  }
+
+  h2 {
+    margin: 0;
+    color: #111827;
+    font-size: 1.15rem;
+  }
+}
+
+.details-header .close-btn {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #06523f;
+  cursor: pointer;
+}
+
+.details-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem 1rem;
+  padding: 1.4rem;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  span {
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  strong {
+    color: #173d32;
+    font-size: 0.92rem;
+    overflow-wrap: anywhere;
+  }
+}
+
+.full-detail { grid-column: 1 / -1; }
+
+.details-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 1rem 1.4rem;
+  border-top: 1px solid #e5efe9;
+}
+
+.details-footer .btn-cancel {
+  min-height: 42px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 18px;
+  background: #eef3f0;
+  color: #0f4b3a;
+  font: 800 13px 'Raleway', sans-serif;
+  cursor: pointer;
+}
+
+@keyframes details-slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .role-chip {
   display: inline-flex;
   align-items: center;

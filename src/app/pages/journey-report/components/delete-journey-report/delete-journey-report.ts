@@ -1,6 +1,7 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { getDatabase, ref, update } from 'firebase/database';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-delete-journey-report',
@@ -18,6 +19,7 @@ export class DeleteJourneyReport {
   @Output() reportesEliminados = new EventEmitter<void>();
 
   isDeleting: boolean = false;
+  private messageService = inject(MessageService);
 
   private get db() {
     return getDatabase();
@@ -41,7 +43,7 @@ export class DeleteJourneyReport {
 
   async confirmDelete(): Promise<void> {
     const lista = this.listaAEliminar;
-    
+
     if (lista.length === 0) {
       console.warn('⚠️ No se encontraron elementos seleccionados para eliminar.');
       return;
@@ -65,6 +67,11 @@ export class DeleteJourneyReport {
       await update(ref(this.db), updatesPayload);
 
       this.isDeleting = false;
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Eliminado correctamente',
+        detail: lista.length === 1 ? 'El informe fue ocultado correctamente.' : 'Los informes fueron ocultados correctamente.',
+      });
       this.reportesEliminados.emit();
       this.closeModal();
     } catch (error) {

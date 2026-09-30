@@ -1,8 +1,8 @@
 @if (visible) {
-    <div class="modal-backdrop" (click)="cerrarModal()">
-      <div class="modal-panel danger-theme" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
-        <header class="modal-header">
-          <div class="modal-title">
+    <div class="confirmation-backdrop" (click)="cerrarModal()">
+      <div class="confirmation-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+        <header class="confirmation-header">
+          <div class="confirmation-title">
             <i class="pi pi-exclamation-triangle"></i>
             <h2>Confirmar Eliminación</h2>
           </div>
@@ -10,8 +10,8 @@
             <i class="pi pi-times"></i>
           </button>
         </header>
-  
-        <div class="modal-body">
+
+        <div class="confirmation-body">
           @if (targetUids.length === 1) {
             <p class="confirm-text">
               ¿Estás seguro de remover al conductor <strong>{{ driverName }}</strong>?
@@ -21,11 +21,11 @@
               ¿Estás seguro de remover a los <strong>{{ targetUids.length }} conductores</strong> seleccionados?
             </p>
           }
-  
+
           <p class="sub-text">
             El usuario no será borrado del sistema, solo cambiará su rol de vuelta a <strong>'Usuario'</strong> y se liberará su vehículo.
           </p>
-  
+
           @if (errorMsg) {
             <div class="error-msg">
               <i class="pi pi-exclamation-circle"></i>
@@ -33,12 +33,12 @@
             </div>
           }
         </div>
-  
-        <footer class="modal-footer">
+
+        <footer class="confirmation-footer">
           <button type="button" class="btn-cancel" (click)="cerrarModal()" [disabled]="deleting">
             Cancelar
           </button>
-          <button type="button" class="btn-danger" (click)="confirmDelete()" [disabled]="deleting">
+          <button type="button" class="confirmation-danger" (click)="confirmDelete()" [disabled]="deleting">
             @if (deleting) {
               <i class="pi pi-spin pi-spinner"></i>
               Procesando...
