@@ -8,9 +8,7 @@
     @for (day of weekDays; track day.key) {
       <article class="day-card" [class.weekend-card]="day.key === 'saturday' || day.key === 'sunday'">
         <header class="day-card-header">
-          <span class="day-number">{{ day.number }}</span>
           <h2>{{ day.name }}</h2>
-          <span class="route-count">0 rutas</span>
         </header>
 
         <div class="day-card-content">
