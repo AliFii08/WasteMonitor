@@ -9,6 +9,11 @@ export interface UsuarioOption {
   email: string;
 }
 
+export interface RolOption {
+  id: string;
+  nombre: string;
+}
+
 export interface CamionOption {
   idKey: string;
   placa?: string;
@@ -35,10 +40,20 @@ export class CreateDriver implements OnChanges {
   errorMsg = '';
 
   usuariosDisponibles: UsuarioOption[] = [];
+  
+  // Lista fija de roles solicitados
+  rolesDisponibles: RolOption[] = [
+    { id: 'mecanico', nombre: 'Mecánico' },
+    { id: 'crew', nombre: 'Crew' },
+    { id: 'conductor', nombre: 'Conductor' },
+    { id: 'supervisor', nombre: 'Supervisor' },
+  ];
+  
   camionesDisponibles: CamionOption[] = [];
 
   form = {
     uidUsuario: '',
+    rol: '',
     idCamion: '',
   };
 
@@ -51,7 +66,7 @@ export class CreateDriver implements OnChanges {
   async cargarDatos(): Promise<void> {
     this.loadingData = true;
     this.errorMsg = '';
-    this.form = { uidUsuario: '', idCamion: '' };
+    this.form = { uidUsuario: '', rol: '', idCamion: '' };
     this.cdr.detectChanges();
 
     try {
@@ -72,7 +87,7 @@ export class CreateDriver implements OnChanges {
         });
       }
 
-      // 2. Obtener vehículos y filtrar disponibles (activo !== false && !enTaller)
+      // 2. Obtener vehículos disponibles (activo !== false && !enTaller)
       const camionesSnap = await get(ref(this.db, 'camiones'));
       const camionesTemp: CamionOption[] = [];
       if (camionesSnap.exists()) {
@@ -99,15 +114,15 @@ export class CreateDriver implements OnChanges {
   }
 
   async onSubmit(): Promise<void> {
-    if (!this.form.uidUsuario || !this.form.idCamion) return;
+    if (!this.form.uidUsuario || !this.form.rol || !this.form.idCamion) return;
 
     this.saving = true;
     this.errorMsg = '';
 
     try {
-      // Promover el rol del usuario a 'crew' y asignar el camión elegido
+      // Actualizar el rol seleccionado y asignar el camión elegido al usuario
       await update(ref(this.db, `usuarios/${this.form.uidUsuario}`), {
-        rol: 'crew',
+        rol: this.form.rol,
         camionId: this.form.idCamion,
       });
 

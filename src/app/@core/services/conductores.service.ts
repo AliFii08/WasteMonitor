@@ -1,12 +1,13 @@
 import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { Database, ref, get, update } from '@angular/fire/database';
+import { Database, ref, update } from '@angular/fire/database';
+import { environment } from '../../../environments/environment';
 
 export interface ConductorTabla {
   uid: string;
   driverId: string;
   nombreCompleto: string;
-  cargo: 'supervisor' | 'crew' | string;
+  cargo: 'supervisor' | 'crew' | 'mecanico' | 'conductor' | string;
   camionAsignado: string;
   rutaAsignada: string;
 }
@@ -18,16 +19,27 @@ export class ConductoresService {
   private database = inject(Database);
   private platformId = inject(PLATFORM_ID);
 
+  private readonly BASE_URL = environment.firebaseConfig.databaseURL;
+
   async getConductores(): Promise<ConductorTabla[]> {
     if (!isPlatformBrowser(this.platformId)) return [];
 
     try {
-      const usersSnap = await get(ref(this.database, 'usuarios'));
-      if (!usersSnap.exists()) return [];
+      // 1. Obtener usuarios y camiones simultáneamente vía Fetch REST
+      const [usersRes, camionesRes] = await Promise.all([
+        fetch(`${this.BASE_URL}/usuarios.json`),
+        fetch(`${this.BASE_URL}/camiones.json`),
+      ]);
 
-      const usersData = usersSnap.val();
+      if (!usersRes.ok) throw new Error(`HTTP error usuarios: ${usersRes.status}`);
+      if (!camionesRes.ok) throw new Error(`HTTP error camiones: ${camionesRes.status}`);
 
-      // 1. Calcular el mayor número correlativo DRV-XXX guardado globalmente
+      const usersData = await usersRes.json();
+      const camionesData = (await camionesRes.json()) || {};
+
+      if (!usersData) return [];
+
+      // 2. Calcular el mayor número correlativo DRV-XXX guardado globalmente
       let maxNum = 0;
       Object.values<any>(usersData).forEach((u) => {
         if (u && u.driverId) {
@@ -41,16 +53,30 @@ export class ConductoresService {
 
       const conductores: ConductorTabla[] = [];
 
-      // 2. Filtrar únicamente miembros con rol supervisor o crew
+      // 3. Mapear conductores obteniendo la ruta desde el nodo camiones
       for (const [uid, user] of Object.entries<any>(usersData)) {
-        if (user && (user.rol === 'supervisor' || user.rol === 'crew')) {
+        if (
+          user &&
+          (user.rol === 'supervisor' ||
+            user.rol === 'crew' ||
+            user.rol === 'mecanico' ||
+            user.rol === 'conductor')
+        ) {
           let driverId = user.driverId;
 
-          // Asignar y guardar driverId fijo si aún no tiene uno
+          // Guardar correlativo en Firebase si no posee uno
           if (!driverId) {
             maxNum++;
             driverId = `DRV-${String(maxNum).padStart(3, '0')}`;
             await update(ref(this.database, `usuarios/${uid}`), { driverId });
+          }
+
+          const idCamion = user.camionId || '';
+          
+          // Buscar la ruta en el objeto del vehículo (ej. camiones['VEH-001'].ruta)
+          let rutaEncontrada = 'Sin ruta';
+          if (idCamion && camionesData[idCamion] && camionesData[idCamion].ruta) {
+            rutaEncontrada = camionesData[idCamion].ruta;
           }
 
           conductores.push({
@@ -58,15 +84,15 @@ export class ConductoresService {
             driverId,
             nombreCompleto: `${user.name || ''} ${user.lastName || ''}`.trim() || 'Sin Nombre',
             cargo: user.rol,
-            camionAsignado: user.camionId || 'Sin asignar',
-            rutaAsignada: user.rutaAsignada || 'Sin ruta',
+            camionAsignado: idCamion || 'Sin asignar',
+            rutaAsignada: rutaEncontrada,
           });
         }
       }
 
       return conductores;
     } catch (error) {
-      console.error('Error al obtener la lista de conductores:', error);
+      console.error('Error al obtener la lista de conductores mediante fetch:', error);
       return [];
     }
   }

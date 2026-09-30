@@ -54,7 +54,7 @@
             <td>{{ row.driver.nombreCompleto }}</td>
             <td>
               <span class="role-chip"
-                [ngClass]="{ 'supervisor': row.driver.cargo === 'supervisor', 'crew': row.driver.cargo === 'crew' }">
+                [ngClass]="{ 'supervisor': row.driver.cargo === 'supervisor', 'crew': row.driver.cargo === 'crew', 'mecanico': row.driver.cargo === 'mecanico', 'conductor': row.driver.cargo === 'conductor' }">
                 {{ row.driver.cargo | titlecase }}
               </span>
             </td>

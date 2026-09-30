@@ -71,7 +71,9 @@
   border-radius: 8px;
   padding: 0 2.3rem 0 0.8rem;
   color: #123f32;
-  font: 600 14px 'Raleway', sans-serif;
+  font:
+    600 14px 'Raleway',
+    sans-serif;
 }
 
 .select-all-wrap {
@@ -101,7 +103,9 @@
   align-items: center;
   gap: 0.5rem;
   color: #fff;
-  font: 800 13px 'Raleway', sans-serif;
+  font:
+    800 13px 'Raleway',
+    sans-serif;
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
@@ -195,7 +199,9 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .icon-btn:hover {
@@ -228,6 +234,18 @@
 .role-chip.crew {
   background: #d5f0df;
   color: #1b7a45;
+}
+
+/* Naranja/Ámbar suave para Mecánico (Mantenimiento / Taller) */
+.role-chip.mecanico {
+  background: #ffe8bf;
+  color: #8a5b00;
+}
+
+/* Púrpura/Violeta pastel para Conductor (Operaciones / Flota) */
+.role-chip.conductor {
+  background: #ede9fe;
+  color: #5b21b6;
 }
 
 @media (max-width: 720px) {
