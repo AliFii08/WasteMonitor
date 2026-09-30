@@ -3,14 +3,10 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Database, ref, get } from '@angular/fire/database';
 import * as L from 'leaflet';
+import { firstValueFrom } from 'rxjs';
 
 import { UserService } from '../../@core/services/user.service';
 import { AuthService } from '../../@core/services/auth.service';
-
-interface Punto {
-  x: number; // latitud
-  y: number; // longitud
-}
 
 interface RutaData {
   id: string;
@@ -79,8 +75,26 @@ export class Home implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Obtiene la información del usuario y decide si dibujar todas las rutas (admin)
-   * o únicamente la más cercana (usuario regular).
+   * Extrae únicamente los nodos con coordenadas válidas (ignora nombreRuta u otras propiedades)
+   */
+  private extractValidPointsFromRouteObj(routeObj: any): [number, number][] {
+    if (!routeObj || typeof routeObj !== 'object') return [];
+
+    const validPoints: [number, number][] = [];
+
+    Object.keys(routeObj).forEach((key) => {
+      const val = routeObj[key];
+      // Verificar que el subnodo sea un objeto con latitud y longitud válidas
+      if (val && typeof val === 'object' && typeof val.x === 'number' && typeof val.y === 'number') {
+        validPoints.push([val.x, val.y]);
+      }
+    });
+
+    return validPoints;
+  }
+
+  /**
+   * Obtiene la información del usuario y decide el renderizado según el rol
    */
   private async loadUserDataAndFindRoute(): Promise<void> {
     this.loading = true;
@@ -89,7 +103,9 @@ export class Home implements AfterViewInit, OnDestroy {
     if (!currentUser) {
       const stored = localStorage.getItem('currentUser');
       if (stored) {
-        try { currentUser = JSON.parse(stored); } catch {}
+        try {
+          currentUser = JSON.parse(stored);
+        } catch {}
       }
     }
 
@@ -111,12 +127,12 @@ export class Home implements AfterViewInit, OnDestroy {
       }
 
       const userData = snapshot.val();
-      const userRole = userData.rol; // 'admin', 'user', 'supervisor', etc.
+      const userRole = userData.rol;
       this.userRole = userRole ?? null;
       const address = userData.address;
 
-      // 2. Posicionar el pin de la vivienda del usuario si posee coordenadas
-      if (address && address.lat && address.lng) {
+      // Mostrar la ubicación del usuario si es rol estándar
+      if (userRole === 'user' && address && address.lat && address.lng) {
         const numLat = parseFloat(address.lat);
         const numLng = parseFloat(address.lng);
 
@@ -126,17 +142,23 @@ export class Home implements AfterViewInit, OnDestroy {
         }
       }
 
-      // 3. Lógica de renderizado según el Rol
+      console.log('Rol autenticado:', userRole);
+
+      // 2. Lógica de renderizado según el Rol
       if (userRole === 'admin') {
         console.log('👑 Rol de Admin detectado: renderizando todas las rutas.');
         await this.drawAllRoutes();
+      } else if (userRole === 'mecanico') {
+        console.log('🔧 Rol de Mecánico detectado: renderizando rutas asignadas a camiones.');
+        await this.drawAllRoutesAssignedToAVehicle();
+      } else if (userRole === 'conductor' || userRole === 'supervisor' || userRole === 'crew') {
+        await this.drawAllRoutesAssignedToACrew();
       } else if (userRole === 'user' && this.userCoords) {
         console.log('👤 Rol estándar detectado: calculando ruta más cercana.');
         await this.findAndDrawNearestRoute(this.userCoords);
       } else if (userRole === 'user') {
         console.warn('Usuario estándar sin coordenadas válidas para buscar rutas.');
       }
-
     } catch (error) {
       console.error('Error al procesar la vista del mapa según rol:', error);
     } finally {
@@ -145,6 +167,276 @@ export class Home implements AfterViewInit, OnDestroy {
       });
     }
   }
+
+  /**
+   * Obtiene y dibuja ÚNICAMENTE la ruta asignada al camión del usuario en sesión
+   * (Aplica para roles: conductor, supervisor, crew).
+   */
+  private async drawAllRoutesAssignedToACrew(): Promise<void> {
+    try {
+      let currentUser = this.userService.currentUserSignal();
+      if (!currentUser) {
+        const stored = localStorage.getItem('currentUser');
+        if (stored) {
+          try {
+            currentUser = JSON.parse(stored);
+          } catch {}
+        }
+      }
+  
+      if (!currentUser || !currentUser.uid) {
+        console.warn('No se encontró sesión activa.');
+        return;
+      }
+  
+      // 1. Obtener la información del usuario autenticado
+      const userSnap = await get(ref(this.database, `usuarios/${currentUser.uid}`));
+      if (!userSnap.exists()) {
+        console.warn('Usuario no encontrado en la base de datos.');
+        return;
+      }
+  
+      const userData = userSnap.val();
+      const camionId = userData?.camionId;
+  
+      if (!camionId) {
+        console.warn(`El usuario ${userData?.name || currentUser.uid} no tiene un camión asignado (camionId).`);
+        return;
+      }
+  
+      // 2. Obtener la información del camión asignado
+      const camionSnap = await get(ref(this.database, `camiones/${camionId}`));
+      if (!camionSnap.exists()) {
+        console.warn(`No se encontró la información del camión ${camionId} en Firebase.`);
+        return;
+      }
+  
+      const camionData = camionSnap.val();
+      const rutaBuscada = camionData?.ruta ? camionData.ruta.trim() : null;
+  
+      if (!rutaBuscada) {
+        console.warn(`El camión ${camionId} no tiene una ruta asignada actualmente.`);
+        return;
+      }
+  
+      // 3. Obtener el catálogo de rutas para ubicar las coordenadas
+      const routesSnap = await get(ref(this.database, 'routes'));
+      if (!routesSnap.exists()) {
+        console.warn('No existen rutas registradas en la base de datos.');
+        return;
+      }
+  
+      const routesData = routesSnap.val();
+      let routeObj: any = null;
+      let routeKeyReal = '';
+  
+      // Buscar coincidencia directa por clave o por la propiedad 'nombreRuta'
+      if (routesData[rutaBuscada]) {
+        routeObj = routesData[rutaBuscada];
+        routeKeyReal = rutaBuscada;
+      } else {
+        const foundEntry = Object.entries<any>(routesData).find(
+          ([k, r]) => r && r.nombreRuta && r.nombreRuta.trim() === rutaBuscada
+        );
+        if (foundEntry) {
+          routeKeyReal = foundEntry[0];
+          routeObj = foundEntry[1];
+        }
+      }
+  
+      if (!routeObj) {
+        console.warn(`No se encontró la definición del trazado para la ruta: ${rutaBuscada}`);
+        return;
+      }
+  
+      const routeName = routeObj?.nombreRuta || routeKeyReal;
+      const points = this.extractValidPointsFromRouteObj(routeObj);
+  
+      if (points.length < 2) {
+        console.warn(`La ruta ${routeName} no contiene suficientes puntos de trazado.`);
+        return;
+      }
+  
+      // 4. Preparar la capa del mapa
+      if (this.routeLayer) {
+        this.map.removeLayer(this.routeLayer);
+      }
+      this.routeLayer = L.layerGroup().addTo(this.map);
+  
+      // 5. Trazar la ruta con el API OSRM usando fetch directamente
+      const coordsString = points.map((p) => `${p[1]},${p[0]}`).join(';');
+      const url = `https://router.project-osrm.org/route/v1/driving/${coordsString}?geometries=geojson&overview=full`;
+  
+      const popupContent = `
+        <b>Tu Ruta Asignada: ${routeName}</b><br>
+        <small><b>Vehículo:</b> ${camionId} (${camionData.placa || ''})</small>
+      `;
+  
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+        
+        const data = await response.json();
+  
+        if (data && data.routes && data.routes.length > 0) {
+          const coordinates = data.routes[0].geometry.coordinates;
+          const latLngs: [number, number][] = coordinates.map((c: number[]) => [c[1], c[0]]);
+  
+          const polyline = L.polyline(latLngs, {
+            color: '#007bff',
+            weight: 6,
+            opacity: 0.9,
+          }).bindPopup(popupContent);
+  
+          polyline.addTo(this.routeLayer);
+  
+          const bounds = polyline.getBounds();
+          this.map.fitBounds(bounds, { padding: [50, 50] });
+        }
+      } catch (err) {
+        console.warn(`Fallback a línea recta para ${routeName}:`, err);
+  
+        const fallbackPolyline = L.polyline(points, {
+          color: '#007bff',
+          weight: 4,
+          dashArray: '5, 10',
+          opacity: 0.8,
+        }).bindPopup(`${popupContent} <br><small>(Línea recta)</small>`);
+  
+        fallbackPolyline.addTo(this.routeLayer);
+  
+        const bounds = fallbackPolyline.getBounds();
+        this.map.fitBounds(bounds, { padding: [50, 50] });
+      }
+    } catch (error) {
+      console.error('Error al dibujar la ruta del personal:', error);
+    }
+  }
+
+  /**
+     * Obtiene los camiones activos y sus rutas asociadas, trazando solo aquellas rutas
+     * que estén actualmente asignadas a un camión (buscando por ID o por nombreRuta).
+     */
+    private async drawAllRoutesAssignedToAVehicle(): Promise<void> {
+      try {
+        // 1. Obtener camiones y rutas desde Firebase
+        const camionesSnap = await get(ref(this.database, 'camiones'));
+        const routesSnap = await get(ref(this.database, 'routes'));
+  
+        if (!camionesSnap.exists() || !routesSnap.exists()) {
+          console.warn('No hay suficiente información de camiones o rutas en Firebase');
+          return;
+        }
+  
+        const camionesData = camionesSnap.val();
+        const routesData = routesSnap.val();
+  
+        // 2. Mapear cada identificador/nombre de ruta con la lista de camiones asignados
+        const assignedRoutesMap = new Map<string, string[]>(); // identificadorRuta -> lista de IDs de camiones
+  
+        Object.entries<any>(camionesData).forEach(([camionId, camion]) => {
+          if (camion && camion.ruta) {
+            const rutaRef = camion.ruta.trim();
+            if (!assignedRoutesMap.has(rutaRef)) {
+              assignedRoutesMap.set(rutaRef, []);
+            }
+            assignedRoutesMap.get(rutaRef)?.push(camionId);
+          }
+        });
+  
+        if (assignedRoutesMap.size === 0) {
+          console.warn('No hay camiones con rutas asignadas actualmente');
+          return;
+        }
+  
+        // 3. Preparar capa del mapa
+        if (this.routeLayer) {
+          this.map.removeLayer(this.routeLayer);
+        }
+        this.routeLayer = L.layerGroup().addTo(this.map);
+  
+        const colors = ['#ffe8bf', '#28a745', '#007bff', '#dc3545', '#17a2b8', '#6f42c1'];
+        let colorIndex = 0;
+        const allBounds: L.LatLngBounds = L.latLngBounds([]);
+  
+        // 4. Dibujar las rutas asignadas buscando por key o por nombreRuta
+        for (const [rutaBuscada, camionesAsignados] of assignedRoutesMap.entries()) {
+          let routeObj: any = null;
+          let routeKeyReal = '';
+  
+          // Buscar coincidencia directa por clave o por la propiedad 'nombreRuta'
+          if (routesData[rutaBuscada]) {
+            routeObj = routesData[rutaBuscada];
+            routeKeyReal = rutaBuscada;
+          } else {
+            const foundEntry = Object.entries<any>(routesData).find(
+              ([k, r]) => r && r.nombreRuta && r.nombreRuta.trim() === rutaBuscada
+            );
+            if (foundEntry) {
+              routeKeyReal = foundEntry[0];
+              routeObj = foundEntry[1];
+            }
+          }
+  
+          if (!routeObj) {
+            console.warn(`No se encontró el trazado en /routes para: ${rutaBuscada}`);
+            continue;
+          }
+  
+          const routeName = routeObj?.nombreRuta || routeKeyReal;
+          const points = this.extractValidPointsFromRouteObj(routeObj);
+  
+          if (points.length >= 2) {
+            const color = colors[colorIndex % colors.length];
+            colorIndex++;
+  
+            const coordsString = points.map((p) => `${p[1]},${p[0]}`).join(';');
+            const url = `https://router.project-osrm.org/route/v1/driving/${coordsString}?geometries=geojson&overview=full`;
+  
+            const popupContent = `
+              <b>Ruta: ${routeName}</b><br>
+              <small><b>Vehículo(s):</b> ${camionesAsignados.join(', ')}</small>
+            `;
+  
+            try {
+              const data = await this.http.get<any>(url).toPromise();
+              if (data && data.routes && data.routes.length > 0) {
+                const coordinates = data.routes[0].geometry.coordinates;
+                const latLngs: [number, number][] = coordinates.map((c: number[]) => [c[1], c[0]]);
+  
+                const polyline = L.polyline(latLngs, {
+                  color: color,
+                  weight: 6,
+                  opacity: 0.9,
+                }).bindPopup(popupContent);
+  
+                polyline.addTo(this.routeLayer);
+                latLngs.forEach((coord) => allBounds.extend(coord));
+              }
+            } catch (err) {
+              console.warn(`Fallback a línea recta para ${routeName}:`, err);
+  
+              const fallbackPolyline = L.polyline(points, {
+                color: color,
+                weight: 4,
+                dashArray: '5, 10',
+                opacity: 0.8,
+              }).bindPopup(`${popupContent} <br><small>(Línea recta)</small>`);
+  
+              fallbackPolyline.addTo(this.routeLayer);
+              points.forEach((coord) => allBounds.extend(coord));
+            }
+          }
+        }
+  
+        // Ajustar vista para encuadrar todas las rutas trazadas
+        if (allBounds.isValid()) {
+          this.map.fitBounds(allBounds, { padding: [40, 40] });
+        }
+      } catch (error) {
+        console.error('Error al dibujar rutas asignadas a camiones:', error);
+      }
+    }
 
   /**
    * Dibuja TODAS las rutas registradas en Firebase ajustándolas a las carreteras mediante OSRM
@@ -160,10 +452,9 @@ export class Home implements AfterViewInit, OnDestroy {
       }
 
       const routesData = snapshot.val();
-      const colors = ['#28a745', '#007bff', '#dc3545', '#ffc107', '#17a2b8', '#6f42c1'];
+      const colors = ['#06523f', '#28a745', '#007bff', '#dc3545', '#ffc107', '#6f42c1'];
       let colorIndex = 0;
 
-      // Limpiar capas anteriores de rutas si existen
       if (this.routeLayer) {
         this.map.removeLayer(this.routeLayer);
       }
@@ -171,22 +462,16 @@ export class Home implements AfterViewInit, OnDestroy {
 
       const allBounds: L.LatLngBounds = L.latLngBounds([]);
 
-      // Recorrer y trazar cada ruta sobre la red vial
       for (const routeKey of Object.keys(routesData)) {
         const routeObj = routesData[routeKey];
-        if (!routeObj) continue;
+        const routeName = routeObj?.nombreRuta || routeKey;
 
-        const pointsKeys = Object.keys(routeObj).sort(); // Ordenar p1, p2, p3...
-        const points: [number, number][] = pointsKeys.map((key) => [
-          routeObj[key].x,
-          routeObj[key].y
-        ]);
+        const points = this.extractValidPointsFromRouteObj(routeObj);
 
         if (points.length >= 2) {
           const color = colors[colorIndex % colors.length];
           colorIndex++;
 
-          // Formato OSRM: "lng,lat;lng,lat..."
           const coordsString = points.map((p) => `${p[1]},${p[0]}`).join(';');
           const url = `https://router.project-osrm.org/route/v1/driving/${coordsString}?geometries=geojson&overview=full`;
 
@@ -199,22 +484,21 @@ export class Home implements AfterViewInit, OnDestroy {
               const polyline = L.polyline(latLngs, {
                 color: color,
                 weight: 5,
-                opacity: 0.85
-              }).bindPopup(`<b>Ruta: ${routeKey}</b>`);
+                opacity: 0.85,
+              }).bindPopup(`<b>Ruta: ${routeName}</b>`);
 
               polyline.addTo(this.routeLayer);
               latLngs.forEach((coord) => allBounds.extend(coord));
             }
           } catch (err) {
-            console.error(`Error procesando trazado vial para ${routeKey}:`, err);
+            console.warn(`Fallback a línea recta para ${routeName}:`, err);
 
-            // Fallback: Si OSRM falla o hay límite de peticiones, dibuja línea recta
             const fallbackPolyline = L.polyline(points, {
               color: color,
               weight: 4,
               dashArray: '5, 10',
-              opacity: 0.7
-            }).bindPopup(`<b>Ruta: ${routeKey} (Directa)</b>`);
+              opacity: 0.7,
+            }).bindPopup(`<b>Ruta: ${routeName} (Directa)</b>`);
 
             fallbackPolyline.addTo(this.routeLayer);
             points.forEach((coord) => allBounds.extend(coord));
@@ -222,95 +506,12 @@ export class Home implements AfterViewInit, OnDestroy {
         }
       }
 
-      // Ajustar la vista para encuadrar todas las rutas trazadas
       if (allBounds.isValid()) {
         this.map.fitBounds(allBounds, { padding: [40, 40] });
       }
-
     } catch (error) {
       console.error('Error cargando y calculando rutas:', error);
     }
-  }
-
-  /**
-   * Geocodificador adaptativo para direcciones complejas de Maracaibo
-   */
-  private async geocodeAddressDynamic(street?: string, sector?: string): Promise<[number, number] | null> {
-    const queries: string[] = [];
-
-    if (street) {
-      // Normalizar términos locales ("con" -> "&", eliminar prefijos)
-      const cleanStreet = street.replace(/con/gi, '&').replace(/Urb-|Sect-/gi, '');
-      queries.push(`${cleanStreet}, Maracaibo, Venezuela`);
-
-      // Descomponer si contiene intersección (ej. "Av. 15Q con calle 55")
-      const parts = street.split(/con|y/i);
-      if (parts.length > 1) {
-        // Probar buscando la calle o avenida secundaria con el sector
-        const cleanSector = sector ? sector.replace(/Urb-|Sect-/gi, '') : '';
-        queries.push(`${parts[1].trim()}, ${cleanSector}, Maracaibo, Venezuela`);
-        queries.push(`${parts[0].trim()}, Maracaibo, Venezuela`);
-      }
-    }
-
-    if (sector) {
-      const cleanSector = sector.replace(/Urb-|Sect-/gi, '');
-      queries.push(`${cleanSector}, Maracaibo, Venezuela`);
-    }
-
-    // Probar las consultas en orden de especificidad
-    for (const query of queries) {
-      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`;
-      try {
-        const results = await this.http.get<any[]>(url).toPromise();
-        if (results && results.length > 0) {
-          const resLat = parseFloat(results[0].lat);
-          const resLon = parseFloat(results[0].lon);
-
-          // Descartar si devuelve las coordenadas del centro exacto de Maracaibo (fallback por defecto)
-          if (Math.abs(resLat - 10.6447) > 0.001 || Math.abs(resLon - (-71.6106)) > 0.001) {
-            return [resLat, resLon];
-          }
-        }
-      } catch (err) {
-        console.error('Error buscando:', query, err);
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Geocodificación usando Nominatim (OSM)
-   */
-  private geocodeAddress(addressQuery: string): Promise<[number, number] | null> {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressQuery)}`;
-
-    return new Promise((resolve) => {
-      this.http.get<any[]>(url).subscribe({
-        next: (results) => {
-          if (results && results.length > 0) {
-            const lat = parseFloat(results[0].lat);
-            const lon = parseFloat(results[0].lon);
-            resolve([lat, lon]);
-          } else {
-            // Si la búsqueda exacta falla, probar con el sector genérico en Maracaibo
-            const fallbackUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent('Maracaibo, Venezuela')}`;
-            this.http.get<any[]>(fallbackUrl).subscribe({
-              next: (fbResults) => {
-                if (fbResults && fbResults.length > 0) {
-                  resolve([parseFloat(fbResults[0].lat), parseFloat(fbResults[0].lon)]);
-                } else {
-                  resolve(null);
-                }
-              },
-              error: () => resolve(null)
-            });
-          }
-        },
-        error: () => resolve(null)
-      });
-    });
   }
 
   /**
@@ -337,7 +538,7 @@ export class Home implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Obtiene las rutas de Firebase, calcula cuál pasa más cerca de la casa y la dibuja con OSRM
+   * Obtiene las rutas de Firebase, calcula cuál pasa más cerca y la dibuja
    */
   private async findAndDrawNearestRoute(userCoords: [number, number]): Promise<void> {
     const routesRef = ref(this.database, 'routes');
@@ -352,18 +553,10 @@ export class Home implements AfterViewInit, OnDestroy {
     let minDistance = Infinity;
     let closestRoute: RutaData | null = null;
 
-    // Recorrer cada ruta en Firebase
     for (const [routeId, routeObj] of Object.entries<any>(data)) {
-      if (!routeObj) continue;
-
-      // Convertir p1, p2, p3... en coordenadas [lat, lng]
-      const puntos: [number, number][] = Object.values(routeObj)
-        .filter((val: any) => val && typeof val === 'object' && val.x !== undefined && val.y !== undefined)
-        .map((p: any) => [p.x, p.y]);
-
+      const puntos = this.extractValidPointsFromRouteObj(routeObj);
       if (puntos.length === 0) continue;
 
-      // Calcular distancia mínima entre la casa y los puntos de esta ruta
       for (const punto of puntos) {
         const dist = this.calcularDistanciaHaversine(userCoords[0], userCoords[1], punto[0], punto[1]);
         if (dist < minDistance) {
@@ -376,8 +569,6 @@ export class Home implements AfterViewInit, OnDestroy {
     if (closestRoute) {
       this.nearestRouteId = closestRoute.id;
       this.routeDistanceKm = parseFloat(minDistance.toFixed(2));
-
-      // Trazar el camino real por calles con OSRM
       this.trazarRutaConOSRM(closestRoute.puntos);
     }
   }
@@ -388,7 +579,6 @@ export class Home implements AfterViewInit, OnDestroy {
   private trazarRutaConOSRM(points: [number, number][]): void {
     if (points.length < 2) return;
 
-    // Formato OSRM: "lng,lat;lng,lat..."
     const coordsString = points.map((p) => `${p[1]},${p[0]}`).join(';');
     const url = `https://router.project-osrm.org/route/v1/driving/${coordsString}?geometries=geojson&overview=full`;
 
@@ -407,14 +597,13 @@ export class Home implements AfterViewInit, OnDestroy {
           opacity: 0.9,
         }).addTo(this.map);
 
-        // Encuadrar el mapa para ver tanto la casa del usuario como la ruta completa
         const bounds = this.routePolyline.getBounds();
         if (this.userCoords) {
           bounds.extend(this.userCoords);
         }
         this.map.fitBounds(bounds, { padding: [40, 40] });
       },
-      error: (err) => console.error('Error al trazar ruta con OSRM:', err)
+      error: (err) => console.error('Error al trazar ruta con OSRM:', err),
     });
   }
 
@@ -427,8 +616,10 @@ export class Home implements AfterViewInit, OnDestroy {
     const dLon = this.deg2rad(lon2 - lon1);
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(this.deg2rad(lat1)) * Math.cos(this.deg2rad(lat2)) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      Math.cos(this.deg2rad(lat1)) *
+        Math.cos(this.deg2rad(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   }
