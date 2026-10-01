@@ -306,6 +306,36 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
+.selection-header {
+  width: 48px;
+  text-align: center !important;
+}
+
+.select-all-icon {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #0f4b3a;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.select-all-icon:hover,
+.select-all-icon.is-selected {
+  background: #d5f0df;
+  color: #1b7a45;
+}
+
+.row-select {
+  width: 16px;
+  height: 16px;
+  accent-color: #06523f;
+  cursor: pointer;
+}
+
 /* Shared visual language for application dialogs (not the notification popover). */
 .modal-backdrop:not(.error-backdrop) > :is(.modal-panel, .modal-container, .confirm-modal) {
   box-sizing: border-box;
