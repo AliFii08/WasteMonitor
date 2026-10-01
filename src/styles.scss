@@ -78,11 +78,13 @@ body {
 }
 
 /* PrimeNG Toast overrides */
- .p-toast {
+.p-toast {
+  font-family: 'Raleway', sans-serif !important;
   opacity: 1 !important;
 }
 
 .p-toast .p-toast-message {
+  font-family: 'Raleway', sans-serif !important;
   border-radius: 14px !important;
   border: 2px solid transparent !important;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24) !important;
@@ -92,7 +94,20 @@ body {
 
 
 .p-toast .p-toast-message-content { padding: 0.9rem 1rem !important; }
-.p-toast .p-toast-message-text { flex: 1; }
+.p-toast .p-toast-message-text {
+  flex: 1;
+  font-family: 'Raleway', sans-serif !important;
+}
+
+.p-toast .p-toast-summary,
+.p-toast .p-toast-detail,
+.p-toast .p-toast-icon-close {
+  font-family: 'Raleway', sans-serif !important;
+}
+
+.p-toast .p-toast-summary {
+  font-weight: 700 !important;
+}
 
 :root, body, * { scrollbar-width: thin; scrollbar-color: #78ad78 transparent; }
 :root::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -126,6 +141,37 @@ body {
   color: currentColor !important;
   opacity: 1 !important;
   }
+
+@media (max-width: 767px) {
+  .p-toast {
+    position: fixed !important;
+    top: 12px !important;
+    bottom: auto !important;
+    right: 12px !important;
+    left: 12px !important;
+    width: auto !important;
+    max-width: none !important;
+    transform: none !important;
+    z-index: 1100 !important;
+  }
+
+  .p-toast .p-toast-message {
+    width: 100% !important;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .p-toast .p-toast-message-content,
+  .p-toast .p-toast-message-text {
+    min-width: 0;
+  }
+
+  .p-toast .p-toast-summary,
+  .p-toast .p-toast-detail {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}
 
 
 /* Shared confirmation modal */
