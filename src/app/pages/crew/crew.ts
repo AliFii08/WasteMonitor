@@ -42,6 +42,7 @@ export class Crew implements OnInit {
   isUpdateModalOpen = false;
   selectedCrew: TripulacionTabla | null = null;
   isDetailsModalOpen = false;
+  isDetailsModalClosing = false;
 
   ngOnInit(): void {
     this.loadDrivers();
@@ -144,8 +145,13 @@ export class Crew implements OnInit {
   }
 
   closeDetailsModal(): void {
-    this.isDetailsModalOpen = false;
-    this.selectedCrew = null;
+    if (this.isDetailsModalClosing) return;
+    this.isDetailsModalClosing = true;
+    setTimeout(() => {
+      this.isDetailsModalClosing = false;
+      this.isDetailsModalOpen = false;
+      this.selectedCrew = null;
+    }, 180);
   }
 
   openUpdateModal(driver: TripulacionTabla): void {

@@ -1,9 +1,6 @@
 import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { DialogModule } from 'primeng/dialog';
-import { SelectModule } from 'primeng/select'; // En lugar de DropdownModule de 'primeng/dropdown'
-import { ButtonModule } from 'primeng/button';
 import { Quejas } from '../../../../@core/interfaces/quejas.model';
 import { QuejasService } from '../../../../@core/services/quejas.service';
 
@@ -13,9 +10,6 @@ import { QuejasService } from '../../../../@core/services/quejas.service';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    DialogModule,
-    SelectModule, // Reemplazado aquí
-    ButtonModule
   ],
   templateUrl: './update-complaints.html',
   styleUrl: './update-complaints.scss',
@@ -27,6 +21,7 @@ export class UpdateComplaints implements OnChanges {
   @Input() visible = false;
   @Input() queja: Quejas | null = null;
   @Output() visibleChange = new EventEmitter<boolean>();
+  isClosing = false;
   @Output() quejaActualizada = new EventEmitter<void>();
 
   loading = false;
@@ -50,8 +45,13 @@ export class UpdateComplaints implements OnChanges {
   }
 
   cerrarModal(): void {
-    this.visible = false;
-    this.visibleChange.emit(false);
+    if (this.isClosing) return;
+    this.isClosing = true;
+    setTimeout(() => {
+      this.isClosing = false;
+      this.visible = false;
+      this.visibleChange.emit(false);
+    }, 180);
   }
 
   async guardarCambios(): Promise<void> {

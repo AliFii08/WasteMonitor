@@ -43,6 +43,7 @@ export class Taller implements OnInit {
 
   // Estado del modal de confirmación de eliminación
   showConfirmModal = false;
+  isConfirmModalClosing = false;
   deleting = false;
   deleteMode: 'single' | 'bulk' = 'single';
   itemToDeleteKey?: string;
@@ -149,9 +150,13 @@ export class Taller implements OnInit {
   }
 
   closeConfirmModal(): void {
-    if (this.deleting) return;
-    this.showConfirmModal = false;
-    this.itemToDeleteKey = undefined;
+    if (this.deleting || this.isConfirmModalClosing) return;
+    this.isConfirmModalClosing = true;
+    setTimeout(() => {
+      this.isConfirmModalClosing = false;
+      this.showConfirmModal = false;
+      this.itemToDeleteKey = undefined;
+    }, 180);
   }
 
   async processDelete(): Promise<void> {

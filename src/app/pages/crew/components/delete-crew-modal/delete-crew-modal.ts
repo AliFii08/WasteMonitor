@@ -29,6 +29,7 @@ export class DeleteCrewModal {
   @Output() deleted = new EventEmitter<void>();
 
   deleting = false;
+  isClosing = false;
   errorMsg = '';
 
   async confirmDelete(): Promise<void> {
@@ -92,7 +93,12 @@ export class DeleteCrewModal {
   }
 
   cerrarModal(): void {
-    this.visible = false;
-    this.visibleChange.emit(this.visible);
+    if (this.deleting || this.isClosing) return;
+    this.isClosing = true;
+    setTimeout(() => {
+      this.isClosing = false;
+      this.visible = false;
+      this.visibleChange.emit(this.visible);
+    }, 180);
   }
 }

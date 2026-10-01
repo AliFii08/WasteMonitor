@@ -47,6 +47,7 @@ export class GeneralNotificationComponent implements OnInit {
 
   @Input() visible = false;
   @Output() visibleChange = new EventEmitter<boolean>();
+  isClosing = false;
 
   readonly roleOptions = [
     { id: 'admin', label: 'Administración' },
@@ -107,8 +108,13 @@ export class GeneralNotificationComponent implements OnInit {
   }
 
   close(): void {
-    this.visible = false;
-    this.visibleChange.emit(false);
+    if (this.isClosing) return;
+    this.isClosing = true;
+    setTimeout(() => {
+      this.isClosing = false;
+      this.visible = false;
+      this.visibleChange.emit(false);
+    }, 180);
   }
 
   onAudienceChange(): void {

@@ -1,24 +1,42 @@
-<p-dialog header="Actualizar Estado de la Queja" [(visible)]="visible" [modal]="true" [style]="{ width: '450px' }"
-  (onHide)="cerrarModal()">
+@if (visible && queja) {
+  <div class="modal-backdrop" [class.is-closing]="isClosing" (click)="cerrarModal()">
+    <div class="modal-panel" [class.is-closing]="isClosing" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+      <header class="modal-header">
+        <div class="modal-title">
+          <i class="pi pi-pencil"></i>
+          <h2>Actualizar Estado de la Queja</h2>
+        </div>
+        <button type="button" class="close-btn" (click)="cerrarModal()" aria-label="Cerrar">
+          <i class="pi pi-times"></i>
+        </button>
+      </header>
 
-  <div *ngIf="queja" class="mb-3 surface-ground p-3 border-round">
-    <small class="text-500 font-medium block">Asunto</small>
-    <span class="font-bold text-800">{{ queja.asunto }}</span>
+      <form [formGroup]="form" (ngSubmit)="guardarCambios()" class="modal-body">
+        <div class="info-card">
+          <span class="info-label">Asunto</span>
+          <strong>{{ queja.asunto }}</strong>
+        </div>
+
+        <div class="form-field">
+          <label for="estado">Estado de la Atención</label>
+          <select id="estado" formControlName="estado">
+            <option value="" disabled>Seleccione un estado</option>
+            @for (opcion of opcionesEstado; track opcion.value) {
+              <option [value]="opcion.value">{{ opcion.label }}</option>
+            }
+          </select>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="cerrarModal()" [disabled]="loading">
+            <i class="pi pi-times"></i> Cancelar
+          </button>
+          <button type="submit" class="btn-submit" [disabled]="loading">
+            @if (loading) { <i class="pi pi-spin pi-spinner"></i> Actualizando... }
+            @else { <i class="pi pi-check"></i> Actualizar }
+          </button>
+        </footer>
+      </form>
+    </div>
   </div>
-
-  <form [formGroup]="form" (ngSubmit)="guardarCambios()" class="p-fluid flex flex-column gap-3">
-    <div class="field">
-      <label for="estado" class="font-bold block mb-2">Estado de la Atención</label>
-      <p-select [options]="opcionesEstado" formControlName="estado" optionLabel="label" optionValue="value"
-        placeholder="Seleccione un estado" appendTo="body">
-      </p-select>
-    </div>
-
-    <div class="flex justify-content-end gap-2 mt-3">
-      <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" (onClick)="cerrarModal()">
-      </p-button>
-      <p-button label="Actualizar" icon="pi pi-check" type="submit" [loading]="loading">
-      </p-button>
-    </div>
-  </form>
-</p-dialog>
+}

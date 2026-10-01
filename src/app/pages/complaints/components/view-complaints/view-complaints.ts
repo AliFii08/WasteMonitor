@@ -1,7 +1,5 @@
 import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { DialogModule } from 'primeng/dialog';
-import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { Quejas } from '../../../../@core/interfaces/quejas.model';
 import { QuejasService } from '../../../../@core/services/quejas.service';
@@ -9,7 +7,7 @@ import { QuejasService } from '../../../../@core/services/quejas.service';
 @Component({
   selector: 'app-view-complaints',
   standalone: true,
-  imports: [CommonModule, DialogModule, ButtonModule, TagModule, DatePipe],
+  imports: [CommonModule, TagModule, DatePipe],
   templateUrl: './view-complaints.html',
   styleUrl: './view-complaints.scss',
 })
@@ -19,6 +17,7 @@ export class ViewComplaints implements OnChanges {
   @Input() visible = false;
   @Input() queja: Quejas | null = null;
   @Output() visibleChange = new EventEmitter<boolean>();
+  isClosing = false;
 
   nombreUsuario = signal<string>('Cargando...');
 
@@ -40,8 +39,13 @@ export class ViewComplaints implements OnChanges {
   }
 
   cerrarModal(): void {
-    this.visible = false;
-    this.visibleChange.emit(false);
+    if (this.isClosing) return;
+    this.isClosing = true;
+    setTimeout(() => {
+      this.isClosing = false;
+      this.visible = false;
+      this.visibleChange.emit(false);
+    }, 180);
   }
 
   getSeverity(estado?: string): 'warn' | 'info' | 'success' | 'secondary' {

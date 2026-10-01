@@ -89,8 +89,8 @@
 </main>
 
 @if (modalOpen) {
-  <div class="modal-backdrop" (click)="closeCreateForm()">
-    <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="create-title"
+  <div class="modal-backdrop" [class.is-closing]="isCreateModalClosing" (click)="closeCreateForm()">
+    <section class="modal-panel" [class.is-closing]="isCreateModalClosing" role="dialog" aria-modal="true" aria-labelledby="create-title"
       (click)="$event.stopPropagation()" (keydown.escape)="closeCreateForm()">
       <header class="modal-header">
         <div class="modal-title">
@@ -144,8 +144,8 @@
 }
 
 @if (selectedStatusUser; as statusUser) {
-  <div class="modal-backdrop" (click)="closeStatusConfirmation()">
-    <section class="modal-panel" [class.danger-theme]="statusUser.activo !== false"
+  <div class="modal-backdrop" [class.is-closing]="isStatusModalClosing" (click)="closeStatusConfirmation()">
+    <section class="modal-panel" [class.is-closing]="isStatusModalClosing" [class.danger-theme]="statusUser.activo !== false"
       [class.success-theme]="statusUser.activo === false" role="dialog" aria-modal="true"
       aria-labelledby="status-title" aria-describedby="status-description"
       (click)="$event.stopPropagation()" (keydown.escape)="closeStatusConfirmation()">

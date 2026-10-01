@@ -1,7 +1,8 @@
 @if (visible) {
-  <div class="broadcast-backdrop" (click)="close()">
+  <div class="broadcast-backdrop" [class.is-closing]="isClosing" (click)="close()">
     <section
       class="broadcast-modal"
+      [class.is-closing]="isClosing"
       role="dialog"
       aria-modal="true"
       aria-labelledby="broadcast-title"

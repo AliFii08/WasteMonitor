@@ -1,6 +1,6 @@
 @if (visible) {
-  <div class="confirmation-backdrop" (click)="closeModal()">
-    <div class="confirmation-modal" (click)="$event.stopPropagation()">
+  <div class="confirmation-backdrop" [class.is-closing]="isClosing" (click)="closeModal()">
+    <div class="confirmation-modal" [class.is-closing]="isClosing" (click)="$event.stopPropagation()">
       <div class="confirmation-header">
         <div class="confirmation-title">
           <i class="pi pi-exclamation-triangle"></i>

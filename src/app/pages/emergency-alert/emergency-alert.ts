@@ -19,6 +19,7 @@ export class EmergencyAlertComponent implements OnInit, OnDestroy {
 
   @Input() visible = false;
   @Output() visibleChange = new EventEmitter<boolean>();
+  isClosing = false;
 
   alerts: EmergencyAlert[] = [];
   vehicle = '';
@@ -56,8 +57,13 @@ export class EmergencyAlertComponent implements OnInit, OnDestroy {
   }
 
   close(): void {
-    this.visible = false;
-    this.visibleChange.emit(false);
+    if (this.isClosing) return;
+    this.isClosing = true;
+    setTimeout(() => {
+      this.isClosing = false;
+      this.visible = false;
+      this.visibleChange.emit(false);
+    }, 180);
   }
 
   async report(): Promise<void> {

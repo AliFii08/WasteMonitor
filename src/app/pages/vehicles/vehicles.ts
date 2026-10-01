@@ -45,6 +45,7 @@ export class Vehicles implements OnInit {
   availableRoutes: RouteOption[] = [];
 
   isDeleteModalOpen = false;
+  isDeleteModalClosing = false;
   vehiclesToDelete: Vehicle[] = [];
 
   get existingPlates(): string[] {
@@ -153,8 +154,13 @@ export class Vehicles implements OnInit {
   }
 
   closeDeleteModal(): void {
-    this.isDeleteModalOpen = false;
-    this.vehiclesToDelete = [];
+    if (this.isDeleteModalClosing) return;
+    this.isDeleteModalClosing = true;
+    setTimeout(() => {
+      this.isDeleteModalClosing = false;
+      this.isDeleteModalOpen = false;
+      this.vehiclesToDelete = [];
+    }, 180);
   }
 
   async confirmDelete(): Promise<void> {

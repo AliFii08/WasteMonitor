@@ -15,8 +15,70 @@ body {
   background-color: #f1ffed;
 }
 
+.modal-backdrop.is-closing,
+.confirmation-backdrop.is-closing,
+.details-backdrop.is-closing,
+.emergency-backdrop.is-closing,
+.broadcast-backdrop.is-closing {
+  animation: app-modal-backdrop-out 180ms ease-in both !important;
+}
+
+.modal-panel.is-closing,
+.confirmation-modal.is-closing,
+.details-modal.is-closing,
+.emergency-modal.is-closing,
+.broadcast-modal.is-closing,
+.error-panel.is-closing {
+  animation: app-modal-panel-out 180ms ease-in both !important;
+}
+
+.modal-backdrop.is-closing,
+.confirmation-backdrop.is-closing,
+.details-backdrop.is-closing,
+.emergency-backdrop.is-closing,
+.broadcast-backdrop.is-closing {
+  pointer-events: none;
+}
+
+.modal-backdrop:not(.is-closing),
+.confirmation-backdrop:not(.is-closing),
+.details-backdrop:not(.is-closing),
+.emergency-backdrop:not(.is-closing),
+.broadcast-backdrop:not(.is-closing) {
+  animation: app-modal-backdrop-in 150ms ease-out both !important;
+}
+
+.modal-panel:not(.is-closing),
+.confirmation-modal:not(.is-closing),
+.details-modal:not(.is-closing),
+.emergency-modal:not(.is-closing),
+.broadcast-modal:not(.is-closing),
+.error-panel:not(.is-closing) {
+  animation: app-modal-panel-in 200ms ease-out both !important;
+}
+
+@keyframes app-modal-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes app-modal-panel-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes app-modal-backdrop-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes app-modal-panel-out {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(12px); }
+}
+
 /* PrimeNG Toast overrides */
-.p-toast {
+ .p-toast {
   opacity: 1 !important;
 }
 
@@ -28,28 +90,15 @@ body {
   opacity: 1 !important;
 }
 
-.p-toast .p-toast-message-content {
-  padding: 0.9rem 1rem !important;
-}
 
-.p-toast .p-toast-message-text {
-  flex: 1;
-  //text-align: center;
-}
+.p-toast .p-toast-message-content { padding: 0.9rem 1rem !important; }
+.p-toast .p-toast-message-text { flex: 1; }
 
-.p-toast .p-toast-summary {
-  font-family: 'LoveloBlack', sans-serif !important;
-  font-size: 0.98rem !important;
-  font-weight: 800;
-  letter-spacing: 0.4px;
-}
-
-.p-toast .p-toast-detail {
-  font-family: 'Raleway', sans-serif !important;
-  font-weight: 600;
-  font-size: 0.95rem !important;
-  color: black !important;
-}
+:root, body, * { scrollbar-width: thin; scrollbar-color: #78ad78 transparent; }
+:root::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar { width: 10px; height: 10px; }
+:root::-webkit-scrollbar-track, body::-webkit-scrollbar-track, *::-webkit-scrollbar-track { background: #eaf5e8; }
+:root::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb, *::-webkit-scrollbar-thumb { border: 2px solid #eaf5e8; border-radius: 999px; background: #78ad78; background-clip: padding-box; }
+:root::-webkit-scrollbar-thumb:hover, body::-webkit-scrollbar-thumb:hover, *::-webkit-scrollbar-thumb:hover { background: #4f8e43; background-clip: padding-box; }
 
 .p-toast .p-toast-message-success {
   background: #dff8e2 !important;
@@ -76,7 +125,8 @@ body {
 .p-toast .p-toast-message-icon {
   color: currentColor !important;
   opacity: 1 !important;
-}
+  }
+
 
 /* Shared confirmation modal */
 .confirmation-backdrop {
@@ -117,9 +167,7 @@ body {
   gap: 0.6rem;
   color: #9b1c1c;
 
-  > i {
-    font-size: 1.2rem;
-  }
+  > i { font-size: 1.2rem; }
 
   h2 {
     margin: 0;
@@ -148,9 +196,7 @@ body {
     font-size: 1rem;
     line-height: 1.4;
 
-    strong {
-      color: #9b1c1c;
-    }
+    strong { color: #9b1c1c; }
   }
 }
 
@@ -212,67 +258,6 @@ body {
 @keyframes confirmation-slide-up {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-.selection-header {
-  width: 48px;
-  text-align: center !important;
-}
-
-.select-all-icon {
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: #0f4b3a;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-.select-all-icon:hover,
-.select-all-icon.is-selected {
-  background: #d5f0df;
-  color: #1b7a45;
-}
-
-.row-select {
-  width: 16px;
-  height: 16px;
-  accent-color: #06523f;
-  cursor: pointer;
-}
-
-@media (max-width: 767px) {
-  .p-toast {
-    position: fixed !important;
-    top: 12px !important;
-    bottom: auto !important;
-    right: 12px !important;
-    left: 12px !important;
-    width: auto !important;
-    max-width: none !important;
-    transform: none !important;
-    z-index: 1100 !important;
-  }
-
-  .p-toast .p-toast-message {
-    width: 100% !important;
-    box-sizing: border-box;
-    overflow: hidden;
-  }
-
-  .p-toast .p-toast-message-content,
-  .p-toast .p-toast-message-text {
-    min-width: 0;
-  }
-
-  .p-toast .p-toast-summary,
-  .p-toast .p-toast-detail {
-    overflow-wrap: anywhere;
-    word-break: break-word;
-  }
 }
 
 /* Shared visual language for application dialogs (not the notification popover). */

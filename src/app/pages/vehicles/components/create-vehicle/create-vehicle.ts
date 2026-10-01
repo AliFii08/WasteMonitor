@@ -15,9 +15,6 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
-import { DialogModule } from 'primeng/dialog';
-import { InputTextModule } from 'primeng/inputtext';
 import { Vehicle, VEHICLE_TYPES, VehicleType } from '../../../../@core/interfaces/vehicle.model';
 
 export interface RouteOption {
@@ -28,7 +25,7 @@ export interface RouteOption {
 @Component({
   selector: 'app-create-vehicle',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, DialogModule, ButtonModule, InputTextModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './create-vehicle.html',
   styleUrl: './create-vehicle.scss',
 })
@@ -40,6 +37,7 @@ export class CreateVehicleComponent implements OnChanges {
   @Input() routes: RouteOption[] = []; // Lista de rutas para el select
 
   @Output() visibleChange = new EventEmitter<boolean>();
+  isClosing = false;
   @Output() saveVehicle = new EventEmitter<Omit<Vehicle, 'id'>>();
 
   vehicleTypes = [...VEHICLE_TYPES];
@@ -90,9 +88,14 @@ export class CreateVehicleComponent implements OnChanges {
   }
 
   onCancel(): void {
-    this.visible = false;
-    this.visibleChange.emit(false);
-    this.formError = '';
+    if (this.isClosing) return;
+    this.isClosing = true;
+    setTimeout(() => {
+      this.isClosing = false;
+      this.visible = false;
+      this.visibleChange.emit(false);
+      this.formError = '';
+    }, 180);
   }
 
   onSave(): void {

@@ -45,6 +45,7 @@ export class UpdateCrew implements OnChanges {
 
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() updated = new EventEmitter<void>();
+  isClosing = false;
 
   saving = false;
   loadingData = false;
@@ -239,7 +240,12 @@ export class UpdateCrew implements OnChanges {
   }
 
   cerrarModal(): void {
-    this.visible = false;
-    this.visibleChange.emit(this.visible);
+    if (this.isClosing) return;
+    this.isClosing = true;
+    setTimeout(() => {
+      this.isClosing = false;
+      this.visible = false;
+      this.visibleChange.emit(this.visible);
+    }, 180);
   }
 }

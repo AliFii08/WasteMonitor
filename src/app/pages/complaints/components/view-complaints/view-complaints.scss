@@ -1,1 +1,18 @@
-// asdasdasdasd
+ .modal-backdrop { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 1rem; background: rgba(3, 30, 22, 0.45); backdrop-filter: blur(2px); animation: fadeIn 0.15s ease-out; &.is-closing { animation: fadeOut 180ms ease-in both; } }
+ .modal-panel { width: 100%; max-width: 580px; max-height: 90vh; overflow: hidden; border-radius: 16px; background: #fff; box-shadow: 0 24px 60px rgba(0, 54, 40, 0.28); font-family: 'Raleway', sans-serif; animation: slideUp 0.2s ease-out; &.is-closing { animation: slideDown 180ms ease-in both; } }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.1rem 1.4rem; background: linear-gradient(180deg, #e7f3ec 0%, #dcefe4 100%); border-bottom: 1px solid #cfe3d8; }
+.modal-title { display: flex; align-items: center; gap: 0.6rem; color: #06523f; i { font-size: 1.1rem; } h2 { margin: 0; font-size: 1.15rem; font-weight: 800; } }
+.close-btn { width: 34px; height: 34px; border: 0; border-radius: 50%; background: transparent; color: #06523f; cursor: pointer; &:hover { background: rgba(6, 82, 63, 0.1); } }
+.modal-body { padding: 1.4rem; display: flex; flex-direction: column; gap: 1rem; }
+.detail-group { display: flex; flex-direction: column; gap: 0.35rem; label { color: #0f4b3a; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; } }
+.detail-value { margin: 0; color: #123f32; }
+.title-value { font-size: 1.05rem; font-weight: 800; }
+.description-value { margin: 0; padding: 0.8rem; border: 1px solid #d2e3da; border-radius: 8px; background: #f1f8f4; color: #123f32; line-height: 1.5; }
+.metadata { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding-top: 1rem; border-top: 1px solid #e5efe9; label { display: block; margin-bottom: 0.25rem; color: #0f4b3a; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; } strong { color: #123f32; font-size: 0.9rem; } }
+.modal-footer { display: flex; justify-content: flex-end; gap: 0.6rem; padding: 1rem 1.4rem; border-top: 1px solid #e5efe9; }
+.btn-cancel { height: 42px; border: 0; border-radius: 8px; padding: 0 18px; display: inline-flex; align-items: center; gap: 0.5rem; background: #eef3f0; color: #0f4b3a; font: 800 13px 'Raleway', sans-serif; cursor: pointer; &:hover { background: #dde8e1; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+ @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+ @keyframes slideDown { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(8px); } }
+@media (max-width: 560px) { .metadata { grid-template-columns: 1fr; } }

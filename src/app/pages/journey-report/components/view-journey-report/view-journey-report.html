@@ -1,6 +1,6 @@
 @if (visible && reporte) {
-  <div class="modal-backdrop" (click)="closeModal()">
-    <div class="modal-panel" (click)="$event.stopPropagation()">
+  <div class="modal-backdrop" [class.is-closing]="isClosing" (click)="closeModal()">
+    <div class="modal-panel" [class.is-closing]="isClosing" (click)="$event.stopPropagation()">
       <header class="modal-header">
         <div class="modal-title">
           <i class="pi pi-eye"></i>
@@ -13,19 +13,19 @@
 
       <!-- Pestañas internas -->
       <nav class="modal-tabs">
-        <button 
-          type="button" 
-          class="tab-btn" 
-          [class.active]="activeTab === 'general'" 
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="activeTab === 'general'"
           (click)="selectTab('general')">
           General
         </button>
 
         @for (viaje of viajesList; track viaje.key) {
-          <button 
-            type="button" 
-            class="tab-btn" 
-            [class.active]="activeTab === viaje.key" 
+          <button
+            type="button"
+            class="tab-btn"
+            [class.active]="activeTab === viaje.key"
             (click)="selectTab(viaje.key)">
             Viaje {{ viaje.numero }}
           </button>
@@ -73,7 +73,7 @@
         <span [class]="reporte.estado === 'firmado' ? 'badge-success' : 'badge-warning'">
           {{ reporte.estado === 'firmado' ? 'Firmado' : 'Pendiente de firma' }}
         </span>
-        
+
         @if (reporte.estado === 'firmado' && nombreUsuarioFirma) {
           <small class="signer-name">
             Por: {{ nombreUsuarioFirma }}

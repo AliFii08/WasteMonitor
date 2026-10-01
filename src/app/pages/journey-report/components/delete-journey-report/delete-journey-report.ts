@@ -19,6 +19,7 @@ export class DeleteJourneyReport {
   @Output() reportesEliminados = new EventEmitter<void>();
 
   isDeleting: boolean = false;
+  isClosing = false;
   private messageService = inject(MessageService);
 
   private get db() {
@@ -36,9 +37,13 @@ export class DeleteJourneyReport {
   }
 
   closeModal(): void {
-    if (this.isDeleting) return;
-    this.visible = false;
-    this.visibleChange.emit(false);
+    if (this.isDeleting || this.isClosing) return;
+    this.isClosing = true;
+    setTimeout(() => {
+      this.isClosing = false;
+      this.visible = false;
+      this.visibleChange.emit(false);
+    }, 180);
   }
 
   async confirmDelete(): Promise<void> {

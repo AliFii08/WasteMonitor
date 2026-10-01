@@ -1,6 +1,6 @@
 @if (visible) {
-  <div class="modal-backdrop" (click)="close()">
-    <div class="modal-panel" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+  <div class="modal-backdrop" [class.is-closing]="isClosing" (click)="close()">
+    <div class="modal-panel" [class.is-closing]="isClosing" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
       <header class="modal-header">
         <div class="modal-title">
           <i class="pi pi-pencil"></i>

@@ -37,12 +37,14 @@ export class Users implements OnInit {
   loading = true;
   saving = false;
   modalOpen = false;
+  isCreateModalClosing = false;
   searchTerm = '';
   roleFilter: UserRole | '' = '';
   pageError = '';
   formError = '';
   selectedUser: FirebaseUser | null = null;
   selectedStatusUser: FirebaseUser | null = null;
+  isStatusModalClosing = false;
   confirmationError = '';
   page = 0;
   readonly pageSize = 10;
@@ -119,10 +121,13 @@ export class Users implements OnInit {
   }
 
   closeCreateForm(): void {
-    if (!this.saving) {
+    if (this.saving || this.isCreateModalClosing) return;
+    this.isCreateModalClosing = true;
+    setTimeout(() => {
+      this.isCreateModalClosing = false;
       this.modalOpen = false;
       this.selectedUser = null;
-    }
+    }, 180);
   }
 
   async saveUser(): Promise<void> {
@@ -180,10 +185,13 @@ export class Users implements OnInit {
   }
 
   closeStatusConfirmation(): void {
-    if (!this.saving) {
+    if (this.saving || this.isStatusModalClosing) return;
+    this.isStatusModalClosing = true;
+    setTimeout(() => {
+      this.isStatusModalClosing = false;
       this.selectedStatusUser = null;
       this.confirmationError = '';
-    }
+    }, 180);
   }
 
   async confirmStatusChange(): Promise<void> {

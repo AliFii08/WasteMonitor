@@ -183,8 +183,8 @@
 
 <!-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN -->
 @if (showConfirmModal) {
-  <div class="confirmation-backdrop" (click)="closeConfirmModal()">
-    <div class="confirmation-modal" (click)="$event.stopPropagation()">
+  <div class="confirmation-backdrop" [class.is-closing]="isConfirmModalClosing" (click)="closeConfirmModal()">
+<div class="confirmation-modal" [class.is-closing]="isConfirmModalClosing" (click)="$event.stopPropagation()">
       <div class="confirmation-header">
         <div class="confirmation-title">
           <i class="pi pi-exclamation-triangle"></i>

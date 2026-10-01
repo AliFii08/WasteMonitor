@@ -1,15 +1,11 @@
-<!-- En update-vehicle.html -->
-
-<p-dialog
-  [(visible)]="visible"
-  header="Modificar vehículo"
-  [modal]="true"
-  [draggable]="false"
-  [closable]="true"
-  [style]="{ width: 'min(92vw, 34rem)' }"
-  (onHide)="onCancel()"
->
-  <form [formGroup]="vehicleForm" class="vehicle-form">
+@if (visible) {
+  <div class="modal-backdrop" [class.is-closing]="isClosing" (click)="onCancel()">
+    <div class="modal-panel" [class.is-closing]="isClosing" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+      <header class="modal-header">
+        <div class="modal-title"><i class="pi pi-pencil"></i><h2>Modificar vehículo</h2></div>
+        <button type="button" class="close-btn" (click)="onCancel()" aria-label="Cerrar"><i class="pi pi-times"></i></button>
+      </header>
+  <form [formGroup]="vehicleForm" class="modal-body">
     <div class="field">
       <label for="vehicle-id">ID único</label>
       <input id="vehicle-id" pInputText type="text" [value]="vehicle?.id || ''" disabled />
@@ -74,12 +70,11 @@
     @if (formError) {
       <p class="form-error">{{ formError }}</p>
     }
-  </form>
-
-  <ng-template pTemplate="footer">
-    <div class="actions">
-      <button pButton type="button" class="p-button-text" label="Cancelar" (click)="onCancel()"></button>
-      <button pButton type="button" label="Actualizar" (click)="onUpdate()"></button>
+        <footer class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="onCancel()">Cancelar</button>
+          <button type="button" class="btn-submit" (click)="onUpdate()">Actualizar</button>
+        </footer>
+      </form>
     </div>
-  </ng-template>
-</p-dialog>
+  </div>
+}

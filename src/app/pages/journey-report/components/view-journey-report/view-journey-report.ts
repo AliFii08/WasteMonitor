@@ -40,6 +40,7 @@ export class ViewJourneyReport implements OnChanges, OnDestroy {
   activeTab: string = 'general';
   viajesList: ViajeItem[] = [];
   isLoading: boolean = false;
+  isClosing = false;
 
   private viajesUnsubscribe: Unsubscribe | null = null;
 
@@ -150,10 +151,15 @@ export class ViewJourneyReport implements OnChanges, OnDestroy {
   }
 
   closeModal(): void {
+    if (this.isClosing) return;
+    this.isClosing = true;
     this.limpiarSuscripcion();
-    this.activeTab = 'general';
-    this.visible = false;
-    this.visibleChange.emit(this.visible);
+    setTimeout(() => {
+      this.isClosing = false;
+      this.activeTab = 'general';
+      this.visible = false;
+      this.visibleChange.emit(this.visible);
+    }, 180);
   }
 
   private limpiarSuscripcion(): void {

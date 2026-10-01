@@ -15,9 +15,6 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
-import { DialogModule } from 'primeng/dialog';
-import { InputTextModule } from 'primeng/inputtext';
 import { Vehicle, VEHICLE_TYPES, VehicleType } from '../../../../@core/interfaces/vehicle.model';
 import { VehicleForm } from '../../../../@core/interfaces/forms/form_vehicle';
 
@@ -33,7 +30,7 @@ export type VehicleStatus = (typeof VEHICLE_STATUSES)[number];
 @Component({
   selector: 'app-update-vehicle',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, DialogModule, ButtonModule, InputTextModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './update-vehicle.html',
   styleUrl: './update-vehicle.scss',
 })
@@ -46,6 +43,7 @@ export class UpdateVehicleComponent implements OnChanges {
   @Input() routes: RouteOption[] = [];
 
   @Output() visibleChange = new EventEmitter<boolean>();
+  isClosing = false;
   @Output() updateVehicle = new EventEmitter<Vehicle>();
 
   vehicleTypes = [...VEHICLE_TYPES];
@@ -97,9 +95,14 @@ export class UpdateVehicleComponent implements OnChanges {
   }
 
   onCancel(): void {
-    this.visible = false;
-    this.visibleChange.emit(false);
-    this.formError = '';
+    if (this.isClosing) return;
+    this.isClosing = true;
+    setTimeout(() => {
+      this.isClosing = false;
+      this.visible = false;
+      this.visibleChange.emit(false);
+      this.formError = '';
+    }, 180);
   }
 
   onUpdate(): void {

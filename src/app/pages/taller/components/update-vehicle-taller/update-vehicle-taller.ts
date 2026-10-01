@@ -27,6 +27,7 @@ export class UpdateVehicleTaller {
   @Output() updated = new EventEmitter<void>();
 
   visible = false;
+  isClosing = false;
   saving = false;
   errorMsg = '';
   razonesOpciones = [...RAZONES_INGRESO];
@@ -72,9 +73,14 @@ export class UpdateVehicleTaller {
   }
 
   close(): void {
-    this.visible = false;
-    this.errorMsg = '';
-    this.saving = false;
+    if (this.isClosing) return;
+    this.isClosing = true;
+    setTimeout(() => {
+      this.isClosing = false;
+      this.visible = false;
+      this.errorMsg = '';
+      this.saving = false;
+    }, 180);
   }
 
   async onSubmit(): Promise<void> {

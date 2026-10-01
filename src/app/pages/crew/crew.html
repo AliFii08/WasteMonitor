@@ -110,8 +110,8 @@
 
 <!-- Modal de Detalle de Tripulación -->
 @if (isDetailsModalOpen && selectedCrew; as crew) {
-  <div class="details-backdrop" (click)="closeDetailsModal()">
-    <section class="details-modal" role="dialog" aria-modal="true" aria-labelledby="crew-details-title"
+  <div class="details-backdrop" [class.is-closing]="isDetailsModalClosing" (click)="closeDetailsModal()">
+<section class="details-modal" [class.is-closing]="isDetailsModalClosing" role="dialog" aria-modal="true" aria-labelledby="crew-details-title"
       (click)="$event.stopPropagation()" (keydown.escape)="closeDetailsModal()">
       <header class="details-header">
         <div class="details-title">
@@ -130,7 +130,7 @@
         <div class="detail-item"><span>Conductor</span><strong>{{ crew.conductor }}</strong></div>
         <div class="detail-item"><span>Camión asignado</span><strong>{{ crew.camionAsignado }}</strong></div>
         <div class="detail-item"><span>Ruta asignada</span><strong>{{ crew.rutaAsignada }}</strong></div>
-        
+
         <div class="detail-item full-detail">
           <span>Personal de Crew</span>
           <strong>

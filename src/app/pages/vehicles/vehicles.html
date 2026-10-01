@@ -127,8 +127,8 @@
 
 <!-- Modal de Confirmación de Desactivación -->
 @if (isDeleteModalOpen) {
-  <div class="confirmation-backdrop" (click)="closeDeleteModal()">
-    <div class="confirmation-modal" (click)="$event.stopPropagation()">
+  <div class="confirmation-backdrop" [class.is-closing]="isDeleteModalClosing" (click)="closeDeleteModal()">
+    <div class="confirmation-modal" [class.is-closing]="isDeleteModalClosing" (click)="$event.stopPropagation()">
       <div class="confirmation-header">
         <div class="confirmation-title">
           <i class="pi pi-exclamation-triangle"></i>

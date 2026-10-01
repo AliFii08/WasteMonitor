@@ -24,6 +24,7 @@ export class CreateJourneyReport {
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() informeCreado = new EventEmitter<void>();
 
+  isClosing = false;
   loading: boolean = false;
   showErrorModal: boolean = false;
   errorMessage: string = '';
@@ -35,8 +36,13 @@ export class CreateJourneyReport {
   };
 
   closeModal(): void {
-    this.visible = false;
-    this.visibleChange.emit(false);
+    if (this.isClosing) return;
+    this.isClosing = true;
+    setTimeout(() => {
+      this.isClosing = false;
+      this.visible = false;
+      this.visibleChange.emit(false);
+    }, 180);
   }
 
   closeErrorModal(): void {

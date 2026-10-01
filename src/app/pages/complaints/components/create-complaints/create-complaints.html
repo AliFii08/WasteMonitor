@@ -1,30 +1,44 @@
-<p-dialog header="Registrar Nueva Queja" [(visible)]="visible" [modal]="true" [style]="{ width: '450px' }"
-  (onHide)="cerrarModal()">
+@if (visible) {
+  <div class="modal-backdrop" [class.is-closing]="isClosing" (click)="cerrarModal()">
+    <div class="modal-panel" [class.is-closing]="isClosing" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+      <header class="modal-header">
+        <div class="modal-title">
+          <i class="pi pi-file-edit"></i>
+          <h2>Registrar Nueva Queja</h2>
+        </div>
+        <button type="button" class="close-btn" (click)="cerrarModal()" aria-label="Cerrar">
+          <i class="pi pi-times"></i>
+        </button>
+      </header>
 
-  <form [formGroup]="form" (ngSubmit)="guardarQueja()" class="p-fluid flex flex-column gap-3">
-    <div class="field">
-      <label for="asunto" class="font-bold">Asunto</label>
-      <input pInputText id="asunto" formControlName="asunto" placeholder="Ej. Retraso en recolección" />
-      <small *ngIf="form.get('asunto')?.invalid && form.get('asunto')?.touched" class="p-error">
-        El asunto es requerido (mínimo 5 caracteres).
-      </small>
-    </div>
+      <form [formGroup]="form" (ngSubmit)="guardarQueja()" class="modal-body">
+        <div class="form-field">
+          <label for="asunto">Asunto</label>
+          <input id="asunto" formControlName="asunto" placeholder="Ej. Retraso en recolección" />
+          @if (form.get('asunto')?.invalid && form.get('asunto')?.touched) {
+            <small class="field-error">El asunto es requerido (mínimo 5 caracteres).</small>
+          }
+        </div>
 
-    <div class="field">
-      <label for="descripcion" class="font-bold">Descripción</label>
-      <textarea pInputTextarea id="descripcion" formControlName="descripcion" rows="4"
-        placeholder="Detalle la problemática ocurrida...">
-      </textarea>
-      <small *ngIf="form.get('descripcion')?.invalid && form.get('descripcion')?.touched" class="p-error">
-        La descripción es requerida (mínimo 10 caracteres).
-      </small>
-    </div>
+        <div class="form-field">
+          <label for="descripcion">Descripción</label>
+          <textarea id="descripcion" formControlName="descripcion" rows="4"
+            placeholder="Detalle la problemática ocurrida..."></textarea>
+          @if (form.get('descripcion')?.invalid && form.get('descripcion')?.touched) {
+            <small class="field-error">La descripción es requerida (mínimo 10 caracteres).</small>
+          }
+        </div>
 
-    <div class="flex justify-content-end gap-2 mt-3">
-      <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" (onClick)="cerrarModal()">
-      </p-button>
-      <p-button label="Guardar" icon="pi pi-check" type="submit" [loading]="loading">
-      </p-button>
+        <footer class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="cerrarModal()" [disabled]="loading">
+            <i class="pi pi-times"></i> Cancelar
+          </button>
+          <button type="submit" class="btn-submit" [disabled]="loading">
+            @if (loading) { <i class="pi pi-spin pi-spinner"></i> Guardando... }
+            @else { <i class="pi pi-check"></i> Guardar }
+          </button>
+        </footer>
+      </form>
     </div>
-  </form>
-</p-dialog>
+  </div>
+}

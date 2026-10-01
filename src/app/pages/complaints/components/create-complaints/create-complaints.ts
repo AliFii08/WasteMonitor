@@ -1,9 +1,6 @@
 import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { DialogModule } from 'primeng/dialog';
-import { InputTextModule } from 'primeng/inputtext';
-import { ButtonModule } from 'primeng/button';
 import { Auth } from '@angular/fire/auth';
 import { QuejasService } from '../../../../@core/services/quejas.service';
 import { NotificationService } from '../../../../@core/services/notification.service';
@@ -15,9 +12,6 @@ import { UserService } from '../../../../@core/services/user.service';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    DialogModule,
-    InputTextModule,
-    ButtonModule,
   ],
   templateUrl: './create-complaints.html',
   styleUrl: './create-complaints.scss',
@@ -31,6 +25,7 @@ export class CreateComplaints {
 
   @Input() visible = false;
   @Output() visibleChange = new EventEmitter<boolean>();
+  isClosing = false;
   @Output() quejaCreada = new EventEmitter<void>();
 
   loading = false;
@@ -41,9 +36,14 @@ export class CreateComplaints {
   });
 
   cerrarModal() {
-    this.visible = false;
-    this.visibleChange.emit(false);
-    this.form.reset();
+    if (this.isClosing) return;
+    this.isClosing = true;
+    setTimeout(() => {
+      this.isClosing = false;
+      this.visible = false;
+      this.visibleChange.emit(false);
+      this.form.reset();
+    }, 180);
   }
 
   async guardarQueja() {

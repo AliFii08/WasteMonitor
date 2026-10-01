@@ -51,6 +51,7 @@ export class UpdateJourneyReport implements OnChanges {
 
   isLoading: boolean = false;
   isSubmitting: boolean = false;
+  isClosing = false;
 
   get isAdmin(): boolean {
     return this.authService.hasRole(['admin']);
@@ -274,8 +275,13 @@ export class UpdateJourneyReport implements OnChanges {
   }
 
   closeModal(): void {
-    this.visible = false;
-    this.visibleChange.emit(this.visible);
+    if (this.isClosing) return;
+    this.isClosing = true;
+    setTimeout(() => {
+      this.isClosing = false;
+      this.visible = false;
+      this.visibleChange.emit(this.visible);
+    }, 180);
   }
 
   closeErrorModal(): void {
