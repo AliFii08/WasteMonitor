@@ -1,6 +1,6 @@
 import { Component, EventEmitter, inject, Input, Output, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Database, ref, update } from '@angular/fire/database';
+import { Database, ref, get, update } from '@angular/fire/database';
 import { MessageService } from 'primeng/api';
 
 @Component({
@@ -17,7 +17,7 @@ export class DeleteCrewModal {
 
   @Input() visible = false;
   /**
-   * Recibe la lista de UIDs de los usuarios que volverán al rol 'user'
+   * Lista de UIDs/Keys del nodo 'grupoTripulacion' que se van a eliminar
    */
   @Input() targetUids: string[] = [];
   /**
@@ -38,25 +38,53 @@ export class DeleteCrewModal {
     this.errorMsg = '';
 
     try {
-      // Crear un objeto con múltiples actualizaciones atómicas en Firebase Realtime Database
       const updates: Record<string, any> = {};
 
-      this.targetUids.forEach((uid) => {
-        updates[`usuarios/${uid}/rol`] = 'user';
-        updates[`usuarios/${uid}/camionId`] = null; // Opcional: remover el camión asignado
+      // 1. Obtener la información de los grupos a eliminar para limpiar las referencias de los usuarios
+      const gruposSnap = await get(ref(this.db, 'grupoTripulacion'));
+      const gruposData = gruposSnap.exists() ? gruposSnap.val() : {};
+
+      this.targetUids.forEach((grupoUid) => {
+        const grupo = gruposData[grupoUid];
+
+        if (grupo) {
+          // Remover camionId del supervisor
+          if (grupo.supervisor) {
+            updates[`usuarios/${grupo.supervisor}/camionId`] = null;
+          }
+
+          // Remover camionId del conductor
+          if (grupo.conductor) {
+            updates[`usuarios/${grupo.conductor}/camionId`] = null;
+          }
+
+          // Remover camionId de los integrantes del crew
+          if (grupo.crew && typeof grupo.crew === 'object') {
+            Object.values<string>(grupo.crew).forEach((crewUid) => {
+              if (crewUid) {
+                updates[`usuarios/${crewUid}/camionId`] = null;
+              }
+            });
+          }
+        }
+
+        // 2. Eliminar la entrada del grupo en 'grupoTripulacion' asignándolo a null
+        updates[`grupoTripulacion/${grupoUid}`] = null;
       });
 
+      // Ejecutar la actualización atómica en la base de datos
       await update(ref(this.db), updates);
 
       this.messageService.add({
         severity: 'success',
-        summary: 'Eliminado correctamente',
-        detail: this.targetUids.length === 1 ? 'El integrante fue removido del grupo.' : 'Los integrantes fueron removidos del grupo.',
+        summary: 'Equipo eliminado',
+        detail: this.targetUids.length === 1 ? 'El equipo de tripulación fue eliminado.' : 'Los equipos seleccionados fueron eliminados.',
       });
+
       this.deleted.emit();
       this.cerrarModal();
     } catch (err: any) {
-      this.errorMsg = 'Error al remover el rol de conductor: ' + (err.message || err);
+      this.errorMsg = 'Error al eliminar el equipo de tripulación: ' + (err.message || err);
     } finally {
       this.deleting = false;
       this.cdr.detectChanges();

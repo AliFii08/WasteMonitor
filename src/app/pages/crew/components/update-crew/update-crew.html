@@ -1,125 +1,132 @@
 @if (visible) {
-    <div class="modal-backdrop" (click)="cerrarModal()">
-      <div class="modal-panel" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
-        <header class="modal-header">
-          <div class="modal-title">
-            <i class="pi pi-users"></i>
-            <h2>Editar grupo</h2>
-          </div>
-          <button type="button" class="close-btn" (click)="cerrarModal()" aria-label="Cerrar">
-            <i class="pi pi-times"></i>
-          </button>
-        </header>
+  <div class="modal-backdrop" (click)="cerrarModal()">
+    <div class="modal-panel" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+      <header class="modal-header">
+        <div class="modal-title">
+          <i class="pi pi-users"></i>
+          <h2>Editar grupo</h2>
+        </div>
+        <button type="button" class="close-btn" (click)="cerrarModal()" aria-label="Cerrar">
+          <i class="pi pi-times"></i>
+        </button>
+      </header>
 
-        <form (ngSubmit)="onSubmit()" class="modal-body" #f="ngForm">
-          <!-- Información de Solo Lectura -->
-          <div class="driver-info-card">
-            <span class="info-label">Grupo actual</span>
-            <strong>{{ driverData?.nombreCompleto || 'Cargando...' }}</strong>
-            <small>ID: {{ driverData?.driverId || 'N/A' }}</small>
-          </div>
+      <form (ngSubmit)="onSubmit()" class="modal-body" #f="ngForm">
+        <!-- Información del Grupo -->
+        <div class="driver-info-card">
+          <span class="info-label">Grupo actual</span>
+          <strong>{{ driverData?.nombreCompleto || 'Cargando...' }}</strong>
+          <small>ID: {{ driverData?.driverId || 'N/A' }}</small>
+        </div>
 
-          <div class="form-field">
-            <label for="supervisorUid">Supervisor <span class="req">*</span></label>
-            <select
-              id="supervisorUid"
-              name="supervisorUid"
-              [(ngModel)]="form.supervisorUid"
-              required
-              [disabled]="saving"
-            >
-              <option value="" disabled>Seleccione un supervisor</option>
-              @for (u of supervisoresDisponibles; track u.uid) {
-                <option [value]="u.uid">{{ u.nombreCompleto }} ({{ u.email }})</option>
-              }
-            </select>
-          </div>
-
-          <div class="form-field">
-            <label for="conductorUid">Conductor</label>
-            <select
-              id="conductorUid"
-              name="conductorUid"
-              [(ngModel)]="form.conductorUid"
-              [disabled]="saving || loadingData"
-            >
-              <option value="">Sin conductor</option>
-              @for (u of conductoresDisponibles; track u.uid) {
-                <option [value]="u.uid">{{ u.nombreCompleto }} ({{ u.email }})</option>
-              }
-            </select>
-          </div>
-
-          <div class="form-field">
-            <label>Crew (máximo 4)</label>
-            <div class="crew-options">
-              @for (u of crewDisponibles; track u.uid) {
-                <label class="crew-option">
-                  <input
-                    type="checkbox"
-                    [checked]="form.crewUids.includes(u.uid)"
-                    [disabled]="saving || loadingData || (!form.crewUids.includes(u.uid) && form.crewUids.length >= 4)"
-                    (change)="toggleCrew(u.uid, $any($event.target).checked)"
-                  />
-                  <span>{{ u.nombreCompleto }}</span>
-                </label>
-              }
-            </div>
-            @if (!loadingData && crewDisponibles.length === 0) {
-              <small class="hint">No hay crew disponible.</small>
-            }
-          </div>
-
-          <!-- Select de Vehículos Disponibles -->
-          <div class="form-field">
-            <label for="idCamion">Vehículo / Camión <span class="req">*</span></label>
-            <select
-              id="idCamion"
-              name="idCamion"
-              [(ngModel)]="form.idCamion"
-              required
-              [disabled]="saving || loadingData"
-            >
-              <option value="" disabled selected>
-                {{ loadingData ? 'Cargando vehículos...' : 'Seleccione un vehículo' }}
+        <!-- Supervisor -->
+        <div class="form-field">
+          <label for="supervisorUid">Supervisor <span class="req">*</span></label>
+          <select
+            id="supervisorUid"
+            name="supervisorUid"
+            [(ngModel)]="form.supervisorUid"
+            required
+            [disabled]="saving || loadingData"
+          >
+            <option value="" disabled>Seleccione un supervisor</option>
+            @for (u of supervisoresDisponibles; track u.uid) {
+              <option [value]="u.uid" [disabled]="u.asignado">
+                {{ u.nombreCompleto }} {{ u.asignado ? '(Ya asignado)' : '' }}
               </option>
-              @for (c of camionesDisponibles; track c.idKey) {
-                <option [value]="c.idKey">
-                  {{ c.idKey }} — {{ c.placa || 'Sin placa' }} ({{ c.tipo || 'N/A' }})
-                </option>
-              }
-            </select>
-            @if (!loadingData && camionesDisponibles.length === 0) {
-              <small class="hint">No hay vehículos disponibles fuera de taller.</small>
+            }
+          </select>
+        </div>
+
+        <!-- Conductor -->
+        <div class="form-field">
+          <label for="conductorUid">Conductor</label>
+          <select
+            id="conductorUid"
+            name="conductorUid"
+            [(ngModel)]="form.conductorUid"
+            [disabled]="saving || loadingData"
+          >
+            <option value="">Sin conductor</option>
+            @for (u of conductoresDisponibles; track u.uid) {
+              <option [value]="u.uid" [disabled]="u.asignado">
+                {{ u.nombreCompleto }} {{ u.asignado ? '(Ya asignado)' : '' }}
+              </option>
+            }
+          </select>
+        </div>
+
+        <!-- Personal de Crew -->
+        <div class="form-field">
+          <label>Crew (máximo 4)</label>
+          <div class="crew-options">
+            @for (u of crewDisponibles; track u.uid) {
+              <label class="crew-option" [class.is-disabled]="u.asignado">
+                <input
+                  type="checkbox"
+                  [checked]="form.crewUids.includes(u.uid)"
+                  [disabled]="saving || loadingData || u.asignado || (!form.crewUids.includes(u.uid) && form.crewUids.length >= 4)"
+                  (change)="toggleCrew(u.uid, $any($event.target).checked)"
+                />
+                <span>{{ u.nombreCompleto }} {{ u.asignado ? '(Ya asignado)' : '' }}</span>
+              </label>
             }
           </div>
-
-          @if (errorMsg) {
-            <div class="error-msg">
-              <i class="pi pi-exclamation-triangle"></i>
-              {{ errorMsg }}
-            </div>
+          @if (!loadingData && crewDisponibles.length === 0) {
+            <small class="hint">No hay crew disponible.</small>
           }
+        </div>
 
-          <footer class="modal-footer">
-            <button type="button" class="btn-cancel" (click)="cerrarModal()" [disabled]="saving">
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              class="btn-submit"
-              [disabled]="saving || loadingData || !form.supervisorUid || !form.idCamion || form.crewUids.length > 4"
-            >
-              @if (saving) {
-                <i class="pi pi-spin pi-spinner"></i>
-                Guardando...
-              } @else {
-                <i class="pi pi-check"></i>
-                Guardar grupo
-              }
-            </button>
-          </footer>
-        </form>
-      </div>
+        <!-- Vehículo / Camión -->
+        <div class="form-field">
+          <label for="idCamion">Vehículo / Camión <span class="req">*</span></label>
+          <select
+            id="idCamion"
+            name="idCamion"
+            [(ngModel)]="form.idCamion"
+            required
+            [disabled]="saving || loadingData"
+          >
+            <option value="" disabled selected>
+              {{ loadingData ? 'Cargando vehículos...' : 'Seleccione un vehículo' }}
+            </option>
+            @for (c of camionesDisponibles; track c.idKey) {
+              <option [value]="c.idKey" [disabled]="c.asignado">
+                {{ c.idKey }} — {{ c.placa || 'Sin placa' }} ({{ c.tipo || 'N/A' }}) {{ c.asignado ? '(Ya asignado)' : '' }}
+              </option>
+            }
+          </select>
+          @if (!loadingData && camionesDisponibles.length === 0) {
+            <small class="hint">No hay vehículos disponibles fuera de taller.</small>
+          }
+        </div>
+
+        @if (errorMsg) {
+          <div class="error-msg">
+            <i class="pi pi-exclamation-triangle"></i>
+            {{ errorMsg }}
+          </div>
+        }
+
+        <footer class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="cerrarModal()" [disabled]="saving">
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="btn-submit"
+            [disabled]="saving || loadingData || !form.supervisorUid || !form.idCamion || form.crewUids.length > 4"
+          >
+            @if (saving) {
+              <i class="pi pi-spin pi-spinner"></i>
+              Guardando...
+            } @else {
+              <i class="pi pi-check"></i>
+              Guardar grupo
+            }
+          </button>
+        </footer>
+      </form>
     </div>
-  }
+  </div>
+}

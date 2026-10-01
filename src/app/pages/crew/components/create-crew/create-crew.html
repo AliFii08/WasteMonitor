@@ -26,14 +26,11 @@
               {{ loadingData ? 'Cargando supervisores...' : 'Seleccione un supervisor' }}
             </option>
             @for (u of supervisoresDisponibles; track u.uid) {
-              <option [value]="u.uid">
-                {{ u.nombreCompleto }}
+              <option [value]="u.uid" [disabled]="u.asignado">
+                {{ u.nombreCompleto }} {{ u.asignado ? '(Ya asignado)' : '' }}
               </option>
             }
           </select>
-          @if (!loadingData && supervisoresDisponibles.length === 0) {
-            <small class="hint">No hay supervisores disponibles sin asignación.</small>
-          }
         </div>
 
         <!-- Conductor -->
@@ -47,14 +44,11 @@
           >
             <option value="">Sin conductor asignado</option>
             @for (u of conductoresDisponibles; track u.uid) {
-              <option [value]="u.uid">
-                {{ u.nombreCompleto }}
+              <option [value]="u.uid" [disabled]="u.asignado">
+                {{ u.nombreCompleto }} {{ u.asignado ? '(Ya asignado)' : '' }}
               </option>
             }
           </select>
-          @if (!loadingData && conductoresDisponibles.length === 0) {
-            <small class="hint">No hay conductores disponibles sin asignación.</small>
-          }
         </div>
 
         <!-- Integrantes de Crew -->
@@ -62,20 +56,17 @@
           <label>Crew (máximo 4)</label>
           <div class="crew-options">
             @for (u of crewDisponibles; track u.uid) {
-              <label class="crew-option">
+              <label class="crew-option" [class.is-disabled]="u.asignado">
                 <input
                   type="checkbox"
                   [checked]="form.crewUids.includes(u.uid)"
-                  [disabled]="saving || loadingData || (!form.crewUids.includes(u.uid) && form.crewUids.length >= 4)"
+                  [disabled]="saving || loadingData || u.asignado || (!form.crewUids.includes(u.uid) && form.crewUids.length >= 4)"
                   (change)="toggleCrew(u.uid, $any($event.target).checked)"
                 />
-                <span>{{ u.nombreCompleto }}</span>
+                <span>{{ u.nombreCompleto }} {{ u.asignado ? '(Ya asignado)' : '' }}</span>
               </label>
             }
           </div>
-          @if (!loadingData && crewDisponibles.length === 0) {
-            <small class="hint">No hay personal de crew disponible.</small>
-          }
         </div>
 
         <!-- Vehículo -->
@@ -92,14 +83,11 @@
               {{ loadingData ? 'Cargando vehículos...' : 'Seleccione un vehículo' }}
             </option>
             @for (c of camionesDisponibles; track c.idKey) {
-              <option [value]="c.idKey">
-                {{ c.idKey }} — {{ c.placa || 'Sin placa' }} ({{ c.tipo || 'N/A' }})
+              <option [value]="c.idKey" [disabled]="c.asignado">
+                {{ c.idKey }} — {{ c.placa || 'Sin placa' }} ({{ c.tipo || 'N/A' }}) {{ c.asignado ? '(Ya asignado)' : '' }}
               </option>
             }
           </select>
-          @if (!loadingData && camionesDisponibles.length === 0) {
-            <small class="hint">No hay vehículos disponibles en la flota.</small>
-          }
         </div>
 
         @if (errorMsg) {

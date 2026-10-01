@@ -8,12 +8,14 @@ export interface UsuarioOption {
   nombreCompleto: string;
   email: string;
   rol: 'supervisor' | 'conductor' | 'crew';
+  asignado: boolean; // Indica si ya pertenece a otro equipo
 }
 
 export interface CamionOption {
   idKey: string;
   placa?: string;
   tipo?: string;
+  asignado: boolean; // Indica si el camión ya tiene tripulación
 }
 
 @Component({
@@ -60,40 +62,75 @@ export class CreateCrew implements OnChanges {
     this.cdr.detectChanges();
 
     try {
-      // 1. Obtener usuarios mediante FETCH
-      const resUsers = await fetch(`${this.databaseUrl}/usuarios.json`);
-      if (!resUsers.ok) throw new Error('No se pudo obtener la lista de usuarios.');
-      const usersData = await resUsers.json();
+      // Peticiones en paralelo
+      const [resUsers, resCamiones, resGrupos] = await Promise.all([
+        fetch(`${this.databaseUrl}/usuarios.json`),
+        fetch(`${this.databaseUrl}/camiones.json`),
+        fetch(`${this.databaseUrl}/grupoTripulacion.json`),
+      ]);
 
+      if (!resUsers.ok || !resCamiones.ok) throw new Error('Error al consultar la base de datos.');
+
+      const usersData = await resUsers.json();
+      const camionesData = await resCamiones.json();
+      const gruposData = resGrupos.ok ? await resGrupos.json() : {};
+
+      // 1. Recolectar IDs ocupados desde grupoTripulacion
+      const usuariosOcupados = new Set<string>();
+      const camionesOcupados = new Set<string>();
+
+      if (gruposData) {
+        Object.entries<any>(gruposData).forEach(([key, grupo]) => {
+          if (!grupo || typeof grupo !== 'object') return;
+
+          // Omitir registros de prueba genéricos
+          if (grupo.camion === 'idcamion' || grupo.supervisor === 'idusuario') return;
+
+          if (grupo.supervisor) usuariosOcupados.add(grupo.supervisor);
+          if (grupo.conductor) usuariosOcupados.add(grupo.conductor);
+          if (grupo.camion) camionesOcupados.add(grupo.camion);
+
+          if (grupo.crew && typeof grupo.crew === 'object') {
+            Object.values<string>(grupo.crew).forEach((uid) => {
+              if (uid) usuariosOcupados.add(uid);
+            });
+          }
+        });
+      }
+
+      // 2. Procesar Usuarios y marcar si están asignados
       const supervisoresTemp: UsuarioOption[] = [];
       const conductoresTemp: UsuarioOption[] = [];
       const crewTemp: UsuarioOption[] = [];
 
       if (usersData) {
         Object.entries<any>(usersData).forEach(([uid, user]) => {
-          // Omitir registros incompletos o de prueba sin identificador de nombre
           if (!user || (!user.name && !user.nombreUsuario)) return;
 
           const nombre = `${user.name || user.nombreUsuario || ''} ${user.lastName || ''}`.trim();
           const email = user.email || user.correo || 'Sin email';
           const userRol = user.rol;
+          const estaAsignado = usuariosOcupados.has(uid);
 
-          // Clasificar según el rol asignado
+          const item: UsuarioOption = {
+            uid,
+            nombreCompleto: nombre,
+            email,
+            rol: userRol,
+            asignado: estaAsignado,
+          };
+
           if (userRol === 'supervisor') {
-            supervisoresTemp.push({ uid, nombreCompleto: nombre, email, rol: 'supervisor' });
+            supervisoresTemp.push(item);
           } else if (userRol === 'conductor') {
-            conductoresTemp.push({ uid, nombreCompleto: nombre, email, rol: 'conductor' });
+            conductoresTemp.push(item);
           } else if (userRol === 'crew') {
-            crewTemp.push({ uid, nombreCompleto: nombre, email, rol: 'crew' });
+            crewTemp.push(item);
           }
         });
       }
 
-      // 2. Obtener camiones disponibles
-      const resCamiones = await fetch(`${this.databaseUrl}/camiones.json`);
-      if (!resCamiones.ok) throw new Error('No se pudo obtener la lista de camiones.');
-      const camionesData = await resCamiones.json();
-
+      // 3. Procesar Camiones y marcar si están asignados
       const camionesTemp: CamionOption[] = [];
       if (camionesData) {
         Object.entries<any>(camionesData).forEach(([idKey, camion]) => {
@@ -102,6 +139,7 @@ export class CreateCrew implements OnChanges {
               idKey,
               placa: camion.placa,
               tipo: camion.tipo,
+              asignado: camionesOcupados.has(idKey),
             });
           }
         });

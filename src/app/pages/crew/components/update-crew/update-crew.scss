@@ -237,3 +237,30 @@
       accent-color: #68a357;
     }
   }
+
+  .crew-option {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: #123f32;
+    font-size: 0.85rem;
+    cursor: pointer;
+  
+    input {
+      accent-color: #68a357;
+    }
+  
+    &.is-disabled {
+      color: #94a3b8;
+      cursor: not-allowed;
+  
+      input {
+        cursor: not-allowed;
+      }
+    }
+  }
+  
+  option:disabled {
+    color: #94a3b8;
+    background-color: #f1f5f2;
+  }

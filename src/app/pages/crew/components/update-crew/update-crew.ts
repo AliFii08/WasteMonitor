@@ -19,12 +19,14 @@ interface UsuarioGrupoOption {
   email: string;
   rol: 'supervisor' | 'conductor' | 'crew';
   camionId?: string;
+  asignado: boolean; // Indica si pertenece a OTRO equipo
 }
 
 export interface CamionOption {
   idKey: string;
   placa?: string;
   tipo?: string;
+  asignado: boolean; // Indica si pertenece a OTRO equipo
 }
 
 @Component({
@@ -71,65 +73,94 @@ export class UpdateCrew implements OnChanges {
     if (!this.driverData) return;
     this.loadingData = true;
     this.errorMsg = '';
-    const camionActual = this.driverData.camionAsignado !== 'Sin asignar' ? this.driverData.camionAsignado : '';
-    this.form = { supervisorUid: '', conductorUid: '', crewUids: [], idCamion: camionActual };
-    this.cdr.detectChanges();
+
+    const grupoKey = this.driverData.uid;
 
     try {
-      const [usersSnap, camionesSnap] = await Promise.all([
+      const [usersSnap, camionesSnap, gruposSnap] = await Promise.all([
         get(ref(this.db, 'usuarios')),
         get(ref(this.db, 'camiones')),
+        get(ref(this.db, 'grupoTripulacion')),
       ]);
 
-      const usuarios: UsuarioGrupoOption[] = [];
       const usersData = usersSnap.exists() ? usersSnap.val() : {};
+      const camionesData = camionesSnap.exists() ? camionesSnap.val() : {};
+      const gruposData = gruposSnap.exists() ? gruposSnap.val() : {};
+
+      const grupoActual = gruposData[grupoKey] || {};
+
+      // 1. Identificar UIDs de usuarios y Camión que pertenecen a OTROS equipos
+      const usuariosOcupadosEnOtros = new Set<string>();
+      const camionesOcupadosEnOtros = new Set<string>();
+
+      Object.entries<any>(gruposData).forEach(([k, g]) => {
+        if (!g || typeof g !== 'object' || k === grupoKey) return;
+        if (g.camion === 'idcamion' || g.supervisor === 'idusuario') return;
+
+        if (g.supervisor) usuariosOcupadosEnOtros.add(g.supervisor);
+        if (g.conductor) usuariosOcupadosEnOtros.add(g.conductor);
+        if (g.camion) camionesOcupadosEnOtros.add(g.camion);
+
+        if (g.crew && typeof g.crew === 'object') {
+          Object.values<string>(g.crew).forEach((uid) => {
+            if (uid) usuariosOcupadosEnOtros.add(uid);
+          });
+        }
+      });
+
+      // 2. Cargar los seleccionados actualmente en este grupo
+      this.form.supervisorUid = grupoActual.supervisor || '';
+      this.form.conductorUid = grupoActual.conductor || '';
+      this.form.idCamion = grupoActual.camion || '';
+      this.form.crewUids = grupoActual.crew ? Object.values<string>(grupoActual.crew) : [];
+
+      // Guardar lista previa para desasignar si sufren cambios
+      this.grupoActualUids = [
+        this.form.supervisorUid,
+        this.form.conductorUid,
+        ...this.form.crewUids,
+      ].filter(Boolean);
+
+      // 3. Procesar Usuarios con la bandera de asignado a OTRO equipo
+      const usuariosTemp: UsuarioGrupoOption[] = [];
       Object.entries<any>(usersData).forEach(([uid, user]) => {
-        if (!user || !['supervisor', 'conductor', 'crew'].includes(user.rol)) return;
-        if (user.camionId && user.camionId !== camionActual) return;
-        usuarios.push({
+        if (!user || (!user.name && !user.nombreUsuario)) return;
+
+        const rol = user.rol;
+        if (!['supervisor', 'conductor', 'crew'].includes(rol)) return;
+
+        const estaAsignadoEnOtro = usuariosOcupadosEnOtros.has(uid);
+
+        usuariosTemp.push({
           uid,
-          nombreCompleto: `${user.name || ''} ${user.lastName || ''}`.trim() || 'Sin Nombre',
-          email: user.email || 'Sin email',
-          rol: user.rol,
+          nombreCompleto: `${user.name || user.nombreUsuario || ''} ${user.lastName || ''}`.trim() || 'Sin Nombre',
+          email: user.email || user.correo || 'Sin email',
+          rol,
           camionId: user.camionId,
+          asignado: estaAsignadoEnOtro,
         });
       });
 
-      this.grupoActualUids = Object.entries<any>(usersData)
-        .filter(([, user]) => user?.camionId === camionActual)
-        .map(([uid]) => uid);
-      const supervisorActual = usuarios.find((user) => user.rol === 'supervisor' && user.camionId === camionActual);
-      const conductorActual = usuarios.find((user) => user.rol === 'conductor' && user.camionId === camionActual);
-      this.form.supervisorUid = supervisorActual?.uid || '';
-      this.form.conductorUid = conductorActual?.uid || '';
-      this.form.crewUids = usuarios
-        .filter((user) => user.rol === 'crew' && user.camionId === camionActual)
-        .map((user) => user.uid);
-      this.supervisoresDisponibles = usuarios.filter((user) => user.rol === 'supervisor');
-      this.conductoresDisponibles = usuarios.filter((user) => user.rol === 'conductor');
-      this.crewDisponibles = usuarios.filter((user) => user.rol === 'crew');
+      this.supervisoresDisponibles = usuariosTemp.filter((u) => u.rol === 'supervisor');
+      this.conductoresDisponibles = usuariosTemp.filter((u) => u.rol === 'conductor');
+      this.crewDisponibles = usuariosTemp.filter((u) => u.rol === 'crew');
 
+      // 4. Procesar Camiones con la bandera de asignado a OTRO equipo
       const tempCamiones: CamionOption[] = [];
-
-      if (camionesSnap.exists()) {
-        const data = camionesSnap.val();
-        Object.entries<any>(data).forEach(([idKey, c]) => {
-          const esElMismoAsignado = idKey === camionActual;
-          const estaDisponible = c && c.activo !== false && !c.enTaller && c.estado === 'disponible';
-
-          if (estaDisponible || esElMismoAsignado) {
-            tempCamiones.push({
-              idKey,
-              placa: c.placa,
-              tipo: c.tipo,
-            });
-          }
-        });
-      }
+      Object.entries<any>(camionesData).forEach(([idKey, c]) => {
+        if (c && c.activo !== false && !c.enTaller) {
+          tempCamiones.push({
+            idKey,
+            placa: c.placa,
+            tipo: c.tipo,
+            asignado: camionesOcupadosEnOtros.has(idKey),
+          });
+        }
+      });
 
       this.camionesDisponibles = tempCamiones;
     } catch (err: any) {
-      this.errorMsg = 'Error al cargar los vehículos: ' + (err.message || err);
+      this.errorMsg = 'Error al cargar los datos del grupo: ' + (err.message || err);
     } finally {
       this.loadingData = false;
       this.cdr.detectChanges();
@@ -138,7 +169,7 @@ export class UpdateCrew implements OnChanges {
 
   async onSubmit(): Promise<void> {
     if (!this.driverData?.uid || !this.form.supervisorUid || !this.form.idCamion || this.form.crewUids.length > 4) {
-      this.errorMsg = 'Debes asignar un supervisor y como máximo 4 personas de crew.';
+      this.errorMsg = 'Debes asignar un supervisor, un vehículo y como máximo 4 personas de crew.';
       return;
     }
 
@@ -146,20 +177,42 @@ export class UpdateCrew implements OnChanges {
     this.errorMsg = '';
 
     try {
-      const selectedRoles = new Map<string, string>([[this.form.supervisorUid, 'supervisor']]);
-      if (this.form.conductorUid) selectedRoles.set(this.form.conductorUid, 'conductor');
-      this.form.crewUids.forEach((uid) => selectedRoles.set(uid, 'crew'));
+      const grupoKey = this.driverData.uid;
 
-      const updates: Record<string, string | null> = {};
+      // Armar el mapa del crew para grupoTripulacion
+      const crewMap: Record<string, string> = {};
+      this.form.crewUids.forEach((uid, index) => {
+        crewMap[`crew${index + 1}`] = uid;
+      });
+
+      const updates: Record<string, any> = {};
+
+      // 1. Actualizar el nodo del grupo de tripulación
+      updates[`grupoTripulacion/${grupoKey}`] = {
+        camion: this.form.idCamion,
+        supervisor: this.form.supervisorUid,
+        conductor: this.form.conductorUid || '',
+        crew: crewMap,
+      };
+
+      // 2. Limpiar camionId a los usuarios que salieron del grupo
+      const nuevosIntegrantes = new Set([
+        this.form.supervisorUid,
+        this.form.conductorUid,
+        ...this.form.crewUids,
+      ]);
+
       this.grupoActualUids.forEach((uid) => {
-        if (!selectedRoles.has(uid)) {
-          updates[`usuarios/${uid}/rol`] = 'user';
+        if (!nuevosIntegrantes.has(uid)) {
           updates[`usuarios/${uid}/camionId`] = null;
         }
       });
-      selectedRoles.forEach((rol, uid) => {
-        updates[`usuarios/${uid}/rol`] = rol;
-        updates[`usuarios/${uid}/camionId`] = this.form.idCamion;
+
+      // 3. Asignar camionId a los nuevos/mantenidos miembros
+      nuevosIntegrantes.forEach((uid) => {
+        if (uid) {
+          updates[`usuarios/${uid}/camionId`] = this.form.idCamion;
+        }
       });
 
       await update(ref(this.db), updates);
@@ -167,7 +220,7 @@ export class UpdateCrew implements OnChanges {
       this.updated.emit();
       this.cerrarModal();
     } catch (err: any) {
-      this.errorMsg = 'Error al actualizar el conductor: ' + (err.message || err);
+      this.errorMsg = 'Error al actualizar el grupo: ' + (err.message || err);
     } finally {
       this.saving = false;
       this.cdr.detectChanges();
@@ -184,7 +237,6 @@ export class UpdateCrew implements OnChanges {
 
     this.form.crewUids = this.form.crewUids.filter((crewUid) => crewUid !== uid);
   }
-
 
   cerrarModal(): void {
     this.visible = false;
