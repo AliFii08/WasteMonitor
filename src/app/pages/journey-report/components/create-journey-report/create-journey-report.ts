@@ -2,6 +2,8 @@ import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DatosViajeInput, InformeService } from '../../../../@core/services/informe.service';
+import { SessionTimeoutService } from '../../../../@core/services/session-timeout.service';
+import { AuthService } from '../../../../@core/services/auth.service';
 
 
 @Component({
@@ -13,6 +15,8 @@ import { DatosViajeInput, InformeService } from '../../../../@core/services/info
 })
 export class CreateJourneyReport {
   private informeService = inject(InformeService);
+  private sessionTimeoutService = inject(SessionTimeoutService);
+  private authService = inject(AuthService);
 
   @Input() visible: boolean = false;
   @Input() numeroViaje: number = 1;
@@ -45,6 +49,9 @@ export class CreateJourneyReport {
     this.informeService.crearInforme(this.formData, this.numeroViaje).subscribe({
       next: () => {
         this.loading = false;
+        if (this.authService.hasRole(['supervisor'])) {
+          this.sessionTimeoutService.setJourneyActive(true);
+        }
         this.informeCreado.emit();
         this.closeModal();
       },

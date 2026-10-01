@@ -146,3 +146,30 @@
     </section>
   </div>
 }
+
+@if (sessionTimeoutService.showSessionWarning()) {
+  <div class="session-warning-backdrop" role="presentation">
+    <section
+      class="session-warning-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="session-warning-title"
+      aria-describedby="session-warning-description">
+      <div class="session-warning-icon" aria-hidden="true">
+        <i class="pi pi-clock"></i>
+      </div>
+      <h2 id="session-warning-title">Tu sesión está por expirar</h2>
+      <p id="session-warning-description">
+        Se cerrará automáticamente en {{ sessionTimeoutService.remainingSeconds() }} segundos por inactividad.
+      </p>
+      <div class="session-warning-actions">
+        <button type="button" class="session-warning-logout" (click)="logoutFromSessionWarning()">
+          Cerrar sesión
+        </button>
+        <button type="button" class="session-warning-extend" (click)="extendSession()">
+          Extender sesión
+        </button>
+      </div>
+    </section>
+  </div>
+}

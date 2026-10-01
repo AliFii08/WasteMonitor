@@ -151,7 +151,7 @@ button {
 .logout-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 1300;
+  z-index: 1500;
   display: grid;
   place-items: center;
   box-sizing: border-box;
@@ -236,9 +236,79 @@ button {
 
 .logout-backdrop.is-closing { animation: logoutFadeOut 180ms ease-in both; }
 
+.session-warning-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  display: grid;
+  place-items: center;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  background: rgba(3, 30, 22, 0.48);
+}
+
+.session-warning-modal {
+  width: min(100%, 390px);
+  box-sizing: border-box;
+  padding: 28px;
+  color: #283127;
+  background: #fff;
+  border-top: 4px solid #d97706;
+  border-radius: 8px;
+  box-shadow: 0 24px 64px rgba(0, 35, 26, 0.3);
+  font-family: 'Raleway', sans-serif;
+  text-align: center;
+
+  .session-warning-icon {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 16px;
+    color: #92400e;
+    background: #fef3c7;
+    border-radius: 50%;
+
+    .pi { font-size: 1.35rem; }
+  }
+
+  h2 { margin: 0; font-size: 19px; font-weight: 800; }
+
+  p {
+    margin: 8px 0 24px;
+    color: #667168;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+}
+
+.session-warning-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+
+  button {
+    min-width: 132px;
+    min-height: 40px;
+    padding: 9px 16px;
+    border: 0;
+    border-radius: 6px;
+    color: #fff;
+    font: 700 13px 'Raleway', sans-serif;
+    cursor: pointer;
+
+    &:focus-visible { outline: 3px solid #a8c9b2; outline-offset: 2px; }
+  }
+
+  .session-warning-logout { background: #b42318; &:hover { background: #921c14; } }
+  .session-warning-extend { background: #06523f; &:hover { background: #003628; } }
+}
+
 @media (max-width: 420px) {
-  .logout-modal { padding: 24px 18px; }
-  .logout-actions { gap: 8px; button { flex: 1; min-width: 0; } }
+  .logout-modal,
+  .session-warning-modal { padding: 24px 18px; }
+  .logout-actions,
+  .session-warning-actions { gap: 8px; button { flex: 1; min-width: 0; } }
 }
 
 @media (prefers-reduced-motion: reduce) {

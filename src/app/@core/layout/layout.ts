@@ -21,7 +21,7 @@ import { GeneralNotificationComponent } from '../../pages/general-notification/g
 export class Layout {
   private auth = inject(Auth);
   private router = inject(Router);
-  private sessionTimeoutService = inject(SessionTimeoutService);
+  public sessionTimeoutService = inject(SessionTimeoutService);
   public authService = inject(AuthService); // Public so it can be accessed in layout.html
   public notificationService = inject(NotificationService);
 
@@ -85,6 +85,14 @@ export class Layout {
 
   confirmLogout(): void {
     this.closeLogoutConfirmation(true);
+  }
+
+  extendSession(): void {
+    this.sessionTimeoutService.extendSession();
+  }
+
+  logoutFromSessionWarning(): void {
+    void this.logout();
   }
 
   private closeLogoutConfirmation(logoutAfterClose: boolean): void {

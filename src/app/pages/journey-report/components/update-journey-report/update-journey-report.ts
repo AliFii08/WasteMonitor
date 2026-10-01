@@ -14,6 +14,7 @@ import {
   update,
 } from '@angular/fire/database';
 import { AuthService } from '../../../../@core/services/auth.service';
+import { SessionTimeoutService } from '../../../../@core/services/session-timeout.service';
 
 import { InformeService } from '../../../../@core/services/informe.service';
 import { Auth } from '@angular/fire/auth';
@@ -40,6 +41,7 @@ export class UpdateJourneyReport implements OnChanges {
   @Output() visibleChange = new EventEmitter<boolean>();
   private cdr = inject(ChangeDetectorRef);
   private authService = inject(AuthService);
+  private sessionTimeoutService = inject(SessionTimeoutService);
 
   activeTab: string = 'general';
   viajesList: ViajeItem[] = [];
@@ -312,6 +314,10 @@ export class UpdateJourneyReport implements OnChanges {
       this.reporte.estado = 'firmado';
       this.reporte.firmadoEl = payloadActualizacion.firmadoEl;
       this.reporte.firmadoPor = payloadActualizacion.firmadoPor;
+
+      if (this.authService.hasRole(['supervisor'])) {
+        this.sessionTimeoutService.setJourneyActive(false);
+      }
 
       this.closeModal();
     } catch (error) {
