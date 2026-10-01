@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Database, get, ref } from '@angular/fire/database';
 import { NotificationService } from '../../@core/services/notification.service';
@@ -44,6 +44,7 @@ interface AudienceRoute {
 export class GeneralNotificationComponent implements OnInit {
   private database = inject(Database);
   private notificationService = inject(NotificationService);
+  private cdr = inject(ChangeDetectorRef);
 
   @Input() visible = false;
   @Output() visibleChange = new EventEmitter<boolean>();
@@ -151,27 +152,34 @@ export class GeneralNotificationComponent implements OnInit {
   }
 
   async send(): Promise<void> {
-    if (!this.canSend) return;
-
-    this.sending = true;
-    this.errorMessage = '';
-    this.successMessage = '';
-
-    try {
-      await this.notificationService.crearNotificacionParaUsuarios(
-        this.title.trim(),
-        this.message.trim(),
-        this.selectedUserIds.filter((uid) => this.candidates.some((person) => person.uid === uid)),
-      );
-      this.successMessage = `Notificación enviada a ${this.selectedCount} destinatario(s).`;
-      this.title = '';
-      this.message = '';
-    } catch {
-      this.errorMessage = 'No se pudo enviar la notificación. Inténtalo de nuevo.';
-    } finally {
-      this.sending = false;
+      if (!this.canSend) return;
+  
+      this.sending = true;
+      this.errorMessage = '';
+      this.successMessage = '';
+      this.cdr.detectChanges(); // Forzar actualización visual a "Enviando..."
+  
+      try {
+        const targetUids = this.selectedUserIds.filter((uid) =>
+          this.candidates.some((person) => person.uid === uid)
+        );
+  
+        await this.notificationService.crearNotificacionParaUsuarios(
+          this.title.trim(),
+          this.message.trim(),
+          targetUids
+        );
+  
+        this.successMessage = `Notificación enviada a ${targetUids.length} destinatario(s).`;
+        this.title = '';
+        this.message = '';
+      } catch (err: any) {
+        this.errorMessage = err.message || 'No se pudo enviar la notificación. Inténtalo de nuevo.';
+      } finally {
+        this.sending = false;
+        this.cdr.detectChanges(); // 2. Forzar actualización visual para quitar "Enviando..."
+      }
     }
-  }
 
   private async loadAudienceData(): Promise<void> {
     try {

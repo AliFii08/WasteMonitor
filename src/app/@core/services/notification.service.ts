@@ -1,33 +1,33 @@
 import { Injectable, inject, NgZone } from '@angular/core';
-import { Database, ref, get, update, push, set, child, onValue } from '@angular/fire/database';
+import { Database, ref, onValue } from '@angular/fire/database';
 import { Auth, user } from '@angular/fire/auth';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { NotificacionItem } from '../interfaces/notification.model';
 import { environment } from '../../../environments/environment';
-
 
 @Injectable({
   providedIn: 'root',
 })
 export class NotificationService {
   private db = inject(Database);
-    private auth = inject(Auth);
-    private ngZone = inject(NgZone);
+  private auth = inject(Auth);
+  private ngZone = inject(NgZone);
 
-    // 🔹 La URL centralizada apuntando al endpoint de notificaciones
-    private readonly API_NOTIFICACIONES = `${environment.firebaseConfig.databaseURL}/notificaciones.json`;
+  // URL base de la Realtime Database
+  private readonly DB_URL = environment.firebaseConfig.databaseURL;
+  private readonly API_NOTIFICACIONES = `${this.DB_URL}/notificaciones.json`;
 
-    private notificationsSubject = new BehaviorSubject<NotificacionItem[]>([]);
-    public notifications$: Observable<NotificacionItem[]> = this.notificationsSubject.asObservable();
+  private notificationsSubject = new BehaviorSubject<NotificacionItem[]>([]);
+  public notifications$: Observable<NotificacionItem[]> = this.notificationsSubject.asObservable();
 
-    private unreadCountSubject = new BehaviorSubject<number>(0);
-    public unreadCount$: Observable<number> = this.unreadCountSubject.asObservable();
+  private unreadCountSubject = new BehaviorSubject<number>(0);
+  public unreadCount$: Observable<number> = this.unreadCountSubject.asObservable();
 
-    private unsubscribeListener: any = null;
+  private unsubscribeListener: any = null;
 
-    constructor() {
-      this.authSubscription();
-    }
+  constructor() {
+    this.authSubscription();
+  }
 
   private authSubscription(): void {
     user(this.auth).subscribe(async (currentUser) => {
@@ -40,18 +40,23 @@ export class NotificationService {
     });
   }
 
+  /**
+   * Obtiene el rol del usuario vía fetch GET
+   */
   private async obtenerRolDesdeBD(uid: string): Promise<string> {
     try {
-      const userSnap = await get(ref(this.db, `usuarios/${uid}/rol`));
-      if (userSnap.exists()) {
-        return (userSnap.val() || 'user').toString().trim().toLowerCase();
-      }
-      return 'user';
+      const res = await fetch(`${this.DB_URL}/usuarios/${uid}/rol.json`);
+      if (!res.ok) return 'user';
+      const role = await res.json();
+      return (role || 'user').toString().trim().toLowerCase();
     } catch {
       return 'user';
     }
   }
 
+  /**
+   * Mantenemos el WebSocket de Firebase para la escucha en tiempo real de la UI
+   */
   private iniciarEscuchaTiempoReal(userRole: string, userId: string): void {
     this.limpiarEscucha();
     const notifRef = ref(this.db, 'notificaciones');
@@ -108,7 +113,6 @@ export class NotificationService {
         lista.sort((a, b) => b.timestamp - a.timestamp);
       }
 
-      // Re-entramos a la Zona de Angular únicamente para actualizar la UI cuando llegan datos
       this.ngZone.run(() => {
         this.notificationsSubject.next(lista);
         this.unreadCountSubject.next(noLeidas);
@@ -125,84 +129,116 @@ export class NotificationService {
     this.unreadCountSubject.next(0);
   }
 
+  /**
+   * Marcar notificación como leída mediante PATCH fetch
+   */
   async marcarComoLeida(idNotificacion: string): Promise<void> {
-    const notifRef = ref(this.db, `notificaciones/${idNotificacion}`);
-    await update(notifRef, { leida: true });
-  }
-
-  async marcarTodasComoLeidas(): Promise<void> {
-    const actuales = this.notificationsSubject.value;
-    const updates: Record<string, any> = {};
-
-    actuales.forEach((n) => {
-      if (!n.leida) {
-        updates[`notificaciones/${n.id}/leida`] = true;
-      }
-    });
-
-    if (Object.keys(updates).length > 0) {
-      await update(ref(this.db), updates);
+    try {
+      await fetch(`${this.DB_URL}/notificaciones/${idNotificacion}.json`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ leida: true }),
+      });
+    } catch (error) {
+      console.error('Error marcando notificación como leída:', error);
     }
   }
 
   /**
-     * Crear notificación vía REST usando la URL del environment
-     */
-    async crearNotificacion(
-      titulo: string,
-      mensaje: string,
-      tipo: string = 'info',
-      rolDestino: string = 'todos'
-    ): Promise<void> {
+   * Marcar todas las notificaciones visibles como leídas mediante PATCH fetch
+   */
+  async marcarTodasComoLeidas(): Promise<void> {
+    const actuales = this.notificationsSubject.value;
+    const updates: Record<string, boolean> = {};
+
+    actuales.forEach((n) => {
+      if (!n.leida) {
+        updates[`${n.id}/leida`] = true;
+      }
+    });
+
+    if (Object.keys(updates).length > 0) {
       try {
-        const body = {
-          titulo,
-          mensaje,
-          tipo,
-          leida: false,
-          timestamp: Date.now(),
-          rolDestino
-        };
-
         await fetch(this.API_NOTIFICACIONES, {
-          method: 'POST',
+          method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
+          body: JSON.stringify(updates),
         });
-
-        console.log('✅ Notificación guardada en Firebase por REST exitosamente');
       } catch (error) {
-        console.error('❌ Error al enviar notificación:', error);
+        console.error('Error marcando todas como leídas:', error);
       }
     }
+  }
 
-    async crearNotificacionParaUsuarios(
-      titulo: string,
-      mensaje: string,
-      userIds: string[],
-    ): Promise<void> {
-      const uniqueUserIds = [...new Set(userIds.filter(Boolean))];
-      if (uniqueUserIds.length === 0) throw new Error('Selecciona al menos un destinatario.');
+  /**
+   * Crear notificación global usando POST con fetch
+   */
+  async crearNotificacion(
+    titulo: string,
+    mensaje: string,
+    tipo: string = 'info',
+    rolDestino: string = 'todos'
+  ): Promise<void> {
+    try {
+      const body = {
+        titulo,
+        mensaje,
+        tipo,
+        leida: false,
+        timestamp: Date.now(),
+        rolDestino,
+      };
 
-      const timestamp = Date.now();
-      const updates: Record<string, unknown> = {};
+      const res = await fetch(this.API_NOTIFICACIONES, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
 
-      for (const userId of uniqueUserIds) {
-        const notificationRef = push(ref(this.db, 'notificaciones'));
-        if (!notificationRef.key) continue;
-
-        updates[`notificaciones/${notificationRef.key}`] = {
-          titulo,
-          mensaje,
-          tipo: 'info',
-          leida: false,
-          timestamp,
-          rolDestino: 'destinatario',
-          uidDestino: userId,
-        };
-      }
-
-      if (Object.keys(updates).length === 0) throw new Error('No se pudieron crear las notificaciones.');
-      await update(ref(this.db), updates);
+      if (!res.ok) throw new Error('Error en el servidor al enviar la notificación.');
+    } catch (error) {
+      console.error('Error al enviar notificación:', error);
+      throw error;
     }
+  }
+
+  /**
+   * Crear notificación enviando una petición POST individual por cada usuario mediante fetch (Promise.all)
+   */
+  async crearNotificacionParaUsuarios(
+    titulo: string,
+    mensaje: string,
+    userIds: string[]
+  ): Promise<void> {
+    const uniqueUserIds = [...new Set(userIds.filter(Boolean))];
+    if (uniqueUserIds.length === 0) throw new Error('Selecciona al menos un destinatario.');
+
+    const timestamp = Date.now();
+
+    // Enviamos las solicitudes POST en paralelo mediante fetch
+    const peticiones = uniqueUserIds.map((userId) => {
+      const body = {
+        titulo,
+        mensaje,
+        tipo: 'info',
+        leida: false,
+        timestamp,
+        rolDestino: 'destinatario',
+        uidDestino: userId,
+      };
+
+      return fetch(this.API_NOTIFICACIONES, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+    });
+
+    const resultados = await Promise.all(peticiones);
+    const algunaFallo = resultados.some((res) => !res.ok);
+
+    if (algunaFallo) {
+      throw new Error('No se pudieron enviar algunas notificaciones.');
+    }
+  }
 }
