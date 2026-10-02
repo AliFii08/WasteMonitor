@@ -90,6 +90,15 @@ export const routes: Routes = [
           import('./pages/journey-report/journey-report').then((m) => m.JourneyReport),
       },
       {
+        path: 'home/admin-journey-report',
+        title: 'Informe Administrativo',
+        canActivate: [roleGuard(['admin'])],
+        loadComponent: () =>
+          import('./pages/admin-journey-report/admin-journey-report').then(
+            (m) => m.AdminJourneyReport,
+          ),
+      },
+      {
         path: 'home/complaints',
         title: 'Quejas',
         loadComponent: () => import('./pages/complaints/complaints').then((m) => m.Complaints),

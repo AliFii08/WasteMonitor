@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DatosViajeInput, InformeService } from '../../../../@core/services/informe.service';
@@ -13,7 +13,7 @@ import { AuthService } from '../../../../@core/services/auth.service';
   templateUrl: './create-journey-report.html',
   styleUrl: './create-journey-report.scss',
 })
-export class CreateJourneyReport {
+export class CreateJourneyReport implements OnChanges {
   private informeService = inject(InformeService);
   private sessionTimeoutService = inject(SessionTimeoutService);
   private authService = inject(AuthService);
@@ -26,6 +26,9 @@ export class CreateJourneyReport {
 
   isClosing = false;
   loading: boolean = false;
+  assignmentLoading: boolean = false;
+  assignedVehicle: string = '';
+  assignedRoute: string = '';
   showErrorModal: boolean = false;
   errorMessage: string = '';
 
@@ -34,6 +37,34 @@ export class CreateJourneyReport {
     direccionLlenado: '',
     observaciones: '',
   };
+
+  get puedeCrear(): boolean {
+    return Boolean(this.assignedVehicle && this.assignedRoute);
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['visible']?.currentValue === true) {
+      this.cargarAsignacion();
+    }
+  }
+
+  private async cargarAsignacion(): Promise<void> {
+    const uid = this.authService.getCurrentUserId();
+    if (!uid) return;
+
+    this.assignmentLoading = true;
+    try {
+      const asignacion = await this.informeService.obtenerAsignacionActual(uid);
+      this.assignedVehicle = asignacion.camion;
+      this.assignedRoute = asignacion.ruta;
+    } catch (error) {
+      console.error('Error al consultar la asignación actual:', error);
+      this.assignedVehicle = '';
+      this.assignedRoute = '';
+    } finally {
+      this.assignmentLoading = false;
+    }
+  }
 
   closeModal(): void {
     if (this.isClosing) return;
@@ -50,6 +81,12 @@ export class CreateJourneyReport {
   }
 
   onSubmit(): void {
+    if (!this.puedeCrear || this.assignmentLoading) {
+      this.errorMessage = 'No puedes iniciar una jornada sin vehículo y ruta asignados.';
+      this.showErrorModal = true;
+      return;
+    }
+
     this.loading = true;
 
     this.informeService.crearInforme(this.formData, this.numeroViaje).subscribe({

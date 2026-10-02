@@ -19,10 +19,12 @@
       </div>
     </div>
 
-    <button type="button" class="create-btn" (click)="mostrarModalCrear = true">
-      <i class="pi pi-plus"></i>
-      Nueva Queja
-    </button>
+    @if (!esAdmin()) {
+      <button type="button" class="create-btn" (click)="mostrarModalCrear = true">
+        <i class="pi pi-plus"></i>
+        Nueva Queja
+      </button>
+    }
   </div>
 
   <!-- TABLA NATIVA CON DISEÑO CLARO MANTENIMIENTO Y TALLER -->
@@ -34,8 +36,8 @@
             <th>Asunto</th>
             <th>Descripción</th>
             <th>Fecha</th>
-            <th>Estado</th>
-            <th class="options-header">Acciones</th>
+            @if (esAdmin()) { <th>Estado</th> }
+            @if (esAdmin()) { <th class="options-header">Acciones</th> }
           </tr>
         </thead>
         <tbody>
@@ -45,23 +47,22 @@
               <td><strong>{{ queja.asunto }}</strong></td>
               <td>{{ queja.descripcion }}</td>
               <td>{{ queja.fecha | date:'dd/MM/yyyy, hh:mm a' }}</td>
-              <td>
-                <span class="status-chip" [class]="queja.estado">
-                  {{ queja.estado.replace('_', ' ') }}
-                </span>
-              </td>
-              <td class="options-header">
-                <div class="option-actions">
-                  <button
-                    type="button"
-                    class="icon-btn"
-                    title="Ver Queja"
-                    (click)="$event.stopPropagation(); verQueja(queja)"
-                  >
-                    <i class="pi pi-eye"></i>
-                  </button>
-
-                  @if (esAdmin()) {
+              @if (esAdmin()) {
+                <td>
+                  <span class="status-chip" [class]="queja.estado">
+                    {{ queja.estado.replace('_', ' ') }}
+                  </span>
+                </td>
+                <td class="options-header">
+                  <div class="option-actions">
+                    <button
+                      type="button"
+                      class="icon-btn"
+                      title="Ver Queja"
+                      (click)="$event.stopPropagation(); verQueja(queja)"
+                    >
+                      <i class="pi pi-eye"></i>
+                    </button>
                     <button
                       type="button"
                       class="icon-btn"
@@ -70,13 +71,13 @@
                     >
                       <i class="pi pi-pencil"></i>
                     </button>
-                  }
-                </div>
-              </td>
+                  </div>
+                </td>
+              }
             </tr>
           } @empty {
             <tr>
-              <td colspan="5" class="empty-row">No hay quejas registradas.</td>
+              <td [attr.colspan]="esAdmin() ? 5 : 3" class="empty-row">No hay quejas registradas.</td>
             </tr>
           }
         </tbody>

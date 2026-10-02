@@ -25,10 +25,12 @@
       }
     </div>
 
-    <button type="button" class="create-btn" (click)="createRegistro()">
-      <i class="pi pi-plus"></i>
-      Ingresar a taller
-    </button>
+    @if (!isAdmin) {
+      <button type="button" class="create-btn" (click)="createRegistro()">
+        <i class="pi pi-plus"></i>
+        Ingresar a taller
+      </button>
+    }
   </div>
 
   <!-- TABLA PRINCIPAL: VEHÍCULOS EN PROCESO / EN ESPERA -->
@@ -56,10 +58,14 @@
         <tbody>
           @for (item of registrosActivosPaginados; track item.idKey || $index) {
             @let i = getRealIndex(item);
-            <tr>
+            <tr class="clickable-row" tabindex="0"
+              (click)="viewRegistro(item)"
+              (keydown.enter)="viewRegistro(item)"
+              (keydown.space)="$event.preventDefault(); viewRegistro(item)">
               <td>
                 <input class="row-select" type="checkbox" [checked]="selectedTallerRows[i]"
                   [attr.aria-label]="'Seleccionar vehículo ' + item.idCamion"
+                  (click)="$event.stopPropagation()"
                   (change)="toggleRow(i, $any($event.target).checked)" />
               </td>
               <td><strong>{{ item.idCamion }}</strong></td>
@@ -80,12 +86,18 @@
               <td>{{ item.creadoEl || 'N/A' }}</td>
               <td>
                 <div class="option-actions">
-                  <button type="button" class="icon-btn" title="Editar" (click)="editRegistro(item)">
-                    <i class="pi pi-pencil"></i>
+                  <button type="button" class="icon-btn" title="Ver registro"
+                    (click)="$event.stopPropagation(); viewRegistro(item)">
+                    <i class="pi pi-eye"></i>
                   </button>
-                  <button type="button" class="icon-btn danger" title="Eliminar" (click)="confirmDeleteSingle(item.idKey)">
-                    <i class="pi pi-trash"></i>
-                  </button>
+                  @if (!isAdmin) {
+                    <button type="button" class="icon-btn" title="Editar" (click)="$event.stopPropagation(); editRegistro(item)">
+                      <i class="pi pi-pencil"></i>
+                    </button>
+                    <button type="button" class="icon-btn danger" title="Eliminar" (click)="$event.stopPropagation(); confirmDeleteSingle(item.idKey)">
+                      <i class="pi pi-trash"></i>
+                    </button>
+                  }
                 </div>
               </td>
             </tr>
@@ -140,10 +152,14 @@
             <tbody>
               @for (item of registrosListosPaginados; track item.idKey || $index) {
                 @let i = getRealIndex(item);
-                <tr>
+                <tr class="clickable-row" tabindex="0"
+                  (click)="viewRegistro(item)"
+                  (keydown.enter)="viewRegistro(item)"
+                  (keydown.space)="$event.preventDefault(); viewRegistro(item)">
                   <td>
                     <input class="row-select" type="checkbox" [checked]="selectedTallerRows[i]"
                       [attr.aria-label]="'Seleccionar vehículo ' + item.idCamion"
+                      (click)="$event.stopPropagation()"
                       (change)="toggleRow(i, $any($event.target).checked)" />
                   </td>
                   <td><strong>{{ item.idCamion }}</strong></td>
@@ -157,12 +173,18 @@
                   <td>{{ item.creadoEl || 'N/A' }}</td>
                   <td>
                     <div class="option-actions">
-                      <button type="button" class="icon-btn" title="Editar" (click)="editRegistro(item)">
-                        <i class="pi pi-pencil"></i>
+                      <button type="button" class="icon-btn" title="Ver registro"
+                        (click)="$event.stopPropagation(); viewRegistro(item)">
+                        <i class="pi pi-eye"></i>
                       </button>
-                      <button type="button" class="icon-btn danger" title="Eliminar" (click)="confirmDeleteSingle(item.idKey)">
-                        <i class="pi pi-trash"></i>
-                      </button>
+                      @if (!isAdmin) {
+                        <button type="button" class="icon-btn" title="Editar" (click)="$event.stopPropagation(); editRegistro(item)">
+                          <i class="pi pi-pencil"></i>
+                        </button>
+                        <button type="button" class="icon-btn danger" title="Eliminar" (click)="$event.stopPropagation(); confirmDeleteSingle(item.idKey)">
+                          <i class="pi pi-trash"></i>
+                        </button>
+                      }
                     </div>
                   </td>
                 </tr>

@@ -36,14 +36,15 @@
       <table class="preview-table">
         <thead>
           <tr>
-            <th>Nombre</th><th>Correo electrónico</th><th>Teléfono</th><th>Rol</th><th class="options-header">Opciones</th>
+            <th>Nombre</th><th>Correo electrónico</th><th>Teléfono</th><th>Rol</th>
+            @if (isAdmin) { <th class="options-header">Opciones</th> }
           </tr>
         </thead>
         <tbody>
           @if (loading) {
-            <tr><td colspan="5" class="empty-row">Cargando usuarios...</td></tr>
+            <tr><td [attr.colspan]="isAdmin ? 5 : 4" class="empty-row">Cargando usuarios...</td></tr>
           } @else if (filteredUsers.length === 0) {
-            <tr><td colspan="5" class="empty-row">
+            <tr><td [attr.colspan]="isAdmin ? 5 : 4" class="empty-row">
               {{ searchTerm ? 'No hay coincidencias.' : 'Aún no hay usuarios registrados.' }}
             </td></tr>
           } @else {
@@ -55,24 +56,24 @@
                 <td><span class="role-chip" [ngClass]="user.rol">
                   {{ user.rol === 'admin' ? 'Administrador' : (user.rol | titlecase) }}
                 </span></td>
-                <td class="options-header">
-                  @if (isAdmin && user.rol !== 'admin' && user.uid !== authService.getCurrentUserId()) {
-                    <div class="option-actions">
-                      <button type="button" class="icon-btn" title="Editar usuario"
-                        aria-label="Editar usuario" (click)="openEditForm(user)">
-                        <i class="pi pi-pencil"></i>
-                      </button>
-                      <button type="button" class="icon-btn" [class.danger]="user.activo !== false"
-                        [title]="user.activo === false ? 'Activar usuario' : 'Desactivar usuario'"
-                        [attr.aria-label]="user.activo === false ? 'Activar usuario' : 'Desactivar usuario'"
-                        [disabled]="saving" (click)="openStatusConfirmation(user)">
-                        <i class="pi" [ngClass]="user.activo === false ? 'pi-check-circle' : 'pi-ban'"></i>
-                      </button>
-                    </div>
-                  } @else {
-                    <span aria-label="Sin opciones">-</span>
-                  }
-                </td>
+                @if (isAdmin) {
+                  <td class="options-header">
+                    @if (user.rol !== 'admin' && user.uid !== authService.getCurrentUserId()) {
+                      <div class="option-actions">
+                        <button type="button" class="icon-btn" title="Editar usuario"
+                          aria-label="Editar usuario" (click)="openEditForm(user)">
+                          <i class="pi pi-pencil"></i>
+                        </button>
+                        <button type="button" class="icon-btn" [class.danger]="user.activo !== false"
+                          [title]="user.activo === false ? 'Activar usuario' : 'Desactivar usuario'"
+                          [attr.aria-label]="user.activo === false ? 'Activar usuario' : 'Desactivar usuario'"
+                          [disabled]="saving" (click)="openStatusConfirmation(user)">
+                          <i class="pi" [ngClass]="user.activo === false ? 'pi-check-circle' : 'pi-ban'"></i>
+                        </button>
+                      </div>
+                    }
+                  </td>
+                }
               </tr>
             }
           }

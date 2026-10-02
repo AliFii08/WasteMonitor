@@ -1,10 +1,13 @@
 @if (visible) {
   <div class="modal-backdrop" [class.is-closing]="isClosing" (click)="close()">
-    <div class="modal-panel" [class.is-closing]="isClosing" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+    <div class="modal-panel" [class.is-closing]="isClosing" [class.read-only]="readOnly" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
       <header class="modal-header">
         <div class="modal-title">
-          <i class="pi pi-pencil"></i>
-          <h2>Editar Registro de Taller</h2>
+          <i [class]="readOnly ? 'pi pi-eye' : 'pi pi-pencil'"></i>
+          <div>
+            <span class="modal-kicker">{{ readOnly ? 'Consulta de mantenimiento' : 'Gestión de taller' }}</span>
+            <h2>{{ readOnly ? 'Detalle del mantenimiento' : 'Editar registro de taller' }}</h2>
+          </div>
         </div>
         <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar">
           <i class="pi pi-times"></i>
@@ -28,6 +31,7 @@
           </div>
         </div>
 
+        @if (!readOnly) {
         <div class="form-field">
           <label for="razon">Razón de ingreso <span class="req">*</span></label>
           <select
@@ -35,7 +39,7 @@
             name="razon"
             [(ngModel)]="form.razon"
             required
-            [disabled]="saving"
+            [disabled]="saving || readOnly"
           >
             <option value="" disabled>Seleccione motivo de ingreso</option>
             @for (r of razonesOpciones; track r) {
@@ -43,8 +47,14 @@
             }
           </select>
         </div>
+        } @else {
+          <div class="read-field">
+            <span>Razón de ingreso</span>
+            <strong>{{ form.razon === 'Otro' ? razonPersonalizada : form.razon }}</strong>
+          </div>
+        }
 
-        @if (form.razon === 'Otro') {
+        @if (!readOnly && form.razon === 'Otro') {
           <div class="form-field">
             <label for="razonPersonalizada">Especifique la razón <span class="req">*</span></label>
             <input
@@ -53,12 +63,13 @@
               type="text"
               [(ngModel)]="razonPersonalizada"
               required
-              [disabled]="saving"
+              [disabled]="saving || readOnly"
               placeholder="Describa el motivo de ingreso..."
             />
           </div>
         }
 
+        @if (!readOnly) {
         <div class="form-field">
           <label for="descripcion">Descripción / Avances</label>
           <textarea
@@ -66,15 +77,22 @@
             name="descripcion"
             rows="3"
             [(ngModel)]="form.descripcion"
-            [disabled]="saving"
+            [disabled]="saving || readOnly"
             placeholder="Detalles sobre el progreso de las reparaciones..."
           ></textarea>
         </div>
+        } @else {
+          <div class="read-field read-description">
+            <span>Descripción / avances</span>
+            <strong>{{ form.descripcion || 'Sin descripción registrada.' }}</strong>
+          </div>
+        }
 
         <div class="form-row">
+          @if (!readOnly) {
           <div class="form-field">
             <label for="estado">Estado del vehículo</label>
-            <select id="estado" name="estado" [(ngModel)]="form.estado" [disabled]="saving">
+            <select id="estado" name="estado" [(ngModel)]="form.estado" [disabled]="saving || readOnly">
               <option value="en_reparacion">En reparación</option>
               <option value="espera_repuesto">Espera repuesto</option>
               <option value="espera_entrega"> Espera a entrega </option>
@@ -84,15 +102,25 @@
 
           <div class="form-field">
             <label for="prioridad">Prioridad</label>
-            <select id="prioridad" name="prioridad" [(ngModel)]="form.prioridad" [disabled]="saving">
+            <select id="prioridad" name="prioridad" [(ngModel)]="form.prioridad" [disabled]="saving || readOnly">
               <option value="baja">Baja</option>
               <option value="media">Media</option>
               <option value="alta">Alta</option>
             </select>
           </div>
+          } @else {
+            <div class="read-field">
+              <span>Estado del vehículo</span>
+              <strong>{{ form.estado | titlecase }}</strong>
+            </div>
+            <div class="read-field">
+              <span>Prioridad</span>
+              <strong>{{ form.prioridad | titlecase }}</strong>
+            </div>
+          }
         </div>
 
-        @if (form.estado === 'listo') {
+        @if (!readOnly && form.estado === 'listo') {
           <div class="status-notice">
             <i class="pi pi-info-circle"></i>
             <span>Al guardar como <strong>Listo</strong>, el vehículo volverá a estar <strong>disponible</strong> en la flota.</span>
@@ -106,6 +134,7 @@
           </div>
         }
 
+        @if (!readOnly) {
         <footer class="modal-footer">
           <button type="button" class="btn-cancel" (click)="close()" [disabled]="saving">
             Cancelar
@@ -128,6 +157,7 @@
             }
           </button>
         </footer>
+        }
       </form>
     </div>
   </div>

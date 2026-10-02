@@ -1,0 +1,20 @@
+@if (visible && informe) {
+  <div class="modal-backdrop" (click)="close()">
+    <section class="modal-panel" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <header class="modal-header"><div><span>INFORME ADMINISTRATIVO</span><h2>Editar informe diario</h2></div><button type="button" class="close-btn" (click)="close()" aria-label="Cerrar"><i class="pi pi-times"></i></button></header>
+      <form class="modal-body" (ngSubmit)="submit()">
+        <label>Fecha de la jornada<input type="date" name="fecha" [(ngModel)]="fecha" (ngModelChange)="cargarResumenFecha()" required /></label>
+        <div class="summary-grid">
+          <label><span>Toneladas del día</span><input type="number" name="toneladasTotales" [ngModel]="resumen.toneladasTotales" readonly step="0.01" /></label>
+          <label><span>Viajes registrados</span><input type="number" name="viajesTotales" [ngModel]="resumen.viajesTotales" readonly /></label>
+          <label><span>Informes cerrados</span><input type="number" name="informesFinalizados" [ngModel]="resumen.informesFinalizados" readonly /></label>
+        </div>
+        @if (loadingResumen) { <p class="summary-status">Actualizando con jornadas finalizadas...</p> }
+        @if (!loadingResumen && resumenCargado && resumen.informesFinalizados === 0) { <p class="summary-status">Aún no hay informes cerrados para esta fecha.</p> }
+        <label>Observaciones<textarea name="observaciones" [(ngModel)]="observaciones" rows="5" placeholder="Observaciones de organización..."></textarea></label>
+        @if (error) { <p class="error">{{ error }}</p> }
+        <footer class="modal-footer"><button type="button" class="btn-cancel" (click)="close()">Cancelar</button><button type="submit" class="btn-submit" [disabled]="saving || loadingResumen || !resumenCargado || !fecha">{{ saving ? 'Guardando...' : 'Guardar cambios' }}</button></footer>
+      </form>
+    </section>
+  </div>
+}

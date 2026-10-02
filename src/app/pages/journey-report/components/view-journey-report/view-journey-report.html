@@ -4,7 +4,10 @@
       <header class="modal-header">
         <div class="modal-title">
           <i class="pi pi-eye"></i>
-          <h2>Detalles del Informe</h2>
+          <div>
+            <span class="modal-kicker">Consulta de jornada</span>
+            <h2>Detalles del informe</h2>
+          </div>
         </div>
         <button type="button" class="close-btn" (click)="closeModal()" aria-label="Cerrar">
           <i class="pi pi-times"></i>
@@ -42,45 +45,85 @@
           <!-- Pestaña: Información General -->
           @if (activeTab === 'general') {
             <div class="tab-content">
-              <div class="detail-group">
-                <label>Usuario</label>
-                <p class="detail-value">{{ reporte.nombreUsuario || reporte.usuario || 'Sin usuario' }}</p>
+              <div class="report-summary">
+                <div class="summary-heading">
+                  <div>
+                    <span class="eyebrow">Resumen operativo</span>
+                    <h3>Jornada de recolección</h3>
+                  </div>
+                  <span [class]="estaFirmado ? 'badge-success' : (reporte.estado === 'finalizado' ? 'badge-info' : 'badge-warning')">
+                    {{ estaFirmado ? 'Firmado' : (reporte.estado === 'finalizado' ? 'Finalizado, pendiente de firma' : 'Pendiente de firma') }}
+                  </span>
+                </div>
+                <div class="summary-grid">
+                  <div>
+                    <span>Fecha de inicio</span>
+                    <strong>{{ fechaCreacion }}</strong>
+                  </div>
+                  <div>
+                    <span>ID del informe</span>
+                    <strong>{{ reporte.id || 'No disponible' }}</strong>
+                  </div>
+                  <div>
+                    <span>Toneladas por viaje</span>
+                    <strong>{{ promedioToneladasPorViaje | number: '1.0-2' }} ton</strong>
+                  </div>
+                  <div>
+                    <span>Total recogido</span>
+                    <strong>{{ totalToneladas }} ton</strong>
+                  </div>
+                </div>
               </div>
 
-              <div class="detail-group">
-                <label>Vehículo / Camión</label>
-                <p class="detail-value">{{ reporte.camionId || reporte.camion || 'Sin vehículo asignado' }}</p>
+              <div class="identity-grid">
+                <div class="identity-item">
+                  <i class="pi pi-user"></i>
+                  <div>
+                    <span>Responsable</span>
+                    <strong>{{ reporte.nombreUsuario || reporte.usuario || 'Sin usuario' }}</strong>
+                  </div>
+                </div>
+                <div class="identity-item">
+                  <i class="pi pi-truck"></i>
+                  <div>
+                    <span>Vehículo / camión</span>
+                    <strong>{{ reporte.camionId || reporte.camion || 'Sin vehículo asignado' }}</strong>
+                  </div>
+                </div>
+                <div class="identity-item">
+                  <i class="pi pi-map-marker"></i>
+                  <div>
+                    <span>Ruta asignada</span>
+                    <strong>{{ reporte.rutaId || reporte.ruta || 'N/A' }}</strong>
+                  </div>
+                </div>
+                <div class="identity-item">
+                  <i class="pi pi-list"></i>
+                  <div>
+                    <span>Viajes registrados</span>
+                    <strong>{{ viajesList.length }}</strong>
+                  </div>
+                </div>
               </div>
 
-              <div class="detail-group">
-                <label>Ruta</label>
-                <p class="detail-value">{{ reporte.rutaId || reporte.ruta || 'N/A' }}</p>
+              <div class="approval-panel">
+                <div class="approval-heading">
+                  <div>
+                    <span class="eyebrow">Validación</span>
+                    <h3>Aprobación del informe</h3>
+                  </div>
+                  <span [class]="estaFirmado ? 'badge-success' : 'badge-warning'">
+                    {{ estaFirmado ? 'Firmado' : 'Pendiente de firma' }}
+                  </span>
+                </div>
+
+                @if (estaFirmado && nombreUsuarioFirma) {
+                  <p class="approval-meta"><i class="pi pi-user-edit"></i> Firmado por {{ nombreUsuarioFirma }}</p>
+                }
+                @if (estaFirmado) {
+                  <p class="approval-meta"><i class="pi pi-calendar"></i> {{ fechaFirma }}</p>
+                }
               </div>
-
-              <div class="detail-group">
-                <label>Total Toneladas Recogidas</label>
-                <p class="detail-value font-bold">{{ totalToneladas }} ton</p>
-              </div>
-
-              <div class="detail-group">
-                <label>Cantidad de Viajes</label>
-                <p class="detail-value">{{ viajesList.length }}</p>
-              </div>
-
-              <div class="detail-group">
-      <label>Aprobación</label>
-      <div class="signature-box">
-        <span [class]="reporte.estado === 'firmado' ? 'badge-success' : 'badge-warning'">
-          {{ reporte.estado === 'firmado' ? 'Firmado' : 'Pendiente de firma' }}
-        </span>
-
-        @if (reporte.estado === 'firmado' && nombreUsuarioFirma) {
-          <small class="signer-name">
-            Por: {{ nombreUsuarioFirma }}
-          </small>
-        }
-      </div>
-    </div>
             </div>
           }
 
@@ -88,21 +131,25 @@
           @for (viaje of viajesList; track viaje.key) {
             @if (activeTab === viaje.key) {
               <div class="tab-content">
-                <div class="detail-group">
-                  <label>Toneladas Recogidas (Viaje {{ viaje.numero }})</label>
-                  <p class="detail-value font-bold">{{ viaje.tonRecogidas }} ton</p>
+                <div class="trip-heading">
+                  <div>
+                    <span class="eyebrow">Registro operativo</span>
+                    <span class="trip-number">Viaje {{ viaje.numero }}</span>
+                  </div>
+                  <div class="trip-weight">
+                    <strong>{{ viaje.tonRecogidas }} ton</strong>
+                    <span>recogidas</span>
+                  </div>
                 </div>
-
-                <div class="detail-group">
-                  <label>Dirección de Llenado</label>
-                  <p class="detail-value">{{ viaje.direccionDelLlenado || 'Sin dirección registrada.' }}</p>
-                </div>
-
-                <div class="detail-group">
-                  <label>Descripción / Observaciones del Viaje</label>
-                  <p class="detail-value text-box">
-                    {{ viaje.descripcion || 'Sin descripción para este viaje.' }}
-                  </p>
+                <div class="trip-details-grid">
+                  <div class="trip-detail">
+                    <span><i class="pi pi-map-marker"></i> Dirección de llenado</span>
+                    <strong>{{ viaje.direccionDelLlenado || 'Sin dirección registrada.' }}</strong>
+                  </div>
+                  <div class="trip-detail observation-detail">
+                    <span><i class="pi pi-comment"></i> Observaciones</span>
+                    <strong>{{ viaje.descripcion || 'Sin observaciones registradas.' }}</strong>
+                  </div>
                 </div>
               </div>
             }

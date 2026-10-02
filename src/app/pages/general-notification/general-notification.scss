@@ -64,8 +64,10 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-height: 0;
   overflow-y: auto;
-  padding: 18px 22px 20px;
+  padding: 18px 22px 0;
+  background: #fff;
 }
 
 .field-label {
@@ -112,7 +114,18 @@
 .feedback { margin: 0; font-size: 12px; }
 .feedback.error { color: #a42118; }
 .feedback.success { color: #216443; }
-.broadcast-footer { display: flex; justify-content: flex-end; gap: 8px; padding-top: 4px; }
+.broadcast-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: auto;
+  padding: 16px 0;
+  border-top: 1px solid #e2e9e2;
+  background: #fff;
+}
 .broadcast-footer button { min-height: 36px; padding: 8px 13px; border: 0; border-radius: 6px; font: 700 12px 'Raleway', sans-serif; cursor: pointer; }
 .cancel-action { color: #485246; background: #eef1eb; }
 .cancel-action:hover { background: #e1e6dc; }
@@ -127,7 +140,7 @@
 @media (max-width: 540px) {
   .broadcast-backdrop { padding: 12px; }
   .broadcast-modal { max-height: calc(100dvh - 24px); }
-  .broadcast-content { padding: 14px; }
+  .broadcast-content { padding: 14px 14px 0; }
   .recipient-option { grid-template-columns: 16px minmax(0, 1fr); }
   .recipient-option small { grid-column: 2; text-align: left; }
 }

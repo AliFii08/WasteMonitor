@@ -27,6 +27,7 @@ export class UpdateVehicleTaller {
   @Output() updated = new EventEmitter<void>();
 
   visible = false;
+  readOnly = false;
   isClosing = false;
   saving = false;
   errorMsg = '';
@@ -48,6 +49,16 @@ export class UpdateVehicleTaller {
   } = this.emptyForm();
 
   open(registro: TallerRegistro): void {
+    this.readOnly = false;
+    this.openWithMode(registro);
+  }
+
+  openReadOnly(registro: TallerRegistro): void {
+    this.readOnly = true;
+    this.openWithMode(registro);
+  }
+
+  private openWithMode(registro: TallerRegistro): void {
     this.registroOriginal = { ...registro };
     this.errorMsg = '';
     this.visible = true;
@@ -78,6 +89,7 @@ export class UpdateVehicleTaller {
     setTimeout(() => {
       this.isClosing = false;
       this.visible = false;
+      this.readOnly = false;
       this.errorMsg = '';
       this.saving = false;
     }, 180);

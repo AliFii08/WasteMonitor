@@ -14,7 +14,13 @@ import { MessageService } from 'primeng/api';
 @Component({
   selector: 'app-taller',
   standalone: true,
-  imports: [CommonModule, FormsModule, CreateVehicleTaller, UpdateVehicleTaller, TablePagination],
+  imports: [
+    CommonModule,
+    FormsModule,
+    CreateVehicleTaller,
+    UpdateVehicleTaller,
+    TablePagination,
+  ],
   templateUrl: './taller.html',
   styleUrl: './taller.scss',
 })
@@ -40,6 +46,10 @@ export class Taller implements OnInit {
   allTallerSelected = false;
   loading = false;
   desplegableListosAbierto = false;
+
+  get isAdmin(): boolean {
+    return this.userService.currentUserSignal()?.rol === 'admin';
+  }
 
   // Estado del modal de confirmación de eliminación
   showConfirmModal = false;
@@ -217,11 +227,17 @@ export class Taller implements OnInit {
   }
 
   createRegistro(): void {
+    if (this.isAdmin) return;
     this.createModal?.open?.();
   }
 
   editRegistro(item: TallerRegistro): void {
+    if (this.isAdmin) return;
     this.updateModal?.open?.(item);
+  }
+
+  viewRegistro(item: TallerRegistro): void {
+    this.updateModal?.openReadOnly?.(item);
   }
 
   async handleCreated(): Promise<void> {

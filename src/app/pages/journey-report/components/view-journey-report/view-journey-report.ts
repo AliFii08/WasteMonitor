@@ -146,6 +146,34 @@ export class ViewJourneyReport implements OnChanges, OnDestroy {
     return Number(this.reporte?.tonRecogidas) || 0;
   }
 
+  get promedioToneladasPorViaje(): number {
+    return this.viajesList.length > 0 ? this.totalToneladas / this.viajesList.length : 0;
+  }
+
+  get fechaCreacion(): string {
+    return this.formatearFecha(this.reporte?.creadoEl);
+  }
+
+  get fechaFirma(): string {
+    return this.formatearFecha(this.reporte?.firmadoEl);
+  }
+
+  get estaFirmado(): boolean {
+    return this.reporte?.estado === true || this.reporte?.estado === 'firmado';
+  }
+
+  private formatearFecha(fecha: string | number | null | undefined): string {
+    if (!fecha) return 'No registrada';
+
+    const fechaFormateada = new Date(fecha);
+    return Number.isNaN(fechaFormateada.getTime())
+      ? 'No registrada'
+      : fechaFormateada.toLocaleString('es-CO', {
+          dateStyle: 'medium',
+          timeStyle: 'short',
+        });
+  }
+
   selectTab(tabKey: string): void {
     this.activeTab = tabKey;
   }

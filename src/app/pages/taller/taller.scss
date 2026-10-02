@@ -28,7 +28,7 @@
   gap: 1rem;
   flex-wrap: wrap;
   align-items: center;
-  padding: 1rem;
+  padding: 1rem 1rem 0;
   margin-left: 20px;
   margin-right: 20px;
 }
@@ -160,7 +160,7 @@
 }
 
 .preview-section {
-  margin-top: 2rem;
+  margin-top: 4px;
   border: 1px solid #d8e4de;
   border-radius: 14px;
   background: linear-gradient(180deg, #f8fcfa 0%, #f1f8f4 100%);
@@ -244,7 +244,7 @@
 
 /* Desplegable de Vehículos Listos */
 .finished-collapsible {
-  margin-top: 1.5rem;
+  margin: 24px 20px 0;
   border-radius: 12px;
   background: transparent;
 
@@ -295,7 +295,7 @@
 }
 
 .finished-section {
-  margin-top: 0.75rem !important;
+  margin: 12px 0 0 !important;
   border-color: #cce5d7 !important;
   opacity: 0.92;
 }
@@ -436,6 +436,11 @@
 }
 
 @media (max-width: 720px) {
+  .finished-collapsible {
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+
   .table-toolbar {
     margin-left: 10px;
     margin-right: 10px;

@@ -13,7 +13,7 @@
 
 .modal-panel {
   width: 100%;
-  max-width: 580px;
+  max-width: 640px;
   background: #ffffff;
   border-radius: 16px;
   box-shadow: 0 24px 60px rgba(0, 54, 40, 0.28);
@@ -141,7 +141,7 @@
   padding: 1.4rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
   max-height: 65vh;
   overflow-y: auto;
 }
@@ -149,15 +149,154 @@
 .tab-content {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.15rem;
 }
 
 .trip-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .eyebrow,
+  .edit-intro .eyebrow {
+    color: #68a357;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
   .trip-title {
     font-size: 1.1rem;
     font-weight: 800;
     color: #06523f;
   }
+
+  .trip-badge {
+    padding: 0.35rem 0.65rem;
+    border-radius: 999px;
+    background: #d5f0df;
+    color: #1b7a45;
+    font-size: 0.78rem;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+}
+
+.edit-intro {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid #dbe7e0;
+  border-radius: 12px;
+  background: #f4f8f5;
+
+  .eyebrow {
+    color: #68a357;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  h3 {
+    margin: 0.2rem 0 0.3rem;
+    color: #06523f;
+    font-size: 1.05rem;
+  }
+
+  p {
+    margin: 0;
+    color: #60756c;
+    font-size: 0.82rem;
+  }
+
+  .report-id {
+    max-width: 140px;
+    color: #60756c;
+    font-size: 0.72rem;
+    overflow-wrap: anywhere;
+    text-align: right;
+  }
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  color: #06523f;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+
+  i {
+    color: #68a357;
+  }
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.field-section {
+  padding-bottom: 0.25rem;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.metric-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 0.65rem;
+  align-items: center;
+  padding: 0.85rem 1rem;
+  border: 1px solid #e2ebe5;
+  border-radius: 10px;
+  background: #fff;
+
+  i {
+    grid-row: span 2;
+    color: #68a357;
+    font-size: 1.1rem;
+  }
+
+  span {
+    color: #60756c;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  strong {
+    color: #173d32;
+    font-size: 1rem;
+  }
+}
+
+.trip-card {
+  padding: 1rem;
+  border: 1px solid #dbe7e0;
+  border-radius: 12px;
+  background: #fbfdfc;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .form-field {
@@ -333,4 +472,37 @@
 @keyframes slideUp {
   from { transform: translateY(12px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
+}
+
+@media (max-width: 560px) {
+  .field-grid,
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .edit-intro {
+    flex-direction: column;
+
+    .report-id {
+      max-width: 100%;
+      text-align: left;
+    }
+  }
+
+  .modal-footer {
+    flex-wrap: wrap;
+
+    button {
+      flex: 1 1 auto;
+    }
+  }
+}
+
+.btn-finish {
+  background: #17627a;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: #124e62;
+  }
 }

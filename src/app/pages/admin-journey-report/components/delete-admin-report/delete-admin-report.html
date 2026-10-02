@@ -1,0 +1,11 @@
+@if (visible && informe) {
+  <div class="modal-backdrop" (click)="close()">
+    <section class="modal-panel" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <div class="danger-icon"><i class="pi pi-trash"></i></div>
+      <h2>Eliminar informe</h2>
+      <p>¿Deseas eliminar el informe administrativo del <strong>{{ informe.fecha }}</strong>?</p>
+      @if (error) { <p class="error">{{ error }}</p> }
+      <footer class="modal-footer"><button type="button" class="btn-cancel" (click)="close()">Cancelar</button><button type="button" class="btn-danger" [disabled]="deleting" (click)="confirm()">{{ deleting ? 'Eliminando...' : 'Eliminar informe' }}</button></footer>
+    </section>
+  </div>
+}

@@ -171,6 +171,7 @@ selectedReportsList: any[] = [];
 
   // Modales y Acciones
   openCreateModal(): void {
+    if (this.isAdmin) return;
     this.isCreateModalOpen = true;
   }
 
@@ -180,6 +181,7 @@ selectedReportsList: any[] = [];
   }
 
   openUpdateModal(reporte: any): void {
+    if (this.isAdmin) return;
     // 1. Obtener el UID del usuario en sesión
     const currentUserId = this.authService.getCurrentUserId();
 

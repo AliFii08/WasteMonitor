@@ -19,10 +19,12 @@
       }
     </div>
 
-    <button type="button" class="create-btn" (click)="openCreateModal()">
-      <i class="pi pi-plus"></i>
-      Crear informe
-    </button>
+    @if (!isAdmin) {
+      <button type="button" class="create-btn" (click)="openCreateModal()">
+        <i class="pi pi-plus"></i>
+        Crear informe
+      </button>
+    }
   </div>
 
   <div class="table-card">
@@ -82,10 +84,12 @@
                   (click)="$event.stopPropagation(); openViewModal(reporte)">
                   <i class="pi pi-eye"></i>
                 </button>
-                <button type="button" class="icon-btn" title="Editar"
-                  (click)="$event.stopPropagation(); openUpdateModal(reporte)">
-                  <i class="pi pi-pencil"></i>
-                </button>
+                @if (!isAdmin) {
+                  <button type="button" class="icon-btn" title="Editar"
+                    (click)="$event.stopPropagation(); openUpdateModal(reporte)">
+                    <i class="pi pi-pencil"></i>
+                  </button>
+                }
                 @if (isAdmin) {
                 <button type="button" class="icon-btn danger" title="Eliminar"
                   (click)="$event.stopPropagation(); openSingleDeleteModal(reporte)">

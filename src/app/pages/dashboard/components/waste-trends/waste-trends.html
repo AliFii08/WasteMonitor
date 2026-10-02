@@ -1,0 +1,46 @@
+<section class="trend-panel">
+  <div class="trend-heading">
+    <div>
+      <span class="eyebrow">Planeación de recolección</span>
+      <h2>Rutas con mayor tonelaje</h2>
+      <p>Comportamiento de la jornada del día y sector líder del mes.</p>
+    </div>
+    @if (resumen?.sectorLiderMensual; as sector) {
+      <div class="monthly-leader">
+        <span>Sector líder del mes</span>
+        <strong>{{ sector.sector }}</strong>
+        <small>{{ sector.toneladas | number: '1.0-2' }} ton</small>
+      </div>
+    }
+  </div>
+
+  @if (resumen; as data) {
+    <div class="daily-summary" aria-label="Resumen diario de recolección">
+      <div><span>Jornada</span><strong>{{ fecha }}</strong></div>
+      <div><span>Toneladas</span><strong>{{ data.toneladasTotales | number: '1.0-2' }} ton</strong></div>
+      <div><span>Viajes</span><strong>{{ data.viajesTotales }}</strong></div>
+      <div><span>Ruta líder del día</span><strong>{{ data.rutaLider?.ruta || 'Sin datos' }}</strong></div>
+    </div>
+  }
+
+  @if (loading) {
+    <div class="trend-state">Cargando datos de recolección...</div>
+  } @else if (!resumen?.rutas?.length) {
+    <div class="trend-state">No hay viajes registrados para el día actual.</div>
+  } @else {
+    <div class="bar-chart" aria-label="Toneladas recogidas por ruta">
+      @for (ruta of rutasDelDia; track ruta.rutaId) {
+        <div class="bar-row">
+          <div class="bar-label">
+            <strong>{{ ruta.ruta }}</strong>
+            <span>{{ ruta.sector }}</span>
+          </div>
+          <div class="bar-track">
+            <span [style.width.%]="(ruta.toneladas / maxToneladas) * 100"></span>
+          </div>
+          <strong class="bar-value">{{ ruta.toneladas | number: '1.0-2' }} ton</strong>
+        </div>
+      }
+    </div>
+  }
+</section>

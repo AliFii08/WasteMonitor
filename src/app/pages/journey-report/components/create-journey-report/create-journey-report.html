@@ -12,19 +12,48 @@
       </header>
 
       <form (ngSubmit)="onSubmit()" class="modal-body" #f="ngForm">
-        <div class="trip-header">
-          <span class="trip-title">Nueva Jornada de Viaje</span>
+        <div class="create-intro">
+          <div class="intro-icon"><i class="pi pi-calendar-plus"></i></div>
+          <div>
+            <span class="eyebrow">Paso 1 de 2</span>
+            <h3>Iniciar jornada de recolección</h3>
+            <p>Registra la cabecera del informe. Después podrás agregar cada viaje con sus toneladas, dirección y observaciones.</p>
+          </div>
         </div>
 
-        <p class="info-text">
-          Se creará la cabecera del informe de jornada asignado a tu usuario y vehículo activo.
-        </p>
+        <div class="context-list">
+          <div class="context-item">
+            <i class="pi pi-user"></i>
+            <span><strong>Usuario activo</strong>El informe quedará asociado a tu cuenta.</span>
+          </div>
+          <div class="context-item">
+            <i class="pi pi-truck"></i>
+            <span>
+              <strong>Vehículo asignado</strong>
+              {{ assignmentLoading ? 'Consultando asignación...' : (assignedVehicle || 'Sin vehículo asignado') }}
+            </span>
+          </div>
+          <div class="context-item">
+            <i class="pi pi-map-marker"></i>
+            <span>
+              <strong>Ruta asignada</strong>
+              {{ assignmentLoading ? 'Consultando asignación...' : (assignedRoute || 'Sin ruta asignada') }}
+            </span>
+          </div>
+        </div>
+
+        @if (!assignmentLoading && !puedeCrear) {
+          <p class="assignment-warning">
+            <i class="pi pi-exclamation-triangle"></i>
+            No puedes crear el informe hasta tener un vehículo y una ruta asignados.
+          </p>
+        }
 
         <footer class="modal-footer">
           <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
-          <button type="submit" class="btn-submit" [disabled]="loading">
+          <button type="submit" class="btn-submit" [disabled]="loading || assignmentLoading || !puedeCrear">
             <i class="pi pi-check"></i>
-            {{ loading ? 'Guardando...' : 'Iniciar Jornada' }}
+            {{ assignmentLoading ? 'Verificando...' : (loading ? 'Guardando...' : 'Iniciar Jornada') }}
           </button>
         </footer>
       </form>

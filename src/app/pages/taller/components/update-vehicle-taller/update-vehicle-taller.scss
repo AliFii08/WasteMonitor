@@ -47,6 +47,16 @@
     font-weight: 800;
     letter-spacing: 0.01em;
   }
+
+  .modal-kicker {
+    display: block;
+    margin-bottom: 0.15rem;
+    color: #68a357;
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
 }
 
 .close-btn {
@@ -131,7 +141,7 @@
     background: #fff;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
     box-sizing: border-box;
-    resize: vertical;
+    resize: none;
 
     &:focus {
       outline: none;
@@ -143,6 +153,12 @@
       background: #f1f5f2;
       cursor: not-allowed;
     }
+  }
+
+  textarea {
+    min-height: 82px;
+    max-height: 180px;
+    overflow-y: auto;
   }
 }
 
@@ -238,4 +254,39 @@
 @keyframes slideUp {
   from { transform: translateY(12px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
+}
+
+.read-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid #d4e5db;
+  border-radius: 9px;
+  background: #f1f7f3;
+
+  span {
+    color: #5d7568;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  strong {
+    color: #173d32;
+    font-size: 0.95rem;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+}
+
+.read-description {
+  max-height: 160px;
+
+  strong {
+    max-height: 92px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+  }
 }

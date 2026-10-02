@@ -336,11 +336,50 @@ body {
   cursor: pointer;
 }
 
+.table-toolbar {
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+  margin-left: 20px !important;
+  margin-right: 20px !important;
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+}
+
+:is(.preview-section, .table-card) {
+  margin-left: 20px !important;
+  margin-right: 20px !important;
+}
+
+.table-toolbar + :is(.preview-section, .table-card) {
+  margin-top: 24px !important;
+}
+
+@media (max-width: 720px) {
+  .table-toolbar {
+    margin-left: 10px !important;
+    margin-right: 10px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  :is(.preview-section, .table-card) {
+    margin-left: 10px !important;
+    margin-right: 10px !important;
+  }
+
+  .table-toolbar + :is(.preview-section, .table-card) {
+    margin-top: 24px !important;
+  }
+}
+
 /* Shared visual language for application dialogs (not the notification popover). */
 .modal-backdrop:not(.error-backdrop) > :is(.modal-panel, .modal-container, .confirm-modal) {
   box-sizing: border-box;
   max-height: calc(100dvh - 32px);
-  overflow-y: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   color: #283127;
   background: #fff;
   border: 1px solid #dce8dd;
@@ -377,6 +416,131 @@ body {
 
 .modal-backdrop:not(.error-backdrop) :is(.modal-panel, .modal-container) .modal-footer {
   border-color: #e2e9e2;
+}
+
+.modal-backdrop:not(.error-backdrop) > :is(.modal-panel, .modal-container) > .modal-header,
+.modal-backdrop:not(.error-backdrop) > :is(.modal-panel, .modal-container) > .modal-tabs,
+.modal-backdrop:not(.error-backdrop) > :is(.modal-panel, .modal-container) > .modal-footer {
+  flex: 0 0 auto;
+}
+
+.modal-backdrop:not(.error-backdrop) > :is(.modal-panel, .modal-container) > .modal-body,
+.modal-backdrop:not(.error-backdrop) > :is(.modal-panel, .modal-container) > .modal-content {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow-x: hidden;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  background: #fff;
+}
+
+.modal-backdrop:not(.error-backdrop) > :is(.modal-panel, .modal-container) > .modal-form {
+  display: flex !important;
+  flex: 1 1 auto !important;
+  flex-direction: column;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.modal-backdrop:not(.error-backdrop) > :is(.modal-panel, .modal-container) > .modal-form > .modal-body {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow-x: hidden;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+}
+
+.modal-backdrop:not(.error-backdrop) :is(.modal-body, .modal-form) .modal-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  flex: 0 0 auto;
+  padding-bottom: 1.5rem !important;
+  background: #fff !important;
+}
+
+.modal-backdrop:not(.error-backdrop) > .modal-panel > .modal-body:has(> .modal-footer),
+.modal-backdrop:not(.error-backdrop) > .modal-panel > .modal-body:has(> form > .modal-footer) {
+  padding-bottom: 0 !important;
+}
+
+.modal-backdrop:not(.error-backdrop) :is(.modal-panel, .modal-container, .confirm-modal) .modal-footer {
+  box-sizing: border-box;
+  margin-top: 0 !important;
+  padding-top: 1rem !important;
+}
+
+.modal-backdrop:not(.error-backdrop) :is(.modal-panel, .modal-container, .confirm-modal) textarea,
+.emergency-modal textarea,
+.broadcast-modal textarea {
+  field-sizing: content !important;
+  min-height: 6rem !important;
+  max-height: none !important;
+  overflow-y: hidden !important;
+  resize: none !important;
+}
+
+.modal-backdrop:not(.error-backdrop) > .modal-panel:not(.mini-panel):has(textarea),
+.modal-backdrop:not(.error-backdrop) > .modal-container:has(textarea),
+.emergency-modal:has(textarea),
+.broadcast-modal:has(textarea) {
+  height: min(82dvh, 620px);
+}
+
+.modal-backdrop:not(.error-backdrop) > .modal-panel.mini-panel:has(textarea) {
+  height: min(70dvh, 420px);
+}
+
+.emergency-modal,
+.broadcast-modal,
+.confirmation-modal,
+.details-modal {
+  box-sizing: border-box;
+  display: flex !important;
+  flex-direction: column;
+  min-height: 0;
+  max-height: calc(100dvh - 32px);
+  overflow: hidden !important;
+}
+
+.emergency-modal > .modal-header,
+.broadcast-modal > .broadcast-header,
+.confirmation-modal > .confirmation-header,
+.confirmation-modal > .confirmation-footer,
+.details-modal > .details-header,
+.details-modal > .details-footer {
+  flex: 0 0 auto;
+}
+
+.emergency-modal > .modal-content,
+.broadcast-modal > .broadcast-content,
+.confirmation-modal > .confirmation-body,
+.details-modal > .details-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none !important;
+  overflow-x: hidden;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  background: #fff;
+}
+
+.broadcast-content > .broadcast-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  flex: 0 0 auto;
+  padding-top: 1rem;
+  padding-bottom: 0.25rem;
+  border-top: 1px solid #e2e9e2;
+  background: #fff;
+}
+
+.confirmation-body,
+.details-body {
+  min-height: 0;
 }
 
 .modal-backdrop:not(.error-backdrop) :is(.modal-panel, .modal-container) .btn-cancel,

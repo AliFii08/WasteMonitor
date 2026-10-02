@@ -5,6 +5,7 @@ import { NotificationService } from '../../@core/services/notification.service';
 import { HistorialOperaciones } from './components/historial-operaciones/historial-operaciones';
 import { Employees } from "./components/employees/employees";
 import { Vehicles } from './components/vehicles/vehicles';
+import { WasteTrends } from './components/waste-trends/waste-trends';
 
 type DashboardTab = 'vehicles' | 'employees' | 'operations';
 
@@ -18,7 +19,7 @@ interface DashboardNotification {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [HistorialOperaciones, Employees, Vehicles],
+  imports: [HistorialOperaciones, Employees, Vehicles, WasteTrends],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })

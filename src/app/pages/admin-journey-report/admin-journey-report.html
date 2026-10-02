@@ -1,0 +1,68 @@
+<main class="admin-report-page">
+  <div class="title">
+    <h1>Informe de Jornada</h1>
+    <span>Reporte detallado del desempeño de la jornada administrativa</span>
+  </div>
+
+  <div class="table-toolbar">
+    <div class="search-row">
+      <span class="search-input-wrap">
+        <input type="text" class="search-input" placeholder="Buscar informes..."
+          [(ngModel)]="searchTerm" />
+        <i class="pi pi-search"></i>
+      </span>
+      <input type="date" class="date-filter" aria-label="Filtrar por fecha" [(ngModel)]="fechaSeleccionada" />
+    </div>
+    <button type="button" class="create-btn" (click)="crearVisible = true">
+      <i class="pi pi-plus"></i> Crear informe
+    </button>
+  </div>
+
+  <section class="preview-section" aria-label="Tabla de informes administrativos">
+    <div class="preview-table-wrap">
+      <table class="preview-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Informes finalizados</th>
+            <th>Viajes</th>
+            <th>Toneladas</th>
+            <th>Observaciones</th>
+            <th>Creado el</th>
+            <th class="options-header">Opciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (informe of informesFiltrados; track informe.id) {
+            <tr>
+              <td><strong>{{ informe.fecha }}</strong></td>
+              <td>{{ informe.informesFinalizados || 0 }}</td>
+              <td>{{ informe.viajesTotales || 0 }}</td>
+              <td>{{ (informe.toneladasTotales || 0) | number: '1.0-2' }} ton</td>
+              <td>{{ informe.observaciones || 'Sin observaciones' }}</td>
+              <td>{{ informe.creadoEl ? (informe.creadoEl | date: 'dd/MM/yyyy') : '—' }}</td>
+              <td class="options-header">
+                <div class="option-actions">
+                  <button type="button" class="icon-btn" title="Editar informe" (click)="abrirEditar(informe)">
+                    <i class="pi pi-pencil"></i>
+                  </button>
+                  <button type="button" class="icon-btn danger" title="Eliminar informe" (click)="abrirEliminar(informe)">
+                    <i class="pi pi-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="empty-row">No hay informes administrativos registrados.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<app-create-admin-report [(visible)]="crearVisible" [fechaInicial]="fechaInicial" (created)="cargarInformesGuardados()"></app-create-admin-report>
+<app-update-admin-report [(visible)]="editarVisible" [informe]="informeSeleccionado" (updated)="cargarInformesGuardados()"></app-update-admin-report>
+<app-delete-admin-report [(visible)]="eliminarVisible" [informe]="informeSeleccionado" (deleted)="cargarInformesGuardados()"></app-delete-admin-report>

@@ -36,7 +36,7 @@
               Viaje {{ viaje.numero }}
             </button>
 
-            @if (viajesList.length > 1) {
+            @if (viajesList.length > 1 && !estaFirmado) {
               <button
                 type="button"
                 class="tab-remove-btn"
@@ -50,14 +50,16 @@
         }
 
         <!-- Botón '+' único al final -->
-        <button
-          type="button"
-          class="add-tab-btn"
-          (click)="abrirModalNuevoViaje()"
-          title="Agregar nuevo viaje"
-        >
-          <i class="pi pi-plus"></i>
-        </button>
+        @if (!estaFirmado) {
+          <button
+            type="button"
+            class="add-tab-btn"
+            (click)="abrirModalNuevoViaje()"
+            title="Agregar nuevo viaje"
+          >
+            <i class="pi pi-plus"></i>
+          </button>
+        }
       </nav>
 
       <form (ngSubmit)="onSubmit()" #f="ngForm" class="modal-form">
@@ -71,6 +73,21 @@
             <!-- Pestaña: General -->
             @if (activeTab === 'general') {
               <div class="tab-content">
+                <div class="edit-intro">
+                  <div>
+                    <span class="eyebrow">Datos de la jornada</span>
+                    <h3>Información general</h3>
+                    <p>Verifica la asignación y el resumen antes de guardar los cambios.</p>
+                  </div>
+                  <span class="report-id">#{{ reporte.id || 'N/A' }}</span>
+                </div>
+
+                <div class="field-section">
+                  <div class="section-heading">
+                    <i class="pi pi-sliders-h"></i>
+                    <span>Asignación operativa automática</span>
+                  </div>
+                  <div class="field-grid">
                 <div class="form-field">
                   <label>Usuario</label>
                   <input
@@ -90,7 +107,8 @@
                     id="camion"
                     [(ngModel)]="camion"
                     name="camion"
-                    placeholder="Ej: VEH-001"
+                    disabled
+                    placeholder="Sin vehículo asignado"
                   />
                 </div>
 
@@ -101,18 +119,24 @@
                     id="ruta"
                     [(ngModel)]="ruta"
                     name="ruta"
-                    placeholder="Ej: NombreRuta7"
+                    disabled
+                    placeholder="Sin ruta asignada"
                   />
                 </div>
-
-                <div class="detail-group">
-                  <label>Total Toneladas Recogidas</label>
-                  <p class="detail-value font-bold">{{ totalToneladas }} ton</p>
+                  </div>
                 </div>
 
-                <div class="detail-group">
-                  <label>Cantidad de Viajes</label>
-                  <p class="detail-value">{{ viajesList.length }}</p>
+                <div class="metrics-grid">
+                  <div class="metric-card">
+                    <i class="pi pi-weight"></i>
+                    <span>Total recogido</span>
+                    <strong>{{ totalToneladas }} ton</strong>
+                  </div>
+                  <div class="metric-card">
+                    <i class="pi pi-map"></i>
+                    <span>Viajes registrados</span>
+                    <strong>{{ viajesList.length }}</strong>
+                  </div>
                 </div>
               </div>
             }
@@ -122,9 +146,14 @@
               @if (activeTab === viaje.key) {
                 <div class="tab-content">
                   <div class="trip-header">
-                    <span class="trip-title">Editar Viaje {{ viaje.numero }}</span>
+                    <div>
+                      <span class="eyebrow">Detalle operativo</span>
+                      <span class="trip-title">Editar Viaje {{ viaje.numero }}</span>
+                    </div>
+                    <span class="trip-badge">{{ viaje.tonRecogidas || 0 }} ton</span>
                   </div>
 
+                  <div class="trip-card">
                   <div class="form-field">
                     <label [for]="'ton_' + viaje.key"
                       >Toneladas Recogidas <span class="req">*</span></label
@@ -134,6 +163,8 @@
                       [id]="'ton_' + viaje.key"
                       [(ngModel)]="viaje.tonRecogidas"
                       [name]="'ton_' + viaje.key"
+                      [disabled]="estaFirmado"
+                      (focus)="limpiarToneladasSiEsCero(viaje)"
                       step="0.01"
                       min="0"
                       required
@@ -149,6 +180,7 @@
                       [id]="'dir_' + viaje.key"
                       [(ngModel)]="viaje.direccionDelLlenado"
                       [name]="'dir_' + viaje.key"
+                      [disabled]="estaFirmado"
                       placeholder="Ej: Sector El Milagro"
                       required
                     />
@@ -160,9 +192,11 @@
                       [id]="'desc_' + viaje.key"
                       [(ngModel)]="viaje.descripcion"
                       [name]="'desc_' + viaje.key"
+                      [disabled]="estaFirmado"
                       rows="3"
                       placeholder="Observaciones de este viaje..."
                     ></textarea>
+                  </div>
                   </div>
                 </div>
               }
@@ -171,6 +205,17 @@
         </div>
 
         <footer class="modal-footer">
+          @if (puedeFinalizar) {
+            <button
+              type="button"
+              class="btn-finish"
+              [disabled]="isSubmitting"
+              (click)="finalizarInforme()"
+            >
+              <i class="pi pi-flag-fill"></i>
+              Finalizar jornada
+            </button>
+          }
           @if (isAdmin) {
             <button
               type="button"
@@ -183,12 +228,12 @@
             </button>
           }
           <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
-          @if (activeTab === 'general' && reporte.estado !== 'firmado') {
+          @if (activeTab === 'general' && !estaFirmado) {
             <button type="submit" class="btn-submit" [disabled]="isSubmitting">
               {{ isSubmitting ? 'Guardando...' : 'Guardar cambios' }}
             </button>
           }
-          @if(reporte.estado !== 'firmado'){
+          @if(!estaFirmado){
           <button
             *ngIf="activeTab !== 'general'"
             type="button"
@@ -242,6 +287,7 @@
               id="new_ton"
               [(ngModel)]="nuevoViaje.tonRecogidas"
               name="new_ton"
+              (focus)="limpiarNuevasToneladasSiEsCero()"
               step="0.01"
               min="0"
               required

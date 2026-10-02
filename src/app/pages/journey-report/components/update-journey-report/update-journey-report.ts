@@ -25,7 +25,7 @@ export interface ViajeItem {
   numero: number;
   descripcion: string;
   direccionDelLlenado: string;
-  tonRecogidas: number;
+  tonRecogidas: number | null;
 }
 
 @Component({
@@ -57,13 +57,26 @@ export class UpdateJourneyReport implements OnChanges {
     return this.authService.hasRole(['admin']);
   }
 
+  get isSupervisor(): boolean {
+    return this.authService.hasRole(['supervisor']);
+  }
+
+  get puedeFinalizar(): boolean {
+    const estado = String(this.reporte?.estado || '').toLowerCase();
+    return this.isSupervisor && estado !== 'finalizado' && estado !== 'firmado';
+  }
+
+  get estaFirmado(): boolean {
+    return String(this.reporte?.estado || '').toLowerCase() === 'firmado';
+  }
+
   // --- MINI MODAL NUEVO VIAJE ---
   showAddTripModal: boolean = false;
   isSavingTrip: boolean = false;
   nuevoViaje = {
     descripcion: '',
     direccionDelLlenado: '',
-    tonRecogidas: 0,
+    tonRecogidas: null as number | null,
   };
 
   showErrorModal: boolean = false;
@@ -92,10 +105,24 @@ export class UpdateJourneyReport implements OnChanges {
       const userId = this.reporte.usuario || this.reporte.usuarioId;
       if (userId) {
         this.cargarNombreUsuario(userId);
+        this.completarAsignacionSiHaceFalta(userId);
       }
 
       // 4. CARGAR LOS VIAJES ASOCIADOS AL INFORME
       this.cargarViajes();
+    }
+  }
+
+  private async completarAsignacionSiHaceFalta(uid: string): Promise<void> {
+    if (this.camion && this.ruta) return;
+
+    try {
+      const asignacion = await this.informe.obtenerAsignacionActual(uid);
+      this.camion = this.camion || asignacion.camion;
+      this.ruta = this.ruta || asignacion.ruta;
+      this.cdr.detectChanges();
+    } catch (error) {
+      console.error('Error al cargar la asignación del supervisor:', error);
     }
   }
 
@@ -148,7 +175,9 @@ export class UpdateJourneyReport implements OnChanges {
             numero: index,
             descripcion: String(v.descripcion || ''),
             direccionDelLlenado: String(v.direccionDelLlenado || v.direccionDeLlenado || ''),
-            tonRecogidas: Number(v.tonRecogidas) || 0,
+            tonRecogidas: v.tonRecogidas === '' || v.tonRecogidas == null
+              ? null
+              : Number(v.tonRecogidas),
           });
           index++;
         });
@@ -166,7 +195,8 @@ export class UpdateJourneyReport implements OnChanges {
 
   // --- CONTROL DEL MINI MODAL ---
   abrirModalNuevoViaje(): void {
-    this.nuevoViaje = { descripcion: '', direccionDelLlenado: '', tonRecogidas: 0 };
+    if (this.estaFirmado) return;
+    this.nuevoViaje = { descripcion: '', direccionDelLlenado: '', tonRecogidas: null };
     this.showAddTripModal = true;
   }
 
@@ -175,6 +205,7 @@ export class UpdateJourneyReport implements OnChanges {
   }
 
   async guardarNuevoViaje(): Promise<void> {
+    if (this.estaFirmado) return;
     const targetInformeId = this.reporte?.id;
     if (!targetInformeId) return;
 
@@ -210,6 +241,7 @@ export class UpdateJourneyReport implements OnChanges {
 
   // Guarda únicamente el viaje de la pestaña abierta
   async actualizarViajeActivo(): Promise<void> {
+    if (this.estaFirmado) return;
     const viaje = this.viajeActivo;
 
     if (!viaje || !viaje.id) {
@@ -250,7 +282,7 @@ export class UpdateJourneyReport implements OnChanges {
 
   // --- GUARDAR EDICIONES DEL INFORME Y SUS VIAJES EXISTENTES ---
   async onSubmit(): Promise<void> {
-    if (!this.reporte?.id) return;
+    if (!this.reporte?.id || this.estaFirmado) return;
     this.isSubmitting = true;
 
     try {
@@ -268,6 +300,14 @@ export class UpdateJourneyReport implements OnChanges {
 
   get totalToneladas(): number {
     return this.viajesList.reduce((acc, v) => acc + (Number(v.tonRecogidas) || 0), 0);
+  }
+
+  limpiarToneladasSiEsCero(viaje: ViajeItem): void {
+    if (viaje.tonRecogidas === 0) viaje.tonRecogidas = null;
+  }
+
+  limpiarNuevasToneladasSiEsCero(): void {
+    if (this.nuevoViaje.tonRecogidas === 0) this.nuevoViaje.tonRecogidas = null;
   }
 
   selectTab(tabKey: string): void {
@@ -336,8 +376,41 @@ export class UpdateJourneyReport implements OnChanges {
     }
   }
 
+  async finalizarInforme(): Promise<void> {
+    if (!this.reporte?.id || !this.puedeFinalizar) return;
+
+    const currentUser = this.auth.currentUser;
+    if (!currentUser) {
+      this.errorMessage = 'No hay una sesión de usuario activa para finalizar la jornada.';
+      this.showErrorModal = true;
+      return;
+    }
+
+    if (!confirm('¿Confirmas que todos los viajes de esta jornada están registrados?')) return;
+
+    this.isSubmitting = true;
+
+    try {
+      await this.informe.finalizarInforme(this.reporte.id, currentUser.uid);
+      this.reporte.estado = 'finalizado';
+      this.reporte.finalizadoEl = new Date().toISOString();
+      this.reporte.finalizadoPor = currentUser.uid;
+      this.sessionTimeoutService.setJourneyActive(false);
+      this.closeModal();
+    } catch (error) {
+      console.error('Error al finalizar el informe:', error);
+      this.errorMessage = 'No se pudo finalizar la jornada.';
+      this.showErrorModal = true;
+    } finally {
+      this.isSubmitting = false;
+      this.cdr.detectChanges();
+    }
+  }
+
   async eliminarViaje(index: number, event: Event): Promise<void> {
     event.stopPropagation();
+
+    if (this.estaFirmado) return;
 
     const viajeAEliminar = this.viajesList[index];
     if (!viajeAEliminar) return;

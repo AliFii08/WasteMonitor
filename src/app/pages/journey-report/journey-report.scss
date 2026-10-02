@@ -61,10 +61,16 @@
         border-radius: 8px;
         outline: none;
         font-size: 14px;
+        font-weight: 700;
         color: #0f4b3a;
         background-color: #ffffff;
         font-family: 'Raleway', sans-serif !important;
         transition: border-color 0.2s;
+
+        &::placeholder {
+          font-weight: 700;
+          opacity: 1;
+        }
 
         &:focus {
           border-color: #06523f;
