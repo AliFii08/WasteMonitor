@@ -13,25 +13,44 @@ export class DeleteAdminReport {
   private informeService = inject(InformeService);
   @Input() visible = false;
   @Input() informe: InformeAdministrativo | null = null;
+  @Input() informesSeleccionados: InformeAdministrativo[] = [];
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() deleted = new EventEmitter<void>();
   deleting = false;
+  isClosing = false;
   error = '';
 
-  close(): void {
-    if (this.deleting) return;
-    this.visible = false;
-    this.visibleChange.emit(false);
+  get cantidadAEliminar(): number {
+    return this.informesSeleccionados.length || (this.informe ? 1 : 0);
+  }
+
+  close(force = false): void {
+    if ((this.deleting && !force) || this.isClosing) return;
+    this.isClosing = true;
+    setTimeout(() => {
+      this.isClosing = false;
+      this.visible = false;
+      this.visibleChange.emit(false);
+    }, 180);
   }
 
   async confirm(): Promise<void> {
-    if (!this.informe || this.deleting) return;
+    const informesAEliminar = this.informesSeleccionados.length
+      ? this.informesSeleccionados
+      : this.informe
+        ? [this.informe]
+        : [];
+    if (!informesAEliminar.length || this.deleting) return;
     this.deleting = true;
     this.error = '';
     try {
-      await this.informeService.eliminarInformeAdministrativo(this.informe.id);
+      await Promise.all(
+        informesAEliminar.map((informe) =>
+          this.informeService.eliminarInformeAdministrativo(informe.id),
+        ),
+      );
       this.deleted.emit();
-      this.close();
+      this.close(true);
     } catch (error) {
       console.error('Error al eliminar el informe administrativo:', error);
       this.error = 'No se pudo eliminar el informe.';

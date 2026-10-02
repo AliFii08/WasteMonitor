@@ -1,11 +1,17 @@
-@if (visible && informe) {
-  <div class="modal-backdrop" (click)="close()">
-    <section class="modal-panel" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+@if (visible && (informe || informesSeleccionados.length)) {
+  <div class="modal-backdrop" [class.is-closing]="isClosing" (click)="close()">
+    <section class="modal-panel" [class.is-closing]="isClosing" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
       <div class="danger-icon"><i class="pi pi-trash"></i></div>
-      <h2>Eliminar informe</h2>
-      <p>¿Deseas eliminar el informe administrativo del <strong>{{ informe.fecha }}</strong>?</p>
+      <h2>{{ cantidadAEliminar > 1 ? 'Eliminar informes' : 'Eliminar informe' }}</h2>
+      @if (informesSeleccionados.length > 1) {
+        <p>¿Deseas eliminar los <strong>{{ informesSeleccionados.length }}</strong> informes administrativos seleccionados?</p>
+      } @else if (informe) {
+        <p>¿Deseas eliminar el informe administrativo del <strong>{{ informe.fecha }}</strong>?</p>
+      } @else if (informesSeleccionados.length === 1) {
+        <p>¿Deseas eliminar el informe administrativo del <strong>{{ informesSeleccionados[0].fecha }}</strong>?</p>
+      }
       @if (error) { <p class="error">{{ error }}</p> }
-      <footer class="modal-footer"><button type="button" class="btn-cancel" (click)="close()">Cancelar</button><button type="button" class="btn-danger" [disabled]="deleting" (click)="confirm()">{{ deleting ? 'Eliminando...' : 'Eliminar informe' }}</button></footer>
+      <footer class="modal-footer"><button type="button" class="btn-cancel" [disabled]="deleting" (click)="close()">Cancelar</button><button type="button" class="btn-danger" [disabled]="deleting" (click)="confirm()">{{ deleting ? 'Eliminando...' : (cantidadAEliminar > 1 ? 'Eliminar informes' : 'Eliminar informe') }}</button></footer>
     </section>
   </div>
 }

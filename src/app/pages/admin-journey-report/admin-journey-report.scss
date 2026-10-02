@@ -112,6 +112,20 @@
   cursor: pointer;
 }
 
+.bulk-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 42px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 8px;
+  background: #d62828;
+  color: #fff;
+  font: 800 13px 'Raleway', sans-serif;
+  cursor: pointer;
+}
+
 .preview-section {
   margin: 4px 20px 30px;
   overflow: hidden;

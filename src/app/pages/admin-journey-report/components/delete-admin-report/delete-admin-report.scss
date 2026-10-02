@@ -1,1 +1,111 @@
-.modal-backdrop{position:fixed;inset:0;z-index:1100;display:flex;align-items:center;justify-content:center;padding:1rem;background:rgba(3,30,22,.45);backdrop-filter:blur(2px)}.modal-panel{width:100%;max-width:420px;padding:1.5rem;border-radius:14px;background:#fff;box-shadow:0 24px 60px rgba(0,54,40,.28);font-family:'Raleway',sans-serif;text-align:center}.danger-icon{width:48px;height:48px;display:grid;place-items:center;margin:0 auto .8rem;border-radius:50%;background:#fee2e2;color:#dc2626;font-size:1.2rem}.modal-panel h2{margin:0;color:#173d32;font-size:1.15rem}.modal-panel p{color:#60756c;font-size:.88rem;line-height:1.45}.modal-footer{display:flex;justify-content:flex-end;gap:.6rem;margin-top:1.2rem}.modal-footer button{height:40px;border:0;border-radius:8px;padding:0 16px;font:800 13px 'Raleway',sans-serif;cursor:pointer}.btn-cancel{background:#eef3f0;color:#0f4b3a}.btn-danger{background:#dc2626;color:#fff}.btn-danger:disabled{opacity:.55;cursor:not-allowed}.error{color:#8d1f1f!important}
+.modal-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 1100;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 1rem;
+	background: rgba(3, 30, 22, 0.45);
+	backdrop-filter: blur(2px);
+	animation: admin-delete-fade-in 150ms ease-out both;
+}
+
+.modal-backdrop.is-closing {
+	animation: admin-delete-fade-out 180ms ease-in both;
+}
+
+.modal-panel {
+	width: 100%;
+	max-width: 420px;
+	padding: 1.5rem;
+	border-radius: 14px;
+	background: #fff;
+	box-shadow: 0 24px 60px rgba(0, 54, 40, 0.28);
+	font-family: 'Raleway', sans-serif;
+	text-align: center;
+	animation: admin-delete-panel-in 200ms ease-out both;
+}
+
+.modal-panel.is-closing {
+	animation: admin-delete-panel-out 180ms ease-in both;
+}
+
+.danger-icon {
+	width: 48px;
+	height: 48px;
+	display: grid;
+	place-items: center;
+	margin: 0 auto 0.8rem;
+	border-radius: 50%;
+	background: #fee2e2;
+	color: #dc2626;
+	font-size: 1.2rem;
+}
+
+.modal-panel h2 {
+	margin: 0;
+	color: #173d32;
+	font-size: 1.15rem;
+}
+
+.modal-panel p {
+	color: #60756c;
+	font-size: 0.88rem;
+	line-height: 1.45;
+}
+
+.modal-footer {
+	display: flex;
+	justify-content: flex-end;
+	gap: 0.6rem;
+	margin-top: 1.2rem;
+}
+
+.modal-footer button {
+	height: 40px;
+	border: 0;
+	border-radius: 8px;
+	padding: 0 16px;
+	font: 800 13px 'Raleway', sans-serif;
+	cursor: pointer;
+}
+
+.btn-cancel {
+	background: #eef3f0;
+	color: #0f4b3a;
+}
+
+.btn-danger {
+	background: #dc2626;
+	color: #fff;
+}
+
+.btn-danger:disabled {
+	opacity: 0.55;
+	cursor: not-allowed;
+}
+
+.error {
+	color: #8d1f1f !important;
+}
+
+@keyframes admin-delete-fade-in {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+
+@keyframes admin-delete-fade-out {
+	from { opacity: 1; }
+	to { opacity: 0; }
+}
+
+@keyframes admin-delete-panel-in {
+	from { opacity: 0; transform: translateY(10px) scale(0.98); }
+	to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes admin-delete-panel-out {
+	from { opacity: 1; transform: translateY(0) scale(1); }
+	to { opacity: 0; transform: translateY(8px) scale(0.98); }
+}

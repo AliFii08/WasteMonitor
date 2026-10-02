@@ -31,6 +31,7 @@ export class UpdateAdminReport {
   loadingResumen = false;
   resumenCargado = false;
   saving = false;
+  isClosing = false;
   error = '';
 
   ngOnChanges(): void {
@@ -66,10 +67,14 @@ export class UpdateAdminReport {
     }
   }
 
-  close(): void {
-    if (this.saving) return;
-    this.visible = false;
-    this.visibleChange.emit(false);
+  close(force = false): void {
+    if ((this.saving && !force) || this.isClosing) return;
+    this.isClosing = true;
+    setTimeout(() => {
+      this.isClosing = false;
+      this.visible = false;
+      this.visibleChange.emit(false);
+    }, 180);
   }
 
   async submit(): Promise<void> {
@@ -85,7 +90,7 @@ export class UpdateAdminReport {
         informesFinalizados: this.resumen.informesFinalizados,
       });
       this.updated.emit();
-      this.close();
+      this.close(true);
     } catch (error) {
       console.error('Error al actualizar el informe administrativo:', error);
       this.error = 'No se pudo actualizar el informe.';

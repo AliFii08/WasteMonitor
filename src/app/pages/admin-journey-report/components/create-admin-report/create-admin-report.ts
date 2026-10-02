@@ -39,6 +39,7 @@ export class CreateAdminReport implements OnChanges, OnDestroy {
   loadingResumen = false;
   resumenCargado = false;
   saving = false;
+  isClosing = false;
   error = '';
   private detenerResumen?: () => void;
 
@@ -105,11 +106,15 @@ export class CreateAdminReport implements OnChanges, OnDestroy {
     this.detenerResumen = undefined;
   }
 
-  close(): void {
-    if (this.saving) return;
+  close(force = false): void {
+    if ((this.saving && !force) || this.isClosing) return;
+    this.isClosing = true;
     this.detenerEscuchaResumen();
-    this.visible = false;
-    this.visibleChange.emit(false);
+    setTimeout(() => {
+      this.isClosing = false;
+      this.visible = false;
+      this.visibleChange.emit(false);
+    }, 180);
   }
 
   async submit(): Promise<void> {
@@ -123,7 +128,7 @@ export class CreateAdminReport implements OnChanges, OnDestroy {
         informesFinalizados: this.informesFinalizados,
       });
       this.created.emit();
-      this.close();
+      this.close(true);
     } catch (error) {
       console.error('Error al crear el informe administrativo:', error);
       this.error = 'No se pudo guardar el informe administrativo.';

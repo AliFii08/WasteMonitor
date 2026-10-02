@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TablePagination } from '../../@core/components/table-pagination/table-pagination';
 import { InformeAdministrativo, InformeService } from '../../@core/services/informe.service';
 import { CreateAdminReport } from './components/create-admin-report/create-admin-report';
 import { UpdateAdminReport } from './components/update-admin-report/update-admin-report';
@@ -9,31 +10,43 @@ import { DeleteAdminReport } from './components/delete-admin-report/delete-admin
 @Component({
   selector: 'app-admin-journey-report',
   standalone: true,
-  imports: [CommonModule, FormsModule, CreateAdminReport, UpdateAdminReport, DeleteAdminReport],
+  imports: [CommonModule, FormsModule, TablePagination, CreateAdminReport, UpdateAdminReport, DeleteAdminReport],
   templateUrl: './admin-journey-report.html',
   styleUrl: './admin-journey-report.scss',
 })
-export class AdminJourneyReport {
+export class AdminJourneyReport implements OnInit {
   private informeService = inject(InformeService);
+  private changeDetector = inject(ChangeDetectorRef);
 
   fechaSeleccionada = '';
   fechaInicial = this.obtenerFechaActual();
   searchTerm = '';
+  paginaInformes = 0;
+  readonly tamanoPaginaInformes = 10;
   informesGuardados: InformeAdministrativo[] = [];
+  selectedAdminReportIds = new Set<string>();
+
   crearVisible = false;
   editarVisible = false;
   eliminarVisible = false;
   informeSeleccionado: InformeAdministrativo | null = null;
+  informesParaEliminar: InformeAdministrativo[] = [];
 
-  constructor() {
+  ngOnInit(): void {
     void this.cargarInformesGuardados();
   }
 
   async cargarInformesGuardados(): Promise<void> {
     try {
       this.informesGuardados = await this.informeService.obtenerInformesAdministrativos();
+      const idsDisponibles = new Set(this.informesGuardados.map((informe) => informe.id));
+      this.selectedAdminReportIds = new Set(
+        [...this.selectedAdminReportIds].filter((id) => idsDisponibles.has(id)),
+      );
     } catch (error) {
       console.error('Error al cargar los informes administrativos:', error);
+    } finally {
+      this.changeDetector.detectChanges();
     }
   }
 
@@ -46,6 +59,11 @@ export class AdminJourneyReport {
     );
   }
 
+  get informesPaginados(): InformeAdministrativo[] {
+    const inicio = this.paginaInformes * this.tamanoPaginaInformes;
+    return this.informesFiltrados.slice(inicio, inicio + this.tamanoPaginaInformes);
+  }
+
   abrirEditar(informe: InformeAdministrativo): void {
     this.informeSeleccionado = informe;
     this.editarVisible = true;
@@ -53,6 +71,7 @@ export class AdminJourneyReport {
 
   abrirEliminar(informe: InformeAdministrativo): void {
     this.informeSeleccionado = informe;
+    this.informesParaEliminar = [];
     this.eliminarVisible = true;
   }
 
@@ -61,6 +80,58 @@ export class AdminJourneyReport {
     const mes = String(fecha.getMonth() + 1).padStart(2, '0');
     const dia = String(fecha.getDate()).padStart(2, '0');
     return `${fecha.getFullYear()}-${mes}-${dia}`;
+  }
+
+  get allAdminReportSelected(): boolean {
+    return this.informesFiltrados.length > 0 && this.informesFiltrados.every(
+      (informe) => this.selectedAdminReportIds.has(informe.id),
+    );
+  }
+
+  isAdminReportSelected(id: string): boolean {
+    return this.selectedAdminReportIds.has(id);
+  }
+
+  toggleSelectAll(checked: boolean): void {
+    const selectedIds = new Set(this.selectedAdminReportIds);
+    this.informesFiltrados.forEach((informe) => {
+      if (checked) selectedIds.add(informe.id);
+      else selectedIds.delete(informe.id);
+    });
+    this.selectedAdminReportIds = selectedIds;
+  }
+
+  toggleAdminReport(id: string, checked: boolean): void {
+    const selectedIds = new Set(this.selectedAdminReportIds);
+    if (checked) selectedIds.add(id);
+    else selectedIds.delete(id);
+    this.selectedAdminReportIds = selectedIds;
+  }
+
+  get hasSelectedItems(): boolean {
+    return this.selectedAdminReportIds.size > 0;
+  }
+
+  get selectedCount(): number {
+    return this.selectedAdminReportIds.size;
+  }
+
+  eliminarInformesSeleccionados(): void {
+    const informesSeleccionados = this.informesGuardados.filter((informe) =>
+      this.selectedAdminReportIds.has(informe.id),
+    );
+    if (!informesSeleccionados.length) return;
+
+    this.informeSeleccionado = null;
+    this.informesParaEliminar = informesSeleccionados;
+    this.eliminarVisible = true;
+  }
+
+  async onInformesEliminados(): Promise<void> {
+    this.selectedAdminReportIds = new Set();
+    this.informeSeleccionado = null;
+    this.informesParaEliminar = [];
+    await this.cargarInformesGuardados();
   }
 
 }
