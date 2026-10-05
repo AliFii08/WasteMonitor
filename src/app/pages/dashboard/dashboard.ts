@@ -6,6 +6,7 @@ import { HistorialOperaciones } from './components/historial-operaciones/histori
 import { Employees } from "./components/employees/employees";
 import { Vehicles } from './components/vehicles/vehicles';
 import { WasteTrends } from './components/waste-trends/waste-trends';
+import { WorkshopAnalytics } from './components/workshop-analytics/workshop-analytics';
 
 type DashboardTab = 'vehicles' | 'employees' | 'operations';
 
@@ -19,7 +20,7 @@ interface DashboardNotification {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [HistorialOperaciones, Employees, Vehicles, WasteTrends],
+  imports: [HistorialOperaciones, Employees, Vehicles, WasteTrends, WorkshopAnalytics],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })

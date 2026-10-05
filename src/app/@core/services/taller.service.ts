@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Database, ref, push, set, update, remove, get } from '@angular/fire/database';
+import { Database, ref, push, set, update, remove, get, onValue } from '@angular/fire/database';
 import { Auth } from '@angular/fire/auth';
 
 export type TallerEstado = 'en_reparacion' | 'espera_repuesto' | 'espera_entrega' | 'listo';
@@ -55,6 +55,48 @@ export class TallerService {
 
     lista.sort((a, b) => String(b.creadoEl ?? '').localeCompare(String(a.creadoEl ?? '')));
     return lista;
+  }
+
+  escucharResumenEnVivo(
+    alActualizar: (registros: TallerRegistro[], camiones: Camion[]) => void,
+    alError: (error: Error) => void = () => {},
+  ): () => void {
+    let registros: TallerRegistro[] | null = null;
+    let camiones: Camion[] | null = null;
+
+    const emitirSiListo = (): void => {
+      if (registros && camiones) alActualizar(registros, camiones);
+    };
+
+    const detenerTaller = onValue(
+      ref(this.db, 'taller'),
+      (snapshot) => {
+        const data = snapshot.val() ?? {};
+        registros = Object.entries(data)
+          .map(([idKey, value]) => ({ idKey, ...(value as Omit<TallerRegistro, 'idKey'>) }))
+          .filter((registro) => !!registro.idCamion && registro.activo !== false);
+        emitirSiListo();
+      },
+      alError,
+    );
+
+    const detenerCamiones = onValue(
+      this.camionesRef,
+      (snapshot) => {
+        const data = snapshot.val() ?? {};
+        camiones = Object.entries(data).map(([idKey, value]) => ({
+          idKey,
+          ...(value as Omit<Camion, 'idKey'>),
+        }));
+        emitirSiListo();
+      },
+      alError,
+    );
+
+    return () => {
+      detenerTaller();
+      detenerCamiones();
+    };
   }
 
   async getCamiones(): Promise<Camion[]> {
