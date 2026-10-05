@@ -182,10 +182,13 @@
 	color: #fff;
 }
 
-.btn-submit:disabled {
-	opacity: 0.55;
-	cursor: not-allowed;
-}
+.btn-submit {
+	&:disabled {
+	  opacity: 0.5;
+	  cursor: not-allowed;
+	  pointer-events: none;
+	}
+  }
 
 .error {
 	margin: 0;

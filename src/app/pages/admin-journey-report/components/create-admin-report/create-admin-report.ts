@@ -44,6 +44,16 @@ export class CreateAdminReport implements OnChanges, OnDestroy {
   error = '';
   private detenerResumen?: () => void;
 
+  get isSubmitDisabled(): boolean {
+    return (
+      this.saving ||
+      this.loadingResumen ||
+      !this.resumenCargado ||
+      !this.fecha ||
+      this.informesSinFinalizar > 0
+    );
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['visible']?.currentValue === true) {
       this.fecha = this.fechaInicial;
@@ -121,7 +131,7 @@ export class CreateAdminReport implements OnChanges, OnDestroy {
   }
 
   async submit(): Promise<void> {
-    if (!this.fecha || this.saving || this.loadingResumen || !this.resumenCargado) return;
+    if (this.isSubmitDisabled) return;
     this.saving = true;
     this.error = '';
     try {

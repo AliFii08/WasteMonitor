@@ -21,7 +21,7 @@
         @if (error) { <p class="error">{{ error }}</p> }
         <footer class="modal-footer">
           <button type="button" class="btn-cancel" (click)="close()">Cancelar</button>
-          <button type="submit" class="btn-submit" [disabled]="saving || loadingResumen || !resumenCargado || !fecha">{{ saving ? 'Guardando...' : 'Crear informe' }}</button>
+          <button type="submit" class="btn-submit" [disabled]="isSubmitDisabled">{{ saving ? 'Guardando...' : 'Crear informe' }}</button>
         </footer>
       </form>
     </section>
