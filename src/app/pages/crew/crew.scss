@@ -59,12 +59,15 @@
 
 .search-input-wrap i {
   position: absolute;
+  top: 50%;
   right: 0.75rem;
+  transform: translateY(-50%);
   color: #64748b;
   pointer-events: none;
 }
 
 .search-input {
+  box-sizing: border-box;
   min-width: 230px;
   height: 42px;
   border: 1px solid #c9d9c6;

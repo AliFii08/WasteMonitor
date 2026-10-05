@@ -81,7 +81,9 @@
 
 .search-input-wrap .pi-search {
   position: absolute;
+  top: 50%;
   right: 0.75rem;
+  transform: translateY(-50%);
   color: #64748b;
   pointer-events: none;
 }
@@ -215,6 +217,33 @@
   padding: 2rem 1rem !important;
   color: #60756c !important;
   text-align: center;
+}
+
+@media (max-width: 720px) {
+  .admin-report-page {
+    padding-top: 0;
+  }
+
+  .admin-report-page .title {
+    align-items: center;
+    margin: 0 auto 34px;
+    padding: 0;
+    text-align: center;
+  }
+
+  .admin-report-page .title h1 {
+    width: 100%;
+    margin: 0.67em 0 10px;
+    font-size: 34px;
+    text-align: center;
+  }
+
+  .admin-report-page .title span {
+    width: 100%;
+    padding: 0 0.5rem;
+    font-size: 16px;
+    text-align: center;
+  }
 }
 
 @media (max-width: 600px) {
