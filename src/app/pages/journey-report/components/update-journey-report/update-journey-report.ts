@@ -63,7 +63,20 @@ export class UpdateJourneyReport implements OnChanges {
 
   get puedeFinalizar(): boolean {
     const estado = String(this.reporte?.estado || '').toLowerCase();
-    return this.isSupervisor && estado !== 'finalizado' && estado !== 'firmado';
+    return this.isSupervisor && this.puedeEditarInforme && estado !== 'finalizado' && estado !== 'firmado';
+  }
+
+  get puedeEditarInforme(): boolean {
+    const currentUserId = this.auth.currentUser?.uid;
+    const creatorId =
+      this.reporte?.uidUsuario ||
+      this.reporte?.idUsuario ||
+      this.reporte?.usuario ||
+      this.reporte?.usuarioId ||
+      this.reporte?.userId;
+    const estado = String(this.reporte?.estado ?? '').toLowerCase();
+    return !!currentUserId && creatorId === currentUserId &&
+      estado !== 'finalizado' && estado !== 'firmado' && this.reporte?.estado !== true;
   }
 
   get estaFirmado(): boolean {
@@ -195,7 +208,7 @@ export class UpdateJourneyReport implements OnChanges {
 
   // --- CONTROL DEL MINI MODAL ---
   abrirModalNuevoViaje(): void {
-    if (this.estaFirmado) return;
+    if (!this.puedeEditarInforme) return;
     this.nuevoViaje = { descripcion: '', direccionDelLlenado: '', tonRecogidas: null };
     this.showAddTripModal = true;
   }
@@ -205,7 +218,7 @@ export class UpdateJourneyReport implements OnChanges {
   }
 
   async guardarNuevoViaje(): Promise<void> {
-    if (this.estaFirmado) return;
+    if (!this.puedeEditarInforme) return;
     const targetInformeId = this.reporte?.id;
     if (!targetInformeId) return;
 
@@ -241,7 +254,7 @@ export class UpdateJourneyReport implements OnChanges {
 
   // Guarda únicamente el viaje de la pestaña abierta
   async actualizarViajeActivo(): Promise<void> {
-    if (this.estaFirmado) return;
+    if (!this.puedeEditarInforme) return;
     const viaje = this.viajeActivo;
 
     if (!viaje || !viaje.id) {
@@ -282,7 +295,7 @@ export class UpdateJourneyReport implements OnChanges {
 
   // --- GUARDAR EDICIONES DEL INFORME Y SUS VIAJES EXISTENTES ---
   async onSubmit(): Promise<void> {
-    if (!this.reporte?.id || this.estaFirmado) return;
+    if (!this.reporte?.id || !this.puedeEditarInforme) return;
     this.isSubmitting = true;
 
     try {
@@ -410,7 +423,7 @@ export class UpdateJourneyReport implements OnChanges {
   async eliminarViaje(index: number, event: Event): Promise<void> {
     event.stopPropagation();
 
-    if (this.estaFirmado) return;
+    if (!this.puedeEditarInforme) return;
 
     const viajeAEliminar = this.viajesList[index];
     if (!viajeAEliminar) return;
@@ -426,6 +439,7 @@ export class UpdateJourneyReport implements OnChanges {
   }
 
   private async eliminarViajeDeFirebase(viajeId: string): Promise<void> {
+    if (!this.puedeEditarInforme) return;
     this.isLoading = true;
     try {
       await remove(ref(this.db, `viajes/${viajeId}`));

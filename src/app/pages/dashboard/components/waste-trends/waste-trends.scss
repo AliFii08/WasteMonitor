@@ -1,5 +1,5 @@
 .trend-panel {
-  padding: 1rem;
+  padding: 1.5rem 1.75rem;
   color: #173d32;
 }
 
@@ -7,42 +7,45 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
 
   h2 {
     margin: 0.2rem 0 0.35rem;
     color: #0f4b3a;
-    font-size: 1.2rem;
+    font-size: 1.5rem;
   }
 
   p {
     margin: 0;
     color: #607b70;
-    font-size: 0.8rem;
+    font-size: 1rem;
+    line-height: 1.5;
   }
 }
 
 .eyebrow {
   color: #68a357;
-  font-size: 0.68rem;
+  font-size: 0.8rem;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
 .daily-summary {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.6rem;
-  margin-bottom: 1.1rem;
+  gap: 0.8rem;
+  margin-bottom: 1.4rem;
 
   div {
     display: flex;
     min-width: 0;
+    min-height: 84px;
     flex-direction: column;
-    gap: 0.2rem;
-    padding: 0.7rem 0.8rem;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 1rem 1.1rem;
     border: 1px solid #dbe7e0;
     border-radius: 9px;
     background: #fff;
@@ -50,7 +53,7 @@
 
   span {
     color: #607b70;
-    font-size: 0.66rem;
+    font-size: 0.8rem;
     font-weight: 800;
     text-transform: uppercase;
   }
@@ -58,18 +61,18 @@
   strong {
     overflow: hidden;
     color: #06523f;
-    font-size: 0.82rem;
+    font-size: 1rem;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 }
 
 .monthly-leader {
-  min-width: 150px;
+  min-width: 180px;
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  padding: 0.7rem 0.85rem;
+  gap: 0.35rem;
+  padding: 1rem 1.1rem;
   border: 1px solid #cfe3d8;
   border-radius: 9px;
   background: #f1f8f4;
@@ -77,32 +80,32 @@
   span,
   small {
     color: #607b70;
-    font-size: 0.68rem;
+    font-size: 0.8rem;
   }
 
   strong {
     color: #06523f;
-    font-size: 0.84rem;
+    font-size: 1rem;
   }
 }
 
 .bar-chart {
   display: grid;
-  gap: 0.85rem;
+  gap: 1.1rem;
 }
 
 .bar-row {
   display: grid;
   grid-template-columns: minmax(140px, 0.8fr) minmax(120px, 2fr) auto;
   align-items: center;
-  gap: 0.8rem;
+  gap: 1rem;
 }
 
 .bar-label {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: 0.25rem;
 
   strong,
   span {
@@ -113,17 +116,17 @@
 
   strong {
     color: #173d32;
-    font-size: 0.8rem;
+    font-size: 1rem;
   }
 
   span {
     color: #789084;
-    font-size: 0.7rem;
+    font-size: 0.85rem;
   }
 }
 
 .bar-track {
-  height: 10px;
+  height: 14px;
   overflow: hidden;
   border-radius: 999px;
   background: #e5efe9;
@@ -140,20 +143,29 @@
 
 .bar-value {
   color: #06523f;
-  font-size: 0.8rem;
+  font-size: 0.95rem;
   white-space: nowrap;
 }
 
 .trend-state {
-  padding: 1.5rem 1rem;
+  display: grid;
+  min-height: 96px;
+  box-sizing: border-box;
+  place-items: center;
+  padding: 1.5rem;
   border: 1px dashed #c9d9c6;
   border-radius: 9px;
   color: #607b70;
-  font-size: 0.82rem;
+  font-size: 1rem;
+  line-height: 1.5;
   text-align: center;
 }
 
 @media (max-width: 680px) {
+  .trend-panel {
+    padding: 1.25rem;
+  }
+
   .daily-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

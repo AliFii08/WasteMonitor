@@ -198,6 +198,19 @@
   color: #06523f;
 }
 
+.preview-table tbody tr.clickable-row {
+  cursor: pointer;
+}
+
+.preview-table tbody tr.clickable-row:hover {
+  background-color: rgba(104, 163, 87, 0.16);
+}
+
+.preview-table tbody tr.clickable-row:focus-visible {
+  outline: 2px solid #06523f;
+  outline-offset: -2px;
+}
+
 .empty-row {
   padding: 2rem 1rem !important;
   color: #60756c !important;

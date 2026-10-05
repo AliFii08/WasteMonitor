@@ -46,6 +46,7 @@ export interface ResumenJornadaAdministrativa {
 
 export interface InformeAdministrativo {
   id: string;
+  creadoPor?: string;
   fecha: string;
   toneladasTotales?: number;
   viajesTotales?: number;
@@ -54,6 +55,8 @@ export interface InformeAdministrativo {
   sectorLider?: string;
   observaciones?: string;
   creadoEl?: string;
+  finalizado?: boolean;
+  finalizadoEl?: string;
 }
 
 export interface ResumenInformesFinalizados {
@@ -187,14 +190,23 @@ export class InformeService {
     observaciones: string,
     resumen: ResumenInformesFinalizados,
   ): Promise<void> {
+    const currentUser = getAuth().currentUser;
+    if (!currentUser) throw new Error('Se requiere una sesión para crear el informe.');
+    const userSnapshot = await get(ref(this.db, `usuarios/${currentUser.uid}`));
+    const role = userSnapshot.val()?.rol;
+    if (role !== 'admin' && role !== 'supervisor') {
+      throw new Error('El usuario no tiene permiso para crear informes administrativos.');
+    }
     const informeRef = push(ref(this.db, 'informe_administrativo'));
     await update(informeRef, {
+      creadoPor: currentUser.uid,
       fecha,
       toneladasTotales: resumen.toneladasTotales,
       viajesTotales: resumen.viajesTotales,
       informesFinalizados: resumen.informesFinalizados,
       observaciones: observaciones.trim(),
       creadoEl: new Date().toISOString(),
+      finalizado: false,
     });
   }
 
@@ -286,7 +298,13 @@ export class InformeService {
       informesFinalizados: number;
     },
   ): Promise<void> {
-    await update(ref(this.db, `informe_administrativo/${id}`), {
+    const informeRef = ref(this.db, `informe_administrativo/${id}`);
+    const snapshot = await get(informeRef);
+    if (!snapshot.exists() || snapshot.val()?.finalizado === true) {
+      throw new Error('El informe ya está finalizado y no se puede modificar.');
+    }
+    await this.verificarPermisoInformeAdministrativo(snapshot.val());
+    await update(informeRef, {
       fecha: data.fecha,
       toneladasTotales: data.toneladasTotales,
       viajesTotales: data.viajesTotales,
@@ -295,8 +313,51 @@ export class InformeService {
     });
   }
 
+  async finalizarInformeAdministrativo(
+    id: string,
+    data: {
+      fecha: string;
+      observaciones: string;
+      toneladasTotales: number;
+      viajesTotales: number;
+      informesFinalizados: number;
+    },
+  ): Promise<void> {
+    const informeRef = ref(this.db, `informe_administrativo/${id}`);
+    const snapshot = await get(informeRef);
+    if (!snapshot.exists() || snapshot.val()?.finalizado === true) {
+      throw new Error('El informe ya está finalizado y no se puede modificar.');
+    }
+    await this.verificarPermisoInformeAdministrativo(snapshot.val());
+    await update(informeRef, {
+      ...data,
+      observaciones: data.observaciones.trim(),
+      finalizado: true,
+      finalizadoEl: new Date().toISOString(),
+    });
+  }
+
   async eliminarInformeAdministrativo(id: string): Promise<void> {
-    await remove(ref(this.db, `informe_administrativo/${id}`));
+    const informeRef = ref(this.db, `informe_administrativo/${id}`);
+    const snapshot = await get(informeRef);
+    if (!snapshot.exists()) throw new Error('No se encontró el informe.');
+    const isAdmin = await this.verificarPermisoInformeAdministrativo(snapshot.val());
+    if (snapshot.val()?.finalizado === true && !isAdmin) {
+      throw new Error('El informe ya está finalizado y no se puede eliminar.');
+    }
+    await remove(informeRef);
+  }
+
+  private async verificarPermisoInformeAdministrativo(informe: any): Promise<boolean> {
+    const currentUser = getAuth().currentUser;
+    if (!currentUser) throw new Error('Se requiere una sesión para modificar el informe.');
+    const userSnapshot = await get(ref(this.db, `usuarios/${currentUser.uid}`));
+    const role = userSnapshot.val()?.rol;
+    const isAdmin = role === 'admin';
+    if (!isAdmin && (role !== 'supervisor' || informe?.creadoPor !== currentUser.uid)) {
+      throw new Error('Solo el creador puede modificar o eliminar este informe.');
+    }
+    return isAdmin;
   }
 
   private obtenerFechaClave(fecha: unknown): string {
@@ -370,6 +431,12 @@ export class InformeService {
     data: { descripcion: string; direccionDelLlenado: string; tonRecogidas: number },
   ): Promise<void> {
     const viajeRef = ref(this.db, `viajes/${viajeId}`);
+    const viajeSnapshot = await get(viajeRef);
+    const informeId = String(viajeSnapshot.val()?.informeId || '');
+    if (!viajeSnapshot.exists() || !informeId) {
+      throw new Error('No se encontró el informe asociado al viaje.');
+    }
+    await this.verificarInformeEditable(informeId);
 
     await update(viajeRef, {
       descripcion: String(data.descripcion || ''),
@@ -384,6 +451,7 @@ export class InformeService {
     ruta: string,
     viajes: ViajeItem[],
   ): Promise<void> {
+    await this.verificarInformeEditable(informeId);
     const updatesPayload: Record<string, any> = {};
 
     updatesPayload[`informe_de_viaje/${informeId}/camion`] = String(camion || '');
@@ -404,10 +472,34 @@ export class InformeService {
   }
 
   async finalizarInforme(informeId: string, usuarioId: string): Promise<void> {
+    if (getAuth().currentUser?.uid !== usuarioId) {
+      throw new Error('Solo el creador del informe puede finalizarlo.');
+    }
+    await this.verificarInformeEditable(informeId);
     await update(ref(this.db, `informe_de_viaje/${informeId}`), {
       estado: 'finalizado',
       finalizadoEl: new Date().toISOString(),
       finalizadoPor: usuarioId,
     });
+  }
+
+  private async verificarInformeEditable(informeId: string): Promise<void> {
+    const currentUserId = getAuth().currentUser?.uid;
+    const snapshot = await get(ref(this.db, `informe_de_viaje/${informeId}`));
+    const informe = snapshot.val();
+    const creadorId =
+      informe?.uidUsuario ||
+      informe?.idUsuario ||
+      informe?.usuario ||
+      informe?.usuarioId ||
+      informe?.userId;
+    const estado = String(informe?.estado ?? '').toLowerCase();
+
+    if (!snapshot.exists() || !currentUserId || creadorId !== currentUserId) {
+      throw new Error('Solo el creador del informe puede modificarlo.');
+    }
+    if (estado === 'finalizado' || estado === 'firmado' || informe?.estado === true) {
+      throw new Error('El informe ya está finalizado y no se puede modificar.');
+    }
   }
 }

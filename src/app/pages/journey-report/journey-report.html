@@ -59,7 +59,7 @@
             (keydown.enter)="openViewModal(reporte)" (keydown.space)="$event.preventDefault(); openViewModal(reporte)">
             @if (isAdmin) {
             <td>
-              <input type="checkbox" [checked]="selectedReportRows[i]"
+              <input class="row-select" type="checkbox" [checked]="selectedReportRows[i]"
                 (click)="$event.stopPropagation()"
                 (change)="toggleReportRow(i, $any($event.target).checked)" />
             </td>
@@ -84,7 +84,7 @@
                   (click)="$event.stopPropagation(); openViewModal(reporte)">
                   <i class="pi pi-eye"></i>
                 </button>
-                @if (!isAdmin) {
+                @if (canEditReport(reporte)) {
                   <button type="button" class="icon-btn" title="Editar"
                     (click)="$event.stopPropagation(); openUpdateModal(reporte)">
                     <i class="pi pi-pencil"></i>

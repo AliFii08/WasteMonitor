@@ -20,9 +20,11 @@
         </button>
       }
     </div>
-    <button type="button" class="create-btn" (click)="crearVisible = true">
-      <i class="pi pi-plus"></i> Crear informe
-    </button>
+    @if (canCreateReports) {
+      <button type="button" class="create-btn" (click)="crearVisible = true">
+        <i class="pi pi-plus"></i> Crear informe
+      </button>
+    }
   </div>
 
   <section class="preview-section" aria-label="Tabla de informes administrativos">
@@ -33,12 +35,13 @@
             <th>
               <button type="button" class="select-all-icon" [class.is-selected]="allAdminReportSelected"
                   [attr.aria-pressed]="allAdminReportSelected" aria-label="Seleccionar todos"
-                  [disabled]="!informesFiltrados.length"
+                  [disabled]="!hasManageableReports"
                   (click)="toggleSelectAll(!allAdminReportSelected)">
                   <i class="pi pi-check-square"></i>
                 </button>
               </th>
             <th>Fecha</th>
+            <th>Estado</th>
             <th>Informes finalizados</th>
             <th>Viajes</th>
             <th>Toneladas</th>
@@ -47,30 +50,40 @@
         </thead>
         <tbody>
           @for (informe of informesPaginados; track informe.id) {
-            <tr>
+            <tr class="clickable-row" tabindex="0" (click)="abrirEditar(informe)"
+              (keydown.enter)="abrirEditar(informe)"
+              (keydown.space)="$event.preventDefault(); abrirEditar(informe)">
               <td>
-                <input class="row-select" type="checkbox" [checked]="isAdminReportSelected(informe.id)"
+                <input class="row-select" type="checkbox" [checked]="isAdminReportSelected(informe.id)" [disabled]="!canManageReport(informe)"
                   [attr.aria-label]="'Seleccionar informe del ' + informe.fecha"
+                  (click)="$event.stopPropagation()"
+                  (keydown.enter)="$event.stopPropagation()"
+                  (keydown.space)="$event.stopPropagation()"
                   (change)="toggleAdminReport(informe.id, $any($event.target).checked)" />
               </td>
               <td><strong>{{ informe.fecha }}</strong></td>
+              <td>{{ informe.finalizado ? 'Finalizado' : 'En edición' }}</td>
               <td>{{ informe.informesFinalizados || 0 }}</td>
               <td>{{ informe.viajesTotales || 0 }}</td>
               <td>{{ (informe.toneladasTotales || 0) | number: '1.0-2' }} ton</td>
               <td class="options-header">
                 <div class="option-actions">
-                  <button type="button" class="icon-btn" title="Editar informe" (click)="abrirEditar(informe)">
-                    <i class="pi pi-pencil"></i>
+                  <button type="button" class="icon-btn" [title]="canEditReport(informe) ? 'Editar informe' : 'Ver informe'" (click)="$event.stopPropagation(); abrirEditar(informe)"
+                    (keydown.enter)="$event.stopPropagation()" (keydown.space)="$event.stopPropagation()">
+                    <i [class]="canEditReport(informe) ? 'pi pi-pencil' : 'pi pi-eye'"></i>
                   </button>
-                  <button type="button" class="icon-btn danger" title="Eliminar informe" (click)="abrirEliminar(informe)">
-                    <i class="pi pi-trash"></i>
-                  </button>
+                  @if (canManageReport(informe)) {
+                    <button type="button" class="icon-btn danger" title="Eliminar informe" (click)="$event.stopPropagation(); abrirEliminar(informe)"
+                      (keydown.enter)="$event.stopPropagation()" (keydown.space)="$event.stopPropagation()">
+                      <i class="pi pi-trash"></i>
+                    </button>
+                  }
                 </div>
               </td>
             </tr>
           } @empty {
             <tr>
-              <td colspan="6" class="empty-row">No hay informes administrativos registrados.</td>
+              <td colspan="7" class="empty-row">No hay informes administrativos registrados.</td>
             </tr>
           }
         </tbody>
@@ -86,5 +99,5 @@
 </main>
 
 <app-create-admin-report [(visible)]="crearVisible" [fechaInicial]="fechaInicial" (created)="cargarInformesGuardados()"></app-create-admin-report>
-<app-update-admin-report [(visible)]="editarVisible" [informe]="informeSeleccionado" (updated)="cargarInformesGuardados()"></app-update-admin-report>
+<app-update-admin-report [(visible)]="editarVisible" [informe]="informeSeleccionado" [readOnly]="!canManageSelectedReport" (updated)="cargarInformesGuardados()"></app-update-admin-report>
 <app-delete-admin-report [(visible)]="eliminarVisible" [informe]="informeSeleccionado" [informesSeleccionados]="informesParaEliminar" (deleted)="onInformesEliminados()"></app-delete-admin-report>

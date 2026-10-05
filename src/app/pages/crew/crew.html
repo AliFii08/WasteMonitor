@@ -52,7 +52,7 @@
           <tr class="clickable-row" tabindex="0" (click)="openDetailsModal(row.driver)"
             (keydown.enter)="openDetailsModal(row.driver)" (keydown.space)="$event.preventDefault(); openDetailsModal(row.driver)">
             <td>
-              <input type="checkbox" [checked]="selectedDriverRows[i]"
+              <input class="row-select" type="checkbox" [checked]="selectedDriverRows[i]"
                 (click)="$event.stopPropagation()"
                 (change)="toggleDriverRow(i, $any($event.target).checked)" />
             </td>

@@ -6,6 +6,7 @@ import { InformeAdministrativo, InformeService } from '../../@core/services/info
 import { CreateAdminReport } from './components/create-admin-report/create-admin-report';
 import { UpdateAdminReport } from './components/update-admin-report/update-admin-report';
 import { DeleteAdminReport } from './components/delete-admin-report/delete-admin-report';
+import { UserService } from '../../@core/services/user.service';
 
 @Component({
   selector: 'app-admin-journey-report',
@@ -17,6 +18,7 @@ import { DeleteAdminReport } from './components/delete-admin-report/delete-admin
 export class AdminJourneyReport implements OnInit {
   private informeService = inject(InformeService);
   private changeDetector = inject(ChangeDetectorRef);
+  private userService = inject(UserService);
 
   fechaSeleccionada = '';
   fechaInicial = this.obtenerFechaActual();
@@ -36,12 +38,40 @@ export class AdminJourneyReport implements OnInit {
     void this.cargarInformesGuardados();
   }
 
+  get canCreateReports(): boolean {
+    const role = this.userService.currentUserSignal()?.rol;
+    return role === 'admin' || role === 'supervisor';
+  }
+
+  get hasManageableReports(): boolean {
+    return this.informesFiltrados.some((informe) => this.canManageReport(informe));
+  }
+
+  canManageReport(informe: InformeAdministrativo): boolean {
+    const currentUser = this.userService.currentUserSignal();
+    if (!currentUser) return false;
+    if (currentUser.rol === 'admin') return true;
+    return !informe.finalizado && informe.creadoPor === currentUser.uid;
+  }
+
+  canEditReport(informe: InformeAdministrativo): boolean {
+    return this.canManageReport(informe) && !informe.finalizado;
+  }
+
+  get canManageSelectedReport(): boolean {
+    return !!this.informeSeleccionado && this.canManageReport(this.informeSeleccionado);
+  }
+
   async cargarInformesGuardados(): Promise<void> {
     try {
       this.informesGuardados = await this.informeService.obtenerInformesAdministrativos();
       const idsDisponibles = new Set(this.informesGuardados.map((informe) => informe.id));
       this.selectedAdminReportIds = new Set(
-        [...this.selectedAdminReportIds].filter((id) => idsDisponibles.has(id)),
+        [...this.selectedAdminReportIds].filter((id) =>
+          idsDisponibles.has(id) && this.informesGuardados.some(
+            (informe) => informe.id === id && this.canManageReport(informe),
+          ),
+        ),
       );
     } catch (error) {
       console.error('Error al cargar los informes administrativos:', error);
@@ -70,6 +100,7 @@ export class AdminJourneyReport implements OnInit {
   }
 
   abrirEliminar(informe: InformeAdministrativo): void {
+    if (!this.canManageReport(informe)) return;
     this.informeSeleccionado = informe;
     this.informesParaEliminar = [];
     this.eliminarVisible = true;
@@ -83,7 +114,8 @@ export class AdminJourneyReport implements OnInit {
   }
 
   get allAdminReportSelected(): boolean {
-    return this.informesFiltrados.length > 0 && this.informesFiltrados.every(
+    const informesEditables = this.informesFiltrados.filter((informe) => this.canManageReport(informe));
+    return informesEditables.length > 0 && informesEditables.every(
       (informe) => this.selectedAdminReportIds.has(informe.id),
     );
   }
@@ -95,6 +127,7 @@ export class AdminJourneyReport implements OnInit {
   toggleSelectAll(checked: boolean): void {
     const selectedIds = new Set(this.selectedAdminReportIds);
     this.informesFiltrados.forEach((informe) => {
+      if (!this.canManageReport(informe)) return;
       if (checked) selectedIds.add(informe.id);
       else selectedIds.delete(informe.id);
     });
@@ -102,6 +135,8 @@ export class AdminJourneyReport implements OnInit {
   }
 
   toggleAdminReport(id: string, checked: boolean): void {
+    const informe = this.informesGuardados.find((item) => item.id === id);
+    if (!informe || !this.canManageReport(informe)) return;
     const selectedIds = new Set(this.selectedAdminReportIds);
     if (checked) selectedIds.add(id);
     else selectedIds.delete(id);
@@ -118,7 +153,7 @@ export class AdminJourneyReport implements OnInit {
 
   eliminarInformesSeleccionados(): void {
     const informesSeleccionados = this.informesGuardados.filter((informe) =>
-      this.selectedAdminReportIds.has(informe.id),
+      this.selectedAdminReportIds.has(informe.id) && this.canManageReport(informe),
     );
     if (!informesSeleccionados.length) return;
 

@@ -127,27 +127,30 @@ export class Taller implements OnInit {
   toggleSelectAll(checked: boolean): void {
     this.allTallerSelected = checked;
     this.selectedTallerRows = this.selectedTallerRows.map((_, i) =>
-      this.tallerRowVisible[i] ? checked : false,
+      this.tallerRowVisible[i] && this.canSelectTaller(this.tallerList[i]) ? checked : false,
     );
   }
 
   toggleRow(index: number, checked: boolean): void {
+    if (!this.tallerList[index] || !this.canSelectTaller(this.tallerList[index])) return;
     this.selectedTallerRows[index] = checked;
-    this.allTallerSelected = this.selectedTallerRows.every((val) => val);
+    this.allTallerSelected = this.tallerList.every(
+      (item, i) => !this.tallerRowVisible[i] || !this.canSelectTaller(item) || this.selectedTallerRows[i],
+    );
   }
 
   get hasSelectedItems(): boolean {
-    return this.selectedTallerRows.some((selected) => selected);
+    return this.tallerList.some((item, i) => this.selectedTallerRows[i] && this.canSelectTaller(item));
   }
 
   get selectedCount(): number {
-    return this.selectedTallerRows.filter(Boolean).length;
+    return this.tallerList.filter((item, i) => this.selectedTallerRows[i] && this.canSelectTaller(item)).length;
   }
 
   // Muestra modal para eliminación individual
-  confirmDeleteSingle(idKey?: string): void {
-    if (!idKey) return;
-    this.itemToDeleteKey = idKey;
+  confirmDeleteSingle(item: TallerRegistro): void {
+    if (!item.idKey || !this.canSelectTaller(item)) return;
+    this.itemToDeleteKey = item.idKey;
     this.deleteMode = 'single';
     this.showConfirmModal = true;
   }
@@ -181,6 +184,7 @@ export class Taller implements OnInit {
     try {
       if (this.deleteMode === 'single' && this.itemToDeleteKey) {
         const item = this.tallerList.find((r) => r.idKey === this.itemToDeleteKey);
+        if (!item || !this.canSelectTaller(item)) return;
         await this.tallerService.eliminarRegistro(this.itemToDeleteKey, item?.idCamion);
 
         // Registrar eliminación individual
@@ -194,7 +198,7 @@ export class Taller implements OnInit {
         });
       } else if (this.deleteMode === 'bulk') {
         const keysToDelete = this.tallerList
-          .filter((_, i) => this.selectedTallerRows[i] && this.tallerList[i].idKey)
+          .filter((item, i) => this.selectedTallerRows[i] && this.canSelectTaller(item) && item.idKey)
           .map((item) => item.idKey as string);
 
         if (keysToDelete.length > 0) {
@@ -232,8 +236,17 @@ export class Taller implements OnInit {
   }
 
   editRegistro(item: TallerRegistro): void {
-    if (this.isAdmin) return;
+    if (!this.canManageTaller(item)) return;
     this.updateModal?.open?.(item);
+  }
+
+  canManageTaller(item: TallerRegistro): boolean {
+    const currentUserId = this.userService.currentUserSignal()?.uid;
+    return !this.isAdmin && !!currentUserId && item.creadoPor === currentUserId;
+  }
+
+  canSelectTaller(item: TallerRegistro): boolean {
+    return this.isAdmin || this.canManageTaller(item);
   }
 
   viewRegistro(item: TallerRegistro): void {

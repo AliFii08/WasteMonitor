@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Database, ref, push, set, update, remove, get } from '@angular/fire/database';
+import { Auth } from '@angular/fire/auth';
 
 export type TallerEstado = 'en_reparacion' | 'espera_repuesto' | 'espera_entrega' | 'listo';
 export type TallerPrioridad = 'baja' | 'media' | 'alta';
@@ -15,6 +16,7 @@ export interface TallerRegistro {
   estado: TallerEstado;
   creadoEl: string;
   modificadoEl?: string;
+  creadoPor?: string;
   mecanicoId?: string;
   mecanicoNombre?: string;
   prioridad?: TallerPrioridad;
@@ -39,6 +41,7 @@ export interface Camion {
 @Injectable({ providedIn: 'root' })
 export class TallerService {
   private db = inject(Database);
+  private auth = inject(Auth);
   private tallerRef = ref(this.db, 'taller');
   private camionesRef = ref(this.db, 'camiones');
 
@@ -67,22 +70,28 @@ export class TallerService {
   }
 
   async crearRegistro(registro: TallerRegistroInput): Promise<string> {
+    const creadoPor = this.auth.currentUser?.uid;
+    if (!creadoPor) throw new Error('No hay un usuario autenticado para crear el registro.');
     const nuevoRef = push(this.tallerRef);
     const ahora = new Date().toISOString();
     await set(nuevoRef, {
       ...registro,
+      creadoPor,
       creadoEl: registro.creadoEl ?? ahora,
       modificadoEl: ahora,
     });
 
-    
-    
+
+
     return nuevoRef.key as string;
   }
 
   async actualizarRegistro(idKey: string, cambios: Partial<TallerRegistro>): Promise<void> {
+    const registroRef = ref(this.db, `taller/${idKey}`);
+    const snapshot = await get(registroRef);
+    await this.verificarPropietario(snapshot.val()?.creadoPor);
     const { idKey: _omit, ...resto } = cambios;
-    await update(ref(this.db, `taller/${idKey}`), {
+    await update(registroRef, {
       ...resto,
       modificadoEl: new Date().toISOString(),
     });
@@ -97,6 +106,9 @@ export class TallerService {
   }
 
   async eliminarRegistro(idKey: string, idCamion?: string): Promise<void> {
+    const registroRef = ref(this.db, `taller/${idKey}`);
+    const snapshot = await get(registroRef);
+    await this.verificarPropietario(snapshot.val()?.creadoPor);
     await update(ref(this.db, `taller/${idKey}`), {
       activo: false,
       modificadoEl: new Date().toISOString(),
@@ -109,6 +121,10 @@ export class TallerService {
 
   /** Borrado lógico masivo */
   async eliminarMultiples(keys: string[]): Promise<void> {
+    const snapshot = await get(this.tallerRef);
+    const data = snapshot.val() ?? {};
+    await Promise.all(keys.map((idKey) => this.verificarPropietario(data[idKey]?.creadoPor)));
+
     const actualizaciones: Record<string, any> = {};
     const ahora = new Date().toISOString();
 
@@ -120,13 +136,23 @@ export class TallerService {
     await update(ref(this.db), actualizaciones);
 
     // Liberamos el estado en taller de los camiones afectados
-    const snapshot = await get(this.tallerRef);
-    const data = snapshot.val() ?? {};
     for (const idKey of keys) {
       const camionId = data[idKey]?.idCamion;
       if (camionId) {
         await this.marcarCamionEnTaller(camionId, false);
       }
+    }
+  }
+
+  private async verificarPropietario(creadoPor?: string): Promise<void> {
+    const currentUserId = this.auth.currentUser?.uid;
+    if (!currentUserId) {
+      throw new Error('Se requiere una sesión para modificar el registro.');
+    }
+    const userSnapshot = await get(ref(this.db, `usuarios/${currentUserId}`));
+    if (userSnapshot.val()?.rol === 'admin') return;
+    if (!creadoPor || creadoPor !== currentUserId) {
+      throw new Error('Solo quien creó este registro puede modificarlo o eliminarlo.');
     }
   }
 }

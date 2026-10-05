@@ -169,6 +169,19 @@ selectedReportsList: any[] = [];
     return reporte?.estado === true || String(reporte?.estado ?? '').toLocaleLowerCase() === 'firmado';
   }
 
+  canEditReport(reporte: any): boolean {
+    const currentUserId = this.authService.getCurrentUserId();
+    const creatorId =
+      reporte?.uidUsuario ||
+      reporte?.idUsuario ||
+      reporte?.usuario ||
+      reporte?.usuarioId ||
+      reporte?.userId;
+    const estado = String(reporte?.estado ?? '').toLowerCase();
+    return !this.isAdmin && !!currentUserId && creatorId === currentUserId &&
+      estado !== 'finalizado' && estado !== 'firmado' && reporte?.estado !== true;
+  }
+
   // Modales y Acciones
   openCreateModal(): void {
     if (this.isAdmin) return;
@@ -181,27 +194,17 @@ selectedReportsList: any[] = [];
   }
 
   openUpdateModal(reporte: any): void {
-    if (this.isAdmin) return;
-    // 1. Obtener el UID del usuario en sesión
-    const currentUserId = this.authService.getCurrentUserId();
-
-    // 2. Extraer el UID del creador (tomando 'reporte.usuario' que es como está en Firebase)
-    const creadorId =
-      reporte?.uidUsuario ||
-      reporte?.idUsuario ||
-      reporte?.usuario ||
-      reporte?.usuarioId ||
-      reporte?.userId;
-
-    // 3. Validar coincidencia de IDs
-    if ((!currentUserId || creadorId !== currentUserId) && !this.isAdmin) {
-      alert('no puedes actualizar un informe que no fue creado por ti');
+    if (!this.canEditReport(reporte)) {
+      const estado = String(reporte?.estado ?? '').toLowerCase();
+      if (estado === 'finalizado' || estado === 'firmado' || reporte?.estado === true) {
+        this.openViewModal(reporte);
+      } else if (!this.isAdmin) {
+        alert('No puedes actualizar un informe que no fue creado por ti.');
+      }
       return;
     }
 
     this.cdr.detectChanges();
-
-    // 4. Abrir modal si coincide
     this.selectedReport = reporte;
     this.isUpdateModalOpen = true;
   }

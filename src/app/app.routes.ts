@@ -92,7 +92,7 @@ export const routes: Routes = [
       {
         path: 'home/admin-journey-report',
         title: 'Informe Administrativo',
-        canActivate: [roleGuard(['admin'])],
+        canActivate: [roleGuard(['admin', 'supervisor'])],
         loadComponent: () =>
           import('./pages/admin-journey-report/admin-journey-report').then(
             (m) => m.AdminJourneyReport,

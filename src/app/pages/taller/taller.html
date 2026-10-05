@@ -64,6 +64,7 @@
               (keydown.space)="$event.preventDefault(); viewRegistro(item)">
               <td>
                 <input class="row-select" type="checkbox" [checked]="selectedTallerRows[i]"
+                  [disabled]="!canSelectTaller(item)"
                   [attr.aria-label]="'Seleccionar vehículo ' + item.idCamion"
                   (click)="$event.stopPropagation()"
                   (change)="toggleRow(i, $any($event.target).checked)" />
@@ -90,11 +91,11 @@
                     (click)="$event.stopPropagation(); viewRegistro(item)">
                     <i class="pi pi-eye"></i>
                   </button>
-                  @if (!isAdmin) {
+                  @if (canManageTaller(item)) {
                     <button type="button" class="icon-btn" title="Editar" (click)="$event.stopPropagation(); editRegistro(item)">
                       <i class="pi pi-pencil"></i>
                     </button>
-                    <button type="button" class="icon-btn danger" title="Eliminar" (click)="$event.stopPropagation(); confirmDeleteSingle(item.idKey)">
+                    <button type="button" class="icon-btn danger" title="Eliminar" (click)="$event.stopPropagation(); confirmDeleteSingle(item)">
                       <i class="pi pi-trash"></i>
                     </button>
                   }
@@ -158,6 +159,7 @@
                   (keydown.space)="$event.preventDefault(); viewRegistro(item)">
                   <td>
                     <input class="row-select" type="checkbox" [checked]="selectedTallerRows[i]"
+                      [disabled]="!canSelectTaller(item)"
                       [attr.aria-label]="'Seleccionar vehículo ' + item.idCamion"
                       (click)="$event.stopPropagation()"
                       (change)="toggleRow(i, $any($event.target).checked)" />
@@ -177,11 +179,11 @@
                         (click)="$event.stopPropagation(); viewRegistro(item)">
                         <i class="pi pi-eye"></i>
                       </button>
-                      @if (!isAdmin) {
+                      @if (canManageTaller(item)) {
                         <button type="button" class="icon-btn" title="Editar" (click)="$event.stopPropagation(); editRegistro(item)">
                           <i class="pi pi-pencil"></i>
                         </button>
-                        <button type="button" class="icon-btn danger" title="Eliminar" (click)="$event.stopPropagation(); confirmDeleteSingle(item.idKey)">
+                        <button type="button" class="icon-btn danger" title="Eliminar" (click)="$event.stopPropagation(); confirmDeleteSingle(item)">
                           <i class="pi pi-trash"></i>
                         </button>
                       }
