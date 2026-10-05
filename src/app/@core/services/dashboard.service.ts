@@ -152,78 +152,134 @@ export class DashboardService {
       const usersData = usersSnap.exists() ? usersSnap.val() : {};
       const camionesData = camionesSnap.exists() ? camionesSnap.val() : {};
       const routesData = routesSnap.exists() ? routesSnap.val() : {};
-
-      let supervisores = 0;
-      let crew = 0;
-      let conductores = 0;
-      let administradores = 0;
-      let mecanicos = 0;
-
-      Object.values<any>(usersData).forEach((u) => {
-        if (!u) return;
-        const rol = (u.rol || '')
-          .toLowerCase()
-          .trim()
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '');
-        if (rol === 'supervisor') supervisores++;
-        else if (rol === 'crew') crew++;
-        else if (rol === 'conductor') conductores++;
-        else if (rol === 'admin' || rol === 'administrador' || rol === 'administradores') {
-          administradores++;
-        } else if (rol === 'mecanico' || rol === 'mecanicos') mecanicos++;
-      });
-
-      let disponibles = 0;
-      let noDisponibles = 0;
-      let camionesConConductor = 0;
-      let camionesSinConductor = 0;
-      const porTipo: Record<string, number> = {};
-      const porCapacidadTons: Record<string, number> = {};
-
-      const listaCamiones = Object.values<any>(camionesData);
-
-      listaCamiones.forEach((c) => {
-        if (!c) return;
-
-        if (c.disponible) disponibles++;
-        else noDisponibles++;
-
-        if (c.conductorId) camionesConConductor++;
-        else camionesSinConductor++;
-
-        const tipo = (c.tipo || 'Sin Tipo').toString().trim();
-        porTipo[tipo] = (porTipo[tipo] || 0) + 1;
-
-        const capKey = c.capacidad ? `${c.capacidad} Ton` : 'No especificada';
-        porCapacidadTons[capKey] = (porCapacidadTons[capKey] || 0) + 1;
-      });
-
-      return {
-        empleados: {
-          total: administradores + supervisores + crew + conductores + mecanicos,
-          administradores,
-          supervisores,
-          crew,
-          conductores,
-          mecanicos,
-        },
-        vehiculos: {
-          total: listaCamiones.length,
-          disponibles,
-          noDisponibles,
-          porTipo,
-          porCapacidadTons,
-        },
-        operaciones: {
-          totalRutas: Object.keys(routesData).length,
-          camionesConConductor,
-          camionesSinConductor,
-        },
-      };
+      return this.calcularEstadisticas(usersData, camionesData, routesData);
     } catch (error) {
       console.error('Error al generar las estadísticas del dashboard:', error);
       return null;
     }
+  }
+
+  escucharEstadisticas(
+    alActualizar: (stats: EstadisticasDashboard) => void,
+    alError: (error: Error) => void,
+  ): () => void {
+    if (!isPlatformBrowser(this.platformId)) return () => {};
+
+    let usersData: Record<string, any> = {};
+    let camionesData: Record<string, any> = {};
+    let routesData: Record<string, any> = {};
+    let usuariosListos = false;
+    let camionesListos = false;
+    let rutasListas = false;
+
+    const emitirSiListo = (): void => {
+      if (!usuariosListos || !camionesListos || !rutasListas) return;
+      alActualizar(this.calcularEstadisticas(usersData, camionesData, routesData));
+    };
+
+    const detenerUsuarios = onValue(
+      ref(this.database, 'usuarios'),
+      (snapshot) => {
+        usersData = snapshot.exists() ? snapshot.val() : {};
+        usuariosListos = true;
+        emitirSiListo();
+      },
+      alError,
+    );
+    const detenerCamiones = onValue(
+      ref(this.database, 'camiones'),
+      (snapshot) => {
+        camionesData = snapshot.exists() ? snapshot.val() : {};
+        camionesListos = true;
+        emitirSiListo();
+      },
+      alError,
+    );
+    const detenerRutas = onValue(
+      ref(this.database, 'routes'),
+      (snapshot) => {
+        routesData = snapshot.exists() ? snapshot.val() : {};
+        rutasListas = true;
+        emitirSiListo();
+      },
+      alError,
+    );
+
+    return () => {
+      detenerUsuarios();
+      detenerCamiones();
+      detenerRutas();
+    };
+  }
+
+  private calcularEstadisticas(
+    usersData: Record<string, any>,
+    camionesData: Record<string, any>,
+    routesData: Record<string, any>,
+  ): EstadisticasDashboard {
+    let supervisores = 0;
+    let crew = 0;
+    let conductores = 0;
+    let administradores = 0;
+    let mecanicos = 0;
+
+    Object.values<any>(usersData).forEach((user) => {
+      if (!user) return;
+      const rol = (user.rol || '')
+        .toLowerCase()
+        .trim()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+      if (rol === 'supervisor') supervisores++;
+      else if (rol === 'crew') crew++;
+      else if (rol === 'conductor') conductores++;
+      else if (rol === 'admin' || rol === 'administrador' || rol === 'administradores') {
+        administradores++;
+      } else if (rol === 'mecanico' || rol === 'mecanicos') mecanicos++;
+    });
+
+    let disponibles = 0;
+    let noDisponibles = 0;
+    let camionesConConductor = 0;
+    let camionesSinConductor = 0;
+    const porTipo: Record<string, number> = {};
+    const porCapacidadTons: Record<string, number> = {};
+    const listaCamiones = Object.values<any>(camionesData);
+
+    listaCamiones.forEach((truck) => {
+      if (!truck) return;
+      if (truck.disponible) disponibles++;
+      else noDisponibles++;
+      if (truck.conductorId) camionesConConductor++;
+      else camionesSinConductor++;
+
+      const tipo = (truck.tipo || 'Sin Tipo').toString().trim();
+      porTipo[tipo] = (porTipo[tipo] || 0) + 1;
+      const capacidadKey = truck.capacidad ? `${truck.capacidad} Ton` : 'No especificada';
+      porCapacidadTons[capacidadKey] = (porCapacidadTons[capacidadKey] || 0) + 1;
+    });
+
+    return {
+      empleados: {
+        total: administradores + supervisores + crew + conductores + mecanicos,
+        administradores,
+        supervisores,
+        crew,
+        conductores,
+        mecanicos,
+      },
+      vehiculos: {
+        total: listaCamiones.length,
+        disponibles,
+        noDisponibles,
+        porTipo,
+        porCapacidadTons,
+      },
+      operaciones: {
+        totalRutas: Object.keys(routesData).length,
+        camionesConConductor,
+        camionesSinConductor,
+      },
+    };
   }
 }

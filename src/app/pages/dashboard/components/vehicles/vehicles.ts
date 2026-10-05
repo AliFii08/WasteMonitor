@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { afterNextRender, ChangeDetectorRef, Component, inject, OnDestroy } from '@angular/core';
 import {
   DashboardService,
   EstadisticasDashboard,
@@ -18,36 +18,34 @@ interface VehicleChartItem {
   templateUrl: './vehicles.html',
   styleUrl: './vehicles.scss',
 })
-export class Vehicles implements OnInit, OnDestroy {
+export class Vehicles implements OnDestroy {
   private dashboardService = inject(DashboardService);
-  private ngZone = inject(NgZone);
-  private refreshTimer?: ReturnType<typeof setInterval>;
+  private changeDetector = inject(ChangeDetectorRef);
+  private detenerEstadisticas?: () => void;
+  private startBrowserListener = afterNextRender(() => {
+    this.detenerEstadisticas = this.dashboardService.escucharEstadisticas(
+      (stats) => {
+        this.setChartData(stats);
+        this.error = '';
+        this.loading = false;
+        this.changeDetector.detectChanges();
+      },
+      (error) => {
+        console.error('Error al escuchar las estadísticas de vehículos:', error);
+        this.error = 'No se pudieron cargar los datos de vehículos.';
+        this.loading = false;
+        this.changeDetector.detectChanges();
+      },
+    );
+  });
 
   items: VehicleChartItem[] = [];
   total = 0;
   loading = true;
-
-  async ngOnInit(): Promise<void> {
-    await this.refreshData();
-    this.refreshTimer = setInterval(() => void this.refreshData(), 30000);
-  }
+  error = '';
 
   ngOnDestroy(): void {
-    if (this.refreshTimer) clearInterval(this.refreshTimer);
-  }
-
-  private async refreshData(): Promise<void> {
-    let stats: EstadisticasDashboard | null = null;
-    try {
-      stats = await this.dashboardService.obtenerEstadisticas();
-    } catch (error) {
-      console.error('Error al cargar las estadísticas de vehículos:', error);
-    }
-
-    this.ngZone.run(() => {
-      this.setChartData(stats);
-      this.loading = false;
-    });
+    this.detenerEstadisticas?.();
   }
 
   private setChartData(stats: EstadisticasDashboard | null): void {

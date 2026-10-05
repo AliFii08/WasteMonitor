@@ -11,6 +11,8 @@
 		<div class="chart-loading" role="status" aria-label="Cargando datos">
 			<div class="spinner"></div>
 		</div>
+	} @else if (error) {
+		<p class="chart-state" role="alert">{{ error }}</p>
 	} @else {
 		<div class="bar-chart" aria-label="Vehículos por tipo">
 			@for (item of items; track item.label) {
