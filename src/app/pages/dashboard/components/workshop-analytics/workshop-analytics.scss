@@ -95,8 +95,16 @@
 .fleet-content,
 .status-content {
   display: flex;
+  flex: 1 1 auto;
   align-items: center;
+  justify-content: center;
   gap: 1.2rem;
+}
+
+.fleet-panel,
+.status-panel {
+  display: flex;
+  flex-direction: column;
 }
 
 .fleet-chart,
@@ -160,13 +168,19 @@
 .failure-list {
   display: grid;
   gap: 0.95rem;
-  max-height: 205px;
-  overflow-y: auto;
   padding-right: 0.25rem;
+}
+
+.failure-list.is-scrollable {
+  max-height: 261px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
 .failure-row {
   display: grid;
+  min-height: 40px;
   gap: 0.4rem;
 }
 

@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
 import {
   DashboardService,
   EstadisticasDashboard,
@@ -13,13 +13,14 @@ interface VehicleChartItem {
 
 @Component({
   selector: 'app-dashboard-vehicles',
+  standalone: true,
   imports: [DecimalPipe],
   templateUrl: './vehicles.html',
   styleUrl: './vehicles.scss',
 })
 export class Vehicles implements OnInit, OnDestroy {
   private dashboardService = inject(DashboardService);
-  private changeDetector = inject(ChangeDetectorRef);
+  private ngZone = inject(NgZone);
   private refreshTimer?: ReturnType<typeof setInterval>;
 
   items: VehicleChartItem[] = [];
@@ -36,10 +37,17 @@ export class Vehicles implements OnInit, OnDestroy {
   }
 
   private async refreshData(): Promise<void> {
-    const stats = await this.dashboardService.obtenerEstadisticas();
-    this.setChartData(stats);
-    this.loading = false;
-    this.changeDetector.detectChanges();
+    let stats: EstadisticasDashboard | null = null;
+    try {
+      stats = await this.dashboardService.obtenerEstadisticas();
+    } catch (error) {
+      console.error('Error al cargar las estadísticas de vehículos:', error);
+    }
+
+    this.ngZone.run(() => {
+      this.setChartData(stats);
+      this.loading = false;
+    });
   }
 
   private setChartData(stats: EstadisticasDashboard | null): void {

@@ -31,7 +31,7 @@
       <article class="analytics-panel failures-panel">
         <h3>Tipos de fallas registrados</h3>
         @if (fallas.length) {
-          <div class="failure-list">
+          <div class="failure-list" [class.is-scrollable]="fallas.length > 5">
             @for (falla of fallas; track falla.nombre) {
               <div class="failure-row">
                 <div class="failure-label"><span>{{ falla.nombre }}</span><strong>{{ falla.cantidad }}</strong></div>

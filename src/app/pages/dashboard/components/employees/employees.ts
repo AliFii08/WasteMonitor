@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, NgZone, OnDestroy, OnInit } from '@angular/core';
 import {
   DashboardService,
   EstadisticasDashboard,
@@ -14,13 +14,14 @@ interface EmployeeChartItem {
 
 @Component({
   selector: 'app-dashboard-employees',
+  standalone: true,
   imports: [DecimalPipe],
   templateUrl: './employees.html',
   styleUrl: './employees.scss',
 })
 export class Employees implements OnInit, OnDestroy {
   private dashboardService = inject(DashboardService);
-  private changeDetector = inject(ChangeDetectorRef);
+  private ngZone = inject(NgZone);
   private refreshTimer?: ReturnType<typeof setInterval>;
 
   items: EmployeeChartItem[] = [];
@@ -37,10 +38,17 @@ export class Employees implements OnInit, OnDestroy {
   }
 
   private async refreshData(): Promise<void> {
-    const stats = await this.dashboardService.obtenerEstadisticas();
-    this.setChartData(stats);
-    this.loading = false;
-    this.changeDetector.detectChanges();
+    let stats: EstadisticasDashboard | null = null;
+    try {
+      stats = await this.dashboardService.obtenerEstadisticas();
+    } catch (error) {
+      console.error('Error al cargar las estadísticas de empleados:', error);
+    }
+
+    this.ngZone.run(() => {
+      this.setChartData(stats);
+      this.loading = false;
+    });
   }
 
   private setChartData(stats: EstadisticasDashboard | null): void {

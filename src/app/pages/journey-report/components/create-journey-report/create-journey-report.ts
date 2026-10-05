@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DatosViajeInput, InformeService } from '../../../../@core/services/informe.service';
@@ -17,6 +17,7 @@ export class CreateJourneyReport implements OnChanges {
   private informeService = inject(InformeService);
   private sessionTimeoutService = inject(SessionTimeoutService);
   private authService = inject(AuthService);
+  private changeDetector = inject(ChangeDetectorRef);
 
   @Input() visible: boolean = false;
   @Input() numeroViaje: number = 1;
@@ -50,9 +51,16 @@ export class CreateJourneyReport implements OnChanges {
 
   private async cargarAsignacion(): Promise<void> {
     const uid = this.authService.getCurrentUserId();
-    if (!uid) return;
+    this.assignedVehicle = '';
+    this.assignedRoute = '';
+    if (!uid) {
+      this.assignmentLoading = false;
+      this.changeDetector.detectChanges();
+      return;
+    }
 
     this.assignmentLoading = true;
+    this.changeDetector.detectChanges();
     try {
       const asignacion = await this.informeService.obtenerAsignacionActual(uid);
       this.assignedVehicle = asignacion.camion;
@@ -63,6 +71,7 @@ export class CreateJourneyReport implements OnChanges {
       this.assignedRoute = '';
     } finally {
       this.assignmentLoading = false;
+      this.changeDetector.detectChanges();
     }
   }
 
