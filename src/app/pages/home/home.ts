@@ -73,7 +73,7 @@ export class Home implements AfterViewInit, OnDestroy {
       const lat = e.latlng.lat;
       const lng = e.latlng.lng;
 
-      console.log('📍 COORDENADAS HACIENDO CLIC EN EL MAPA:');
+      console.log('COORDENADAS HACIENDO CLIC EN EL MAPA:');
       console.log(`lat: ${lat}, lng: ${lng}`);
       console.log(`Formato para Firebase -> "lat": ${lat}, "lng": ${lng}`);
     });
@@ -129,7 +129,7 @@ export class Home implements AfterViewInit, OnDestroy {
 
       // 3. Lógica de renderizado según el Rol
       if (userRole === 'admin') {
-        console.log('👑 Rol de Admin detectado: renderizando todas las rutas.');
+        console.log('Rol de Admin detectado: renderizando todas las rutas.');
         await this.drawAllRoutes();
       } else if (userRole === 'user' && this.userCoords) {
         console.log('👤 Rol estándar detectado: calculando ruta más cercana.');
@@ -154,28 +154,28 @@ export class Home implements AfterViewInit, OnDestroy {
     try {
       const routesRef = ref(this.database, 'routes');
       const snapshot = await get(routesRef);
-  
+
       if (!snapshot.exists()) {
         console.warn('No existen rutas registradas en Firebase');
         return;
       }
-  
+
       const routesData = snapshot.val();
       const colors = ['#28a745', '#007bff', '#dc3545', '#ffc107', '#17a2b8', '#6f42c1'];
       let colorIndex = 0;
-  
+
       // Limpiar capas anteriores de rutas si existen
       if (this.routeLayer) {
         this.map.removeLayer(this.routeLayer);
       }
       this.routeLayer = L.layerGroup().addTo(this.map);
-  
+
       const allBounds: L.LatLngBounds = L.latLngBounds([]);
-  
+
       for (const routeKey of Object.keys(routesData)) {
         const routeObj = routesData[routeKey];
         if (!routeObj || typeof routeObj !== 'object') continue;
-  
+
         // 1. Extraer Y FILTRAR unicamente los puntos validos (p1, p2, p3...) omitiendo "nombreRuta" u otros atributos
         const points: [number, number][] = Object.keys(routeObj)
           .filter((key) => {
@@ -184,30 +184,30 @@ export class Home implements AfterViewInit, OnDestroy {
           })
           .sort() // Ordenar secuencialmente (p1, p2, p3...)
           .map((key) => [routeObj[key].x, routeObj[key].y]);
-  
+
         // Verificar que tengamos al menos 2 puntos validos
         if (points.length < 2) continue;
-  
+
         const color = colors[colorIndex % colors.length];
         colorIndex++;
-  
+
         // Formato OSRM: "lng,lat;lng,lat..."
         const coordsString = points.map((p) => `${p[1]},${p[0]}`).join(';');
         const url = `https://router.project-osrm.org/route/v1/driving/${coordsString}?geometries=geojson&overview=full`;
-  
+
         try {
           const data = await this.http.get<any>(url).toPromise();
-  
+
           if (data && data.routes && data.routes.length > 0) {
             const coordinates = data.routes[0].geometry.coordinates;
             const latLngs: [number, number][] = coordinates.map((c: number[]) => [c[1], c[0]]);
-  
+
             const polyline = L.polyline(latLngs, {
               color: color,
               weight: 5,
               opacity: 0.85,
             }).bindPopup(`<b>Ruta: ${routeObj.nombreRuta || routeKey}</b>`);
-  
+
             polyline.addTo(this.routeLayer);
             latLngs.forEach((coord) => allBounds.extend(coord));
           } else {
@@ -215,7 +215,7 @@ export class Home implements AfterViewInit, OnDestroy {
           }
         } catch (err) {
           console.warn(`Falló OSRM para ${routeKey}, dibujando línea recta fallback...`, err);
-  
+
           // Fallback: Si OSRM responde 400 u otro error, dibujamos la línea recta entre los puntos sin tumbar la app
           const fallbackPolyline = L.polyline(points, {
             color: color,
@@ -223,12 +223,12 @@ export class Home implements AfterViewInit, OnDestroy {
             dashArray: '5, 10',
             opacity: 0.7,
           }).bindPopup(`<b>Ruta: ${routeObj.nombreRuta || routeKey} (Directa)</b>`);
-  
+
           fallbackPolyline.addTo(this.routeLayer);
           points.forEach((coord) => allBounds.extend(coord));
         }
       }
-  
+
       // Ajustar la vista para encuadrar todas las rutas trazadas
       if (allBounds.isValid()) {
         this.map.fitBounds(allBounds, { padding: [40, 40] });

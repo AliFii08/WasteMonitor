@@ -53,12 +53,12 @@ export class Dashboard implements OnInit, OnDestroy {
 
     if (stats) {
       console.group(
-        '%c📊 ESTADÍSTICAS DEL DASHBOARD',
+        'ESTADÍSTICAS DEL DASHBOARD',
         'color: #0d5c3a; font-size: 14px; font-weight: bold;',
       );
-      console.log('👷 Empleados:', stats.empleados);
-      console.log('🚛 Vehículos:', stats.vehiculos);
-      console.log('🗺️ Operaciones y Rutas:', stats.operaciones);
+      console.log('Empleados:', stats.empleados);
+      console.log('Vehículos:', stats.vehiculos);
+      console.log('Operaciones y Rutas:', stats.operaciones);
       console.groupEnd();
     }
   }
