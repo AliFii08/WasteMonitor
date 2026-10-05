@@ -6,9 +6,6 @@ import {
   ref,
   push,
   get,
-  query,
-  orderByChild,
-  equalTo,
   set,
   remove,
   update,
@@ -163,25 +160,20 @@ export class UpdateJourneyReport implements OnChanges {
   }
 
   async cargarViajes(): Promise<void> {
-    if (!this.reporte?.id) return;
+    const informeId = String(this.reporte?.id ?? '');
+    if (!informeId) return;
     this.isLoading = true;
 
     try {
-      const viajesQuery = query(
-        ref(this.db, 'viajes'),
-        orderByChild('informeId'),
-        equalTo(this.reporte.id),
-      );
-
-      const snapshot = await get(viajesQuery);
+      const snapshot = await get(ref(this.db, 'viajes'));
       this.viajesList = [];
 
       if (snapshot.exists()) {
-        const data = snapshot.val();
+        const data = snapshot.val() as Record<string, any>;
         let index = 1;
 
-        Object.keys(data).forEach((viajeKey) => {
-          const v = data[viajeKey];
+        Object.entries(data).forEach(([viajeKey, v]) => {
+          if (String(v?.informeId ?? '') !== informeId) return;
           this.viajesList.push({
             id: viajeKey,
             key: `viaje${index}`,

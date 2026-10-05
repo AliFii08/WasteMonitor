@@ -150,6 +150,11 @@
 	font-size: 0.8rem;
 }
 
+.pending-status strong {
+	color: #06523f;
+	font-weight: 800;
+}
+
 .modal-footer {
 	display: flex;
 	justify-content: flex-end;
@@ -190,21 +195,35 @@
 
 @media (max-width: 560px) {
 	.summary-grid {
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: 0.4rem;
-		padding: 0.5rem;
+		grid-template-columns: minmax(0, 1fr);
+		gap: 0.45rem;
+		padding: 0.6rem;
 	}
 
 	.summary-grid label {
-		grid-template-rows: minmax(2.8em, auto) 40px;
-		padding: 0.4rem 0.25rem;
-		font-size: 0.58rem;
+		display: flex;
+		min-height: 54px;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		padding: 0.5rem 0.7rem;
+		font-size: 0.72rem;
+		text-align: left;
+	}
+
+	.summary-grid label span {
+		display: block;
+		flex: 1 1 auto;
+		text-align: left;
 	}
 
 	.summary-grid input {
-		height: 40px;
-		padding: 0.25rem;
-		font-size: 0.95rem;
+		flex: 0 0 84px;
+		width: 84px;
+		height: 38px;
+		padding: 0.35rem;
+		font-size: 1rem;
 	}
 }
 

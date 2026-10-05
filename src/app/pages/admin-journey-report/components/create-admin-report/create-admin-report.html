@@ -12,8 +12,11 @@
           <label><span>Viajes registrados</span><input type="number" name="viajesTotales" [ngModel]="viajesTotales" readonly /></label>
           <label><span>Informes cerrados</span><input type="number" name="informesFinalizados" [ngModel]="informesFinalizados" readonly /></label>
         </div>
-        @if (loadingResumen) { <p class="summary-status">Actualizando con jornadas finalizadas...</p> }
+        @if (loadingResumen) { <p class="summary-status">Actualizando el resumen de jornadas...</p> }
         @if (!loadingResumen && resumenCargado && informesFinalizados === 0) { <p class="summary-status">Aún no hay informes cerrados para esta fecha.</p> }
+        @if (!loadingResumen && resumenCargado) {
+          <p class="summary-status pending-status">Informes aún sin finalizar: <strong>{{ informesSinFinalizar }}</strong></p>
+        }
         <label>Observaciones<textarea name="observaciones" [(ngModel)]="observaciones" rows="4" placeholder="Anota decisiones, incidencias u organización pendiente..."></textarea></label>
         @if (error) { <p class="error">{{ error }}</p> }
         <footer class="modal-footer">

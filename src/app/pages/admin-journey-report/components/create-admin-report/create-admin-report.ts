@@ -36,6 +36,7 @@ export class CreateAdminReport implements OnChanges, OnDestroy {
   toneladasTotales = 0;
   viajesTotales = 0;
   informesFinalizados = 0;
+  informesSinFinalizar = 0;
   loadingResumen = false;
   resumenCargado = false;
   saving = false;
@@ -72,6 +73,7 @@ export class CreateAdminReport implements OnChanges, OnDestroy {
     this.toneladasTotales = 0;
     this.viajesTotales = 0;
     this.informesFinalizados = 0;
+    this.informesSinFinalizar = 0;
 
     if (!this.fecha) {
       this.loadingResumen = false;
@@ -96,6 +98,7 @@ export class CreateAdminReport implements OnChanges, OnDestroy {
     this.toneladasTotales = resumen.toneladasTotales;
     this.viajesTotales = resumen.viajesTotales;
     this.informesFinalizados = resumen.informesFinalizados;
+    this.informesSinFinalizar = resumen.informesSinFinalizar || 0;
     this.resumenCargado = true;
     this.error = '';
     this.changeDetector.detectChanges();

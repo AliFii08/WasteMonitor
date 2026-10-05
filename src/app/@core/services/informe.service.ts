@@ -63,6 +63,7 @@ export interface ResumenInformesFinalizados {
   toneladasTotales: number;
   viajesTotales: number;
   informesFinalizados: number;
+  informesSinFinalizar?: number;
 }
 
 @Injectable({
@@ -231,15 +232,21 @@ export class InformeService {
       toneladasTotales: 0,
       viajesTotales: 0,
       informesFinalizados: 0,
+      informesSinFinalizar: 0,
     };
 
     Object.entries<any>(informes).forEach(([informeId, informe]) => {
-      const estado = String(informe?.estado || '').toLowerCase();
-      const estaFinalizado = estado === 'finalizado' || estado === 'firmado' || informe?.estado === true;
-      if (!informe || informe.activo === false || !estaFinalizado) return;
+      if (!informe || informe.activo === false) return;
 
       const fechaJornada = this.obtenerFechaClave(informe.creadoEl || informe.finalizadoEl);
       if (fechaJornada !== fecha) return;
+
+      const estado = String(informe?.estado || '').toLowerCase();
+      const estaFinalizado = estado === 'finalizado' || estado === 'firmado' || informe?.estado === true;
+      if (!estaFinalizado) {
+        resumen.informesSinFinalizar = (resumen.informesSinFinalizar || 0) + 1;
+        return;
+      }
 
       const viajesDelInforme = viajesPorInforme.get(informeId) || [];
       resumen.informesFinalizados += 1;
