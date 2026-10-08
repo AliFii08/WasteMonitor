@@ -1,7 +1,7 @@
 import { Component, AfterViewInit, OnDestroy, inject, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Database, ref, get } from '@angular/fire/database';
+import { Database, ref, get, onValue, Unsubscribe } from '@angular/fire/database';
 import * as L from 'leaflet';
 
 import { UserService } from '../../@core/services/user.service';
@@ -48,7 +48,8 @@ export class Home implements AfterViewInit, OnDestroy {
   private userMarker!: L.Marker;
   private routePolyline!: L.Polyline;
   private routeLayer!: L.LayerGroup;
-
+  private supervisorMarkers: Map<string, L.Marker> = new Map();
+  private unsubscribeSupervisores?: Unsubscribe;
   // Coordenadas por defecto (Maracaibo centro)
   private initialCoords: [number, number] = [10.6447, -71.6106];
 
@@ -90,7 +91,7 @@ export class Home implements AfterViewInit, OnDestroy {
     if (!currentUser) {
       const stored = localStorage.getItem('currentUser');
       if (stored) {
-        try { currentUser = JSON.parse(stored); } catch {}
+        try { currentUser = JSON.parse(stored); } catch { }
       }
     }
 
@@ -131,6 +132,7 @@ export class Home implements AfterViewInit, OnDestroy {
       if (userRole === 'admin') {
         console.log('Rol de Admin detectado: renderizando todas las rutas.');
         await this.drawAllRoutes();
+        this.listenSupervisorLocations();
       } else if (userRole === 'user' && this.userCoords) {
         console.log('👤 Rol estándar detectado: calculando ruta más cercana.');
         await this.findAndDrawNearestRoute(this.userCoords);
@@ -146,25 +148,59 @@ export class Home implements AfterViewInit, OnDestroy {
       });
     }
   }
-
   /**
-   * Dibuja TODAS las rutas registradas en Firebase ajustándolas a las carreteras mediante OSRM
-   */
+     * Escucha en tiempo real la propiedad /usuarios/{uid}/location de cada supervisor
+     */
+  private listenSupervisorLocations(): void {
+    const usersRef = ref(this.database, 'usuarios');
+
+    this.unsubscribeSupervisores = onValue(usersRef, (snapshot) => {
+      if (!snapshot.exists()) return;
+      const data = snapshot.val();
+
+      this.ngZone.run(() => {
+        Object.entries<any>(data).forEach(([uid, user]) => {
+          // Filtrar por rol 'supervisor' y comprobar la nueva propiedad 'location'
+          if (user.rol === 'supervisor' && user.location?.lat && user.location?.lng) {
+            const lat = Number(user.location.lat);
+            const lng = Number(user.location.lng);
+            const nombre = `${user.name || ''} ${user.lastName || ''}`.trim() || 'Supervisor';
+
+            if (this.supervisorMarkers.has(uid)) {
+              // Mover marcador existente a las nuevas coordenadas
+              this.supervisorMarkers.get(uid)!.setLatLng([lat, lng]);
+            } else {
+              // Crear icono personalizado para el supervisor
+              const supervisorIcon = L.divIcon({
+                className: 'supervisor-custom-marker',
+                html: `<div style="background:#06523f; color:#fff; padding:5px 10px; border-radius:20px; font-weight:800; font-size:12px; border:2px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,0.3); display:flex; align-items:center; gap:5px; white-space:nowrap;">
+                        <i class="pi pi-user" style="font-size: 11px;"></i> ${nombre}
+                       </div>`,
+                iconAnchor: [30, 15],
+              });
+
+              const marker = L.marker([lat, lng], { icon: supervisorIcon })
+                .bindPopup(`<b>Supervisor:</b> ${nombre}<br><b>Última actualización:</b> ${user.location.timestamp ? new Date(user.location.timestamp).toLocaleTimeString() : 'Reciente'}`)
+                .addTo(this.map);
+
+              this.supervisorMarkers.set(uid, marker);
+            }
+          }
+        });
+      });
+    });
+  }
   private async drawAllRoutes(): Promise<void> {
     try {
       const routesRef = ref(this.database, 'routes');
       const snapshot = await get(routesRef);
 
-      if (!snapshot.exists()) {
-        console.warn('No existen rutas registradas en Firebase');
-        return;
-      }
+      if (!snapshot.exists()) return;
 
       const routesData = snapshot.val();
       const colors = ['#28a745', '#007bff', '#dc3545', '#ffc107', '#17a2b8', '#6f42c1'];
       let colorIndex = 0;
 
-      // Limpiar capas anteriores de rutas si existen
       if (this.routeLayer) {
         this.map.removeLayer(this.routeLayer);
       }
@@ -176,22 +212,19 @@ export class Home implements AfterViewInit, OnDestroy {
         const routeObj = routesData[routeKey];
         if (!routeObj || typeof routeObj !== 'object') continue;
 
-        // 1. Extraer Y FILTRAR unicamente los puntos validos (p1, p2, p3...) omitiendo "nombreRuta" u otros atributos
         const points: [number, number][] = Object.keys(routeObj)
           .filter((key) => {
             const val = routeObj[key];
             return val && typeof val === 'object' && typeof val.x === 'number' && typeof val.y === 'number';
           })
-          .sort() // Ordenar secuencialmente (p1, p2, p3...)
+          .sort()
           .map((key) => [routeObj[key].x, routeObj[key].y]);
 
-        // Verificar que tengamos al menos 2 puntos validos
         if (points.length < 2) continue;
 
         const color = colors[colorIndex % colors.length];
         colorIndex++;
 
-        // Formato OSRM: "lng,lat;lng,lat..."
         const coordsString = points.map((p) => `${p[1]},${p[0]}`).join(';');
         const url = `https://router.project-osrm.org/route/v1/driving/${coordsString}?geometries=geojson&overview=full`;
 
@@ -210,13 +243,8 @@ export class Home implements AfterViewInit, OnDestroy {
 
             polyline.addTo(this.routeLayer);
             latLngs.forEach((coord) => allBounds.extend(coord));
-          } else {
-            throw new Error('OSRM no devolvió geometría válida');
           }
         } catch (err) {
-          console.warn(`Falló OSRM para ${routeKey}, dibujando línea recta fallback...`, err);
-
-          // Fallback: Si OSRM responde 400 u otro error, dibujamos la línea recta entre los puntos sin tumbar la app
           const fallbackPolyline = L.polyline(points, {
             color: color,
             weight: 4,
@@ -229,7 +257,6 @@ export class Home implements AfterViewInit, OnDestroy {
         }
       }
 
-      // Ajustar la vista para encuadrar todas las rutas trazadas
       if (allBounds.isValid()) {
         this.map.fitBounds(allBounds, { padding: [40, 40] });
       }
@@ -349,27 +376,21 @@ export class Home implements AfterViewInit, OnDestroy {
     const routesRef = ref(this.database, 'routes');
     const snapshot = await get(routesRef);
 
-    if (!snapshot.exists()) {
-      console.warn('No hay rutas guardadas en Firebase.');
-      return;
-    }
+    if (!snapshot.exists()) return;
 
     const data = snapshot.val();
     let minDistance = Infinity;
     let closestRoute: RutaData | null = null;
 
-    // Recorrer cada ruta en Firebase
     for (const [routeId, routeObj] of Object.entries<any>(data)) {
       if (!routeObj) continue;
 
-      // Convertir p1, p2, p3... en coordenadas [lat, lng]
       const puntos: [number, number][] = Object.values(routeObj)
         .filter((val: any) => val && typeof val === 'object' && val.x !== undefined && val.y !== undefined)
         .map((p: any) => [p.x, p.y]);
 
       if (puntos.length === 0) continue;
 
-      // Calcular distancia mínima entre la casa y los puntos de esta ruta
       for (const punto of puntos) {
         const dist = this.calcularDistanciaHaversine(userCoords[0], userCoords[1], punto[0], punto[1]);
         if (dist < minDistance) {
@@ -382,8 +403,6 @@ export class Home implements AfterViewInit, OnDestroy {
     if (closestRoute) {
       this.nearestRouteId = closestRoute.id;
       this.routeDistanceKm = parseFloat(minDistance.toFixed(2));
-
-      // Trazar el camino real por calles con OSRM
       this.trazarRutaConOSRM(closestRoute.puntos);
     }
   }
@@ -394,7 +413,6 @@ export class Home implements AfterViewInit, OnDestroy {
   private trazarRutaConOSRM(points: [number, number][]): void {
     if (points.length < 2) return;
 
-    // Formato OSRM: "lng,lat;lng,lat..."
     const coordsString = points.map((p) => `${p[1]},${p[0]}`).join(';');
     const url = `https://router.project-osrm.org/route/v1/driving/${coordsString}?geometries=geojson&overview=full`;
 
@@ -413,7 +431,6 @@ export class Home implements AfterViewInit, OnDestroy {
           opacity: 0.9,
         }).addTo(this.map);
 
-        // Encuadrar el mapa para ver tanto la casa del usuario como la ruta completa
         const bounds = this.routePolyline.getBounds();
         if (this.userCoords) {
           bounds.extend(this.userCoords);
@@ -428,7 +445,7 @@ export class Home implements AfterViewInit, OnDestroy {
    * Fórmula Haversine para calcular distancia en kilómetros entre dos coordenadas
    */
   private calcularDistanciaHaversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371; // Radio de la Tierra en Km
+    const R = 6371;
     const dLat = this.deg2rad(lat2 - lat1);
     const dLon = this.deg2rad(lon2 - lon1);
     const a =
@@ -444,6 +461,12 @@ export class Home implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.map) this.map.remove();
+    // Desuscribir el listener en tiempo real de Firebase para liberar recursos
+    if (this.unsubscribeSupervisores) {
+      this.unsubscribeSupervisores();
+    }
+    if (this.map) {
+      this.map.remove();
+    }
   }
 }

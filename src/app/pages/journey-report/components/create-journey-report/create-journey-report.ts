@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { DatosViajeInput, InformeService } from '../../../../@core/services/informe.service';
 import { SessionTimeoutService } from '../../../../@core/services/session-timeout.service';
 import { AuthService } from '../../../../@core/services/auth.service';
-
+import { LocationService } from '../../../../@core/services/location.service';
 
 @Component({
   selector: 'app-create-journey-report',
@@ -18,6 +18,7 @@ export class CreateJourneyReport implements OnChanges {
   private sessionTimeoutService = inject(SessionTimeoutService);
   private authService = inject(AuthService);
   private changeDetector = inject(ChangeDetectorRef);
+  private locationService = inject(LocationService);
 
   @Input() visible: boolean = false;
   @Input() numeroViaje: number = 1;
@@ -90,20 +91,22 @@ export class CreateJourneyReport implements OnChanges {
   }
 
   onSubmit(): void {
-    if (!this.puedeCrear || this.assignmentLoading) {
-      this.errorMessage = 'No puedes iniciar una jornada sin vehículo y ruta asignados.';
-      this.showErrorModal = true;
-      return;
-    }
-
     this.loading = true;
 
     this.informeService.crearInforme(this.formData, this.numeroViaje).subscribe({
-      next: () => {
+      next: (informeId) => {
         this.loading = false;
+
         if (this.authService.hasRole(['supervisor'])) {
           this.sessionTimeoutService.setJourneyActive(true);
+
+          const userId = this.authService.getCurrentUserId();
+
+          if (userId) {
+            this.locationService.startSupervisorTracking(userId, informeId);
+          }
         }
+
         this.informeCreado.emit();
         this.closeModal();
       },

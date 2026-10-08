@@ -86,8 +86,9 @@ export class InformeService {
     ]) as Observable<[any[], Record<string, any>]>;
   }
 
-  crearInforme(datosFormulario: DatosViajeInput, numeroViaje: number = 1): Observable<void> {
+  crearInforme(datosFormulario: DatosViajeInput, numeroViaje: number = 1): Observable<string> {
     console.log('🚀 [crearInforme] Iniciando creación de la cabecera...');
+
     return from(this.ejecutarCreacionInforme(datosFormulario, numeroViaje));
   }
 
@@ -151,7 +152,9 @@ export class InformeService {
       const usuario = usuarios[informe.usuario] || {};
       const camionId = String(informe.camionId || informe.camion || 'Sin camión');
       const camionData = camiones[camionId] || {};
-      const supervisor = `${usuario.name || usuario.nombre || ''} ${usuario.lastName || usuario.apellido || ''}`.trim() || 'Sin supervisor';
+      const supervisor =
+        `${usuario.name || usuario.nombre || ''} ${usuario.lastName || usuario.apellido || ''}`.trim() ||
+        'Sin supervisor';
       const actual = resumenPorRuta.get(rutaId) || {
         rutaId,
         ruta: String(rutaData.nombreRuta || rutaId),
@@ -169,12 +172,11 @@ export class InformeService {
       viajesTotales += informeViajes.length;
     });
 
-    const rutasResumen = [...resumenPorRuta.values()].sort(
-      (a, b) => b.toneladas - a.toneladas,
-    );
-    const sectorLiderMensual = [...sectoresDelMes.entries()]
-      .sort((a, b) => b[1] - a[1])
-      .map(([sector, toneladas]) => ({ sector, toneladas }))[0] || null;
+    const rutasResumen = [...resumenPorRuta.values()].sort((a, b) => b.toneladas - a.toneladas);
+    const sectorLiderMensual =
+      [...sectoresDelMes.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .map(([sector, toneladas]) => ({ sector, toneladas }))[0] || null;
 
     return {
       fecha: fechaClave,
@@ -242,7 +244,8 @@ export class InformeService {
       if (fechaJornada !== fecha) return;
 
       const estado = String(informe?.estado || '').toLowerCase();
-      const estaFinalizado = estado === 'finalizado' || estado === 'firmado' || informe?.estado === true;
+      const estaFinalizado =
+        estado === 'finalizado' || estado === 'firmado' || informe?.estado === true;
       if (!estaFinalizado) {
         resumen.informesSinFinalizar = (resumen.informesSinFinalizar || 0) + 1;
         return;
@@ -387,10 +390,11 @@ export class InformeService {
   private async ejecutarCreacionInforme(
     datos: DatosViajeInput,
     numeroViaje: number,
-  ): Promise<void> {
+  ): Promise<string> {
     try {
       const auth = getAuth();
       const currentUser = auth.currentUser;
+
       console.log('👤 Usuario activo Auth:', currentUser?.uid);
 
       if (!currentUser) {
@@ -401,15 +405,14 @@ export class InformeService {
 
       // 1. Obtener la asignación vigente del usuario
       console.log('🔍 Consultando usuario en /usuarios/', uidUsuario);
+
       const asignacion = await this.obtenerAsignacionActual(uidUsuario);
 
       if (!asignacion.camion || !asignacion.ruta) {
-        throw new Error(
-          'No puedes iniciar una jornada sin un vehículo y una ruta asignados.',
-        );
+        throw new Error('No puedes iniciar una jornada sin un vehículo y una ruta asignados.');
       }
 
-      // 3. Crear payload limpio (objeto plano sin referencias)
+      // 2. Crear payload
       const payloadCabecera = JSON.parse(
         JSON.stringify({
           activo: true,
@@ -423,12 +426,21 @@ export class InformeService {
 
       console.log('💾 Guardando únicamente cabecera en /informe_de_viaje...', payloadCabecera);
 
-      // Inserción directa en la colección
+      // 3. Crear informe en Firebase
       const resPush = await push(ref(this.db, 'informe_de_viaje'), payloadCabecera);
 
       console.log('✅ Cabecera del informe creada con éxito. ID:', resPush.key);
+
+      // 4. Verificar que Firebase devolvió el ID
+      if (!resPush.key) {
+        throw new Error('Firebase no devolvió el ID del informe creado.');
+      }
+
+      // 5. DEVOLVER EL ID
+      return resPush.key;
     } catch (error) {
       console.error('❌ Error guardando la cabecera:', error);
+
       throw error;
     }
   }
