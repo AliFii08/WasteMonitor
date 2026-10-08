@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, isDevMode, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideRouter, withInMemoryScrolling, withViewTransitions } from '@angular/router';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
@@ -16,6 +16,7 @@ import { getAuth } from 'firebase/auth';
 import { getDatabase } from 'firebase/database';
 import { environment } from '../environments/environment';
 import { MessageService } from 'primeng/api';
+import { provideServiceWorker } from '@angular/service-worker';
 
 const firebaseApp = initializeApp(environment.firebaseConfig);
 
@@ -39,5 +40,9 @@ export const appConfig: ApplicationConfig = {
     provideFirebaseApp(() => firebaseApp),
     provideAuth(() => getAuth(firebaseApp)),
     provideDatabase(() => getDatabase(firebaseApp)),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
   ],
 };
