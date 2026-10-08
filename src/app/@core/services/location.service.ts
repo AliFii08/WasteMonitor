@@ -1,118 +1,50 @@
-import { Injectable } from '@angular/core';
-import { environment } from '../../../environments/environment';
+import { Injectable, inject, signal } from '@angular/core';
+import { Database, ref, set, push } from '@angular/fire/database';
+
+export interface LocationPayload {
+  userId: string;
+  informeId: string;
+  latitude: number;
+  longitude: number;
+  accuracy: number;
+  speed: number | null;
+  heading: number | null;
+  timestamp: number;
+  active: boolean;
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class LocationService {
-  private databaseUrl = environment.firebaseConfig.databaseURL;
+  private readonly db = inject(Database);
+  private watchId: number | null = null;
 
-  private timeoutId: any = null;
-  private tracking = false;
+  public readonly isTracking = signal<boolean>(false);
+  public readonly lastLocation = signal<LocationPayload | null>(null);
+  public readonly errorState = signal<string | null>(null);
 
-  /**
-   * Verifica el estado del permiso de geolocalización
-   */
-  async checkPermissionState(): Promise<PermissionState | 'unsupported'> {
-    if (!('geolocation' in navigator) || !('permissions' in navigator)) {
-      return 'unsupported';
-    }
+  private lastSentTimestamp = 0;
+  private readonly MIN_INTERVAL_MS = 3000;
 
-    try {
-      const result = await navigator.permissions.query({
-        name: 'geolocation',
-      });
+  startSupervisorTracking(userId: string, informeId: string): void {
+    console.log(
+      `🚀 [LocationService] Iniciando rastreo para Supervisor: ${userId} | Informe: ${informeId}`,
+    );
 
-      return result.state;
-    } catch {
-      return 'prompt';
-    }
-  }
-
-  /**
-   * Inicia el seguimiento del supervisor
-   */
-  startSupervisorTracking(userId: string, journeyId?: string): void {
-    if (!userId || !('geolocation' in navigator)) {
+    if (!('geolocation' in navigator)) {
+      const msg = 'La geolocalización no está soportada en este dispositivo.';
+      console.error(`❌ [LocationService] ${msg}`);
+      this.errorState.set(msg);
       return;
     }
 
-    // Detener cualquier seguimiento anterior
-    this.stopTracking(userId);
+    this.errorState.set(null);
+    this.isTracking.set(true);
 
-    this.tracking = true;
-
-    // Marcar al supervisor como activo
-    this.updateLocationStatus(userId, true, journeyId);
-
-    // Primera ubicación inmediatamente
-    this.capturarYEnviar(userId, journeyId);
-  }
-
-  /**
-   * Detiene el seguimiento del supervisor
-   */
-  stopTracking(userId?: string): void {
-    this.tracking = false;
-
-    if (this.timeoutId) {
-      clearTimeout(this.timeoutId);
-      this.timeoutId = null;
-    }
-
-    // Si tenemos usuario, marcarlo como inactivo
-    if (userId) {
-      this.updateLocationStatus(userId, false);
-    }
-  }
-
-  /**
-   * Obtiene una nueva ubicación.
-   *
-   * Después de terminar:
-   * espera 3 segundos
-   * y vuelve a solicitar una nueva ubicación.
-   */
-  private capturarYEnviar(userId: string, journeyId?: string): void {
-    if (!this.tracking) {
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-
-        console.log('📍 Nueva ubicación:', userId, lat, lng);
-
-        await this.syncSupervisorLocationToFirebase(userId, lat, lng, journeyId);
-
-        // Volver a buscar después de 3 segundos
-        if (this.tracking) {
-          this.timeoutId = setTimeout(() => {
-            this.capturarYEnviar(userId, journeyId);
-          }, 3000);
-        }
-      },
-
-      (error) => {
-        if (error.code === error.PERMISSION_DENIED) {
-          console.warn('Permiso de geolocalización denegado.');
-
-          this.stopTracking(userId);
-          return;
-        }
-
-        console.error('Error GPS:', error.message);
-
-        // Error temporal: volver a intentar
-        if (this.tracking) {
-          this.timeoutId = setTimeout(() => {
-            this.capturarYEnviar(userId, journeyId);
-          }, 3000);
-        }
-      },
-
+    this.watchId = navigator.geolocation.watchPosition(
+      (position) => this.handlePositionUpdate(position, userId, informeId),
+      (error) => this.handlePositionError(error),
       {
         enableHighAccuracy: true,
         timeout: 10000,
@@ -121,60 +53,82 @@ export class LocationService {
     );
   }
 
-  /**
-   * Guarda la ubicación actual
-   */
-  private async syncSupervisorLocationToFirebase(
-    userId: string,
-    lat: number,
-    lng: number,
-    journeyId?: string,
-  ): Promise<void> {
-    try {
-      await fetch(`${this.databaseUrl}/usuarios/${userId}/location.json`, {
-        method: 'PATCH',
+  stopSupervisorTracking(userId: string): void {
+    console.log(`🛑 [LocationService] Deteniendo rastreo para Supervisor: ${userId}`);
 
-        headers: {
-          'Content-Type': 'application/json',
-        },
+    if (this.watchId !== null) {
+      navigator.geolocation.clearWatch(this.watchId);
+      this.watchId = null;
+    }
 
-        body: JSON.stringify({
-          active: true,
-          lat,
-          lng,
-          timestamp: Date.now(),
-          journeyId: journeyId || null,
-        }),
+    this.isTracking.set(false);
+
+    const currentRef = ref(this.db, `tracking/${userId}/current`);
+    set(currentRef, { active: false, timestamp: Date.now(), userId })
+      .then(() => {
+        console.log(
+          `✅ [LocationService] Estado desactivado en Firebase para: tracking/${userId}/current`,
+        );
+      })
+      .catch((err) => {
+        console.error(`❌ [LocationService] Error al desactivar tracking:`, err);
       });
-    } catch (err) {
-      console.error('Error enviando coordenadas:', err);
+  }
+
+  private handlePositionUpdate(
+    position: GeolocationPosition,
+    userId: string,
+    informeId: string,
+  ): void {
+    const coords = position.coords;
+    console.log(
+      `📍 [GPS Sensor] Coordenadas capturadas -> Lat: ${coords.latitude}, Lng: ${coords.longitude}, Precisión: ${coords.accuracy}m`,
+    );
+
+    const now = Date.now();
+    if (now - this.lastSentTimestamp < this.MIN_INTERVAL_MS) {
+      console.log(`⏳ [LocationService] Omitiendo envío (Throttle < ${this.MIN_INTERVAL_MS}ms)`);
+      return;
+    }
+    this.lastSentTimestamp = now;
+
+    const payload: LocationPayload = {
+      userId,
+      informeId,
+      latitude: coords.latitude,
+      longitude: coords.longitude,
+      accuracy: coords.accuracy,
+      speed: coords.speed,
+      heading: coords.heading,
+      timestamp: now,
+      active: true,
+    };
+
+    this.lastLocation.set(payload);
+    this.syncToFirebase(payload);
+  }
+
+  private async syncToFirebase(payload: LocationPayload): Promise<void> {
+    try {
+      console.log(`📤 [Firebase Sync] Enviando payload a tracking/${payload.userId}...`, payload);
+
+      const currentRef = ref(this.db, `tracking/${payload.userId}/current`);
+      const historyRef = ref(this.db, `tracking/${payload.userId}/history`);
+
+      await set(currentRef, payload);
+      await push(historyRef, payload);
+
+      console.log(`✅ [Firebase Sync] Coordenadas guardadas con éxito en Firebase.`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error desconocido al guardar ubicación';
+      console.error(`❌ [Firebase Sync Error]:`, message);
+      this.errorState.set(`Error de sincronización: ${message}`);
     }
   }
 
-  /**
-   * Cambia el estado de transmisión
-   */
-  private async updateLocationStatus(
-    userId: string,
-    active: boolean,
-    journeyId?: string,
-  ): Promise<void> {
-    try {
-      await fetch(`${this.databaseUrl}/usuarios/${userId}/location.json`, {
-        method: 'PATCH',
-
-        headers: {
-          'Content-Type': 'application/json',
-        },
-
-        body: JSON.stringify({
-          active,
-          ...(journeyId !== undefined ? { journeyId } : {}),
-          timestamp: Date.now(),
-        }),
-      });
-    } catch (err) {
-      console.error('Error actualizando estado de ubicación:', err);
-    }
+  private handlePositionError(error: GeolocationPositionError): void {
+    console.error(`❌ [GPS Error Code ${error.code}]: ${error.message}`);
+    this.errorState.set(`Error GPS (${error.code}): ${error.message}`);
+    this.isTracking.set(false);
   }
 }

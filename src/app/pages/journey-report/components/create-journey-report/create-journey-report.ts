@@ -103,6 +103,7 @@ export class CreateJourneyReport implements OnChanges {
           const userId = this.authService.getCurrentUserId();
 
           if (userId) {
+            // Inicia el rastreo con el ID de usuario supervisor e informeId
             this.locationService.startSupervisorTracking(userId, informeId);
           }
         }

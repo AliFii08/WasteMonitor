@@ -4,6 +4,7 @@ import { getAuth } from 'firebase/auth';
 import { getDatabase, ref, get, push, update, remove, onValue } from 'firebase/database';
 import { Observable, combineLatest, from } from 'rxjs';
 import { ViajeItem } from '../../pages/journey-report/components/update-journey-report/update-journey-report';
+import { LocationService } from './location.service';
 
 export interface DatosViajeInput {
   tonRecogidas: number | null;
@@ -71,6 +72,7 @@ export interface ResumenInformesFinalizados {
 })
 export class InformeService {
   private ngDb = inject(NgDatabase);
+  private locationService = inject(LocationService);
 
   private get db() {
     return getDatabase();
@@ -495,11 +497,21 @@ export class InformeService {
       throw new Error('Solo el creador del informe puede finalizarlo.');
     }
     await this.verificarInformeEditable(informeId);
+
+    // 1. Obtener los datos del informe para conocer el camión asociado
+    const informeSnap = await get(ref(this.db, `informe_de_viaje/${informeId}`));
+    const informeData = informeSnap.exists() ? informeSnap.val() : {};
+    const truckId = String(informeData?.camion || informeData?.camionId || 'ASIGNADO');
+
+    // 2. Marcar informe como finalizado en Firebase
     await update(ref(this.db, `informe_de_viaje/${informeId}`), {
       estado: 'finalizado',
       finalizadoEl: new Date().toISOString(),
       finalizadoPor: usuarioId,
     });
+
+    // 3. Apagar el monitoreo GPS en el dispositivo y actualizar el nodo tracking
+    this.locationService.stopSupervisorTracking(usuarioId);
   }
 
   private async verificarInformeEditable(informeId: string): Promise<void> {
