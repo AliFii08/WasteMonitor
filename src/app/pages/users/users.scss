@@ -63,16 +63,22 @@
 
 .search-input {
   box-sizing: border-box;
-  min-width: 280px;
+  min-width: 230px;
   height: 42px;
   border: 1px solid #c9d9c6;
   border-radius: 8px;
   padding: 0 2.3rem 0 0.8rem;
   color: #123f32;
   background: #fff;
-  font: 600 14px 'Raleway', sans-serif;
+  font: 700 14px 'Raleway', sans-serif;
   outline: none;
   transition: border-color 0.2s ease;
+
+  &::placeholder {
+    color: #64748b;
+    font: 550 14px 'Raleway', sans-serif;
+    opacity: 1;
+  }
 
   &:focus {
     border-color: #06523f;

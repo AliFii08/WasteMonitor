@@ -18,7 +18,7 @@
   flex-direction: column;
   align-items: center;
   color: #003628;
-  margin-bottom: 34px;
+  margin-bottom: 30px;
 
   h1 {
     font-size: 45px;
@@ -58,18 +58,19 @@
       .search-input {
         box-sizing: border-box;
         padding: 10px 38px 10px 14px;
-        border: 1px solid #c2dbce;
+        border: 1px solid #c9d9c6;
         border-radius: 8px;
         outline: none;
         font-size: 14px;
         font-weight: 700;
-        color: #0f4b3a;
+        color: #123f32;
         background-color: #ffffff;
         font-family: 'Raleway', sans-serif !important;
         transition: border-color 0.2s;
 
         &::placeholder {
-          font-weight: 700;
+          color: #64748b;
+          font-weight: 550;
           opacity: 1;
         }
 
@@ -83,7 +84,7 @@
         top: 50%;
         right: 12px;
         transform: translateY(-50%);
-        color: #06523f;
+          color: #64748b;
         font-size: 14px;
         pointer-events: none;
       }
@@ -342,15 +343,11 @@
 }
 
 @media (max-width: 720px) {
-  .report-page {
-    padding-top: 50px;
-  }
-
   .report-page .title {
     box-sizing: border-box;
     width: 100%;
     align-items: center;
-    margin: 0 auto 16px;
+    margin: 0 auto 30px;
     padding: 0 16px;
     text-align: center;
   }

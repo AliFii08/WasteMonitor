@@ -70,13 +70,19 @@
   border-radius: 8px;
   padding: 0 2.3rem 0 0.8rem;
   color: #123f32;
-  font: 600 14px 'Raleway', sans-serif;
+  font: 700 14px 'Raleway', sans-serif;
   background: #ffffff;
   outline: none;
   transition: border-color 0.2s ease;
 
   &:focus {
     border-color: #06523f;
+  }
+
+  &::placeholder {
+    color: #64748b;
+    font: 550 14px 'Raleway', sans-serif;
+    opacity: 1;
   }
 }
 

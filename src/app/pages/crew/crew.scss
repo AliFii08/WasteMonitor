@@ -9,7 +9,7 @@
   flex-direction: column;
   align-items: center;
   color: #003628;
-  margin-bottom: 34px;
+  margin-bottom: 30px;
 }
 
 .title h1 {
@@ -39,7 +39,7 @@
   gap: 1rem;
   flex-wrap: wrap;
   align-items: center;
-  padding: 1rem;
+  padding: 0 1rem;
   margin-left: 20px;
   margin-right: 20px;
 }
@@ -74,9 +74,16 @@
   border-radius: 8px;
   padding: 0 2.3rem 0 0.8rem;
   color: #123f32;
+  background: #fff;
   font:
-    600 14px 'Raleway',
+    700 14px 'Raleway',
     sans-serif;
+
+  &::placeholder {
+    color: #64748b;
+    font-weight: 550;
+    opacity: 1;
+  }
 }
 
 .select-all-wrap {
@@ -407,7 +414,7 @@
   .table-toolbar {
     margin-left: 10px;
     margin-right: 10px;
-    padding: 0.75rem 0;
+    padding: 0;
   }
 
   .search-row,

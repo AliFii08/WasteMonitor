@@ -39,7 +39,7 @@
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
-  padding: 1rem 1rem 0;
+  padding: 0 1rem;
   margin: 0 20px;
 }
 
@@ -75,8 +75,8 @@
 }
 
 .search-input::placeholder {
-  color: #123f32;
-  font: 700 14px 'Raleway', sans-serif;
+  color: #64748b;
+  font: 550 14px 'Raleway', sans-serif;
   opacity: 1;
 }
 
@@ -227,7 +227,7 @@
 
   .admin-report-page .title {
     align-items: center;
-    margin: 0 auto 34px;
+    margin: 0 auto 30px;
     padding: 0;
     text-align: center;
   }
@@ -251,6 +251,9 @@
   .table-toolbar {
     align-items: stretch;
     flex-direction: column;
+    margin-left: 10px;
+    margin-right: 10px;
+    padding: 0;
   }
 
   .table-toolbar .search-row {
@@ -261,6 +264,7 @@
   .search-input,
   .date-filter {
     width: 100%;
+    min-width: 0;
   }
 
   .create-btn {
