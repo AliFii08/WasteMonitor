@@ -1,5 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Database, ref, set, push } from '@angular/fire/database';
+import { Database, ref, set, push, get } from '@angular/fire/database';
+import { Auth } from '@angular/fire/auth';
 
 export interface LocationPayload {
   userId: string;
@@ -18,6 +19,7 @@ export interface LocationPayload {
 })
 export class LocationService {
   private readonly db = inject(Database);
+  private readonly auth = inject(Auth);
   private watchId: number | null = null;
 
   public readonly isTracking = signal<boolean>(false);
@@ -27,15 +29,39 @@ export class LocationService {
   private lastSentTimestamp = 0;
   private readonly MIN_INTERVAL_MS = 3000;
 
+  /**
+   * Verifica al cargar/recargar la app si el usuario activo tiene una jornada en curso
+   * y reanuda el rastreo GPS en segundo plano.
+   */
+  async restoreActiveTrackingIfAny(): Promise<void> {
+    const currentUser = this.auth.currentUser;
+    if (!currentUser) return;
+
+    try {
+      const informesSnap = await get(ref(this.db, 'informe_de_viaje'));
+      if (!informesSnap.exists()) return;
+
+      const informes = informesSnap.val();
+      const informeActivoEntry = Object.entries<any>(informes).find(([_, inf]) => {
+        const uid = inf?.usuario || inf?.usuarioId || inf?.uidUsuario || inf?.idUsuario;
+        return uid === currentUser.uid && inf?.activo === true;
+      });
+
+      if (informeActivoEntry) {
+        const [informeId] = informeActivoEntry;
+        console.log(`🔄 [LocationService] Reanudando rastreo GPS tras recarga para el informe: ${informeId}`);
+        this.startSupervisorTracking(currentUser.uid, informeId);
+      }
+    } catch (err) {
+      console.error('Error al intentar reanudar el rastreo GPS tras F5:', err);
+    }
+  }
+
   startSupervisorTracking(userId: string, informeId: string): void {
-    console.log(
-      `🚀 [LocationService] Iniciando rastreo para Supervisor: ${userId} | Informe: ${informeId}`,
-    );
+    if (this.isTracking()) return; // Previene duplicar watchers
 
     if (!('geolocation' in navigator)) {
-      const msg = 'La geolocalización no está soportada en este dispositivo.';
-      console.error(`❌ [LocationService] ${msg}`);
-      this.errorState.set(msg);
+      this.errorState.set('La geolocalización no está soportada en este dispositivo.');
       return;
     }
 
@@ -49,13 +75,11 @@ export class LocationService {
         enableHighAccuracy: true,
         timeout: 10000,
         maximumAge: 0,
-      },
+      }
     );
   }
 
   stopSupervisorTracking(userId: string): void {
-    console.log(`🛑 [LocationService] Deteniendo rastreo para Supervisor: ${userId}`);
-
     if (this.watchId !== null) {
       navigator.geolocation.clearWatch(this.watchId);
       this.watchId = null;
@@ -64,32 +88,20 @@ export class LocationService {
     this.isTracking.set(false);
 
     const currentRef = ref(this.db, `tracking/${userId}/current`);
-    set(currentRef, { active: false, timestamp: Date.now(), userId })
-      .then(() => {
-        console.log(
-          `✅ [LocationService] Estado desactivado en Firebase para: tracking/${userId}/current`,
-        );
-      })
-      .catch((err) => {
-        console.error(`❌ [LocationService] Error al desactivar tracking:`, err);
-      });
+    set(currentRef, { active: false, timestamp: Date.now(), userId }).catch((err) => {
+      console.error('Error al desactivar tracking:', err);
+    });
   }
 
   private handlePositionUpdate(
     position: GeolocationPosition,
     userId: string,
-    informeId: string,
+    informeId: string
   ): void {
     const coords = position.coords;
-    console.log(
-      `📍 [GPS Sensor] Coordenadas capturadas -> Lat: ${coords.latitude}, Lng: ${coords.longitude}, Precisión: ${coords.accuracy}m`,
-    );
 
     const now = Date.now();
-    if (now - this.lastSentTimestamp < this.MIN_INTERVAL_MS) {
-      console.log(`⏳ [LocationService] Omitiendo envío (Throttle < ${this.MIN_INTERVAL_MS}ms)`);
-      return;
-    }
+    if (now - this.lastSentTimestamp < this.MIN_INTERVAL_MS) return;
     this.lastSentTimestamp = now;
 
     const payload: LocationPayload = {
@@ -110,24 +122,18 @@ export class LocationService {
 
   private async syncToFirebase(payload: LocationPayload): Promise<void> {
     try {
-      console.log(`📤 [Firebase Sync] Enviando payload a tracking/${payload.userId}...`, payload);
-
       const currentRef = ref(this.db, `tracking/${payload.userId}/current`);
       const historyRef = ref(this.db, `tracking/${payload.userId}/history`);
 
       await set(currentRef, payload);
       await push(historyRef, payload);
-
-      console.log(`✅ [Firebase Sync] Coordenadas guardadas con éxito en Firebase.`);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Error desconocido al guardar ubicación';
-      console.error(`❌ [Firebase Sync Error]:`, message);
+      const message = err instanceof Error ? err.message : 'Error al sincronizar coordenadas';
       this.errorState.set(`Error de sincronización: ${message}`);
     }
   }
 
   private handlePositionError(error: GeolocationPositionError): void {
-    console.error(`❌ [GPS Error Code ${error.code}]: ${error.message}`);
     this.errorState.set(`Error GPS (${error.code}): ${error.message}`);
     this.isTracking.set(false);
   }

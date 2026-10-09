@@ -496,21 +496,18 @@ export class InformeService {
     if (getAuth().currentUser?.uid !== usuarioId) {
       throw new Error('Solo el creador del informe puede finalizarlo.');
     }
+
     await this.verificarInformeEditable(informeId);
 
-    // 1. Obtener los datos del informe para conocer el camión asociado
-    const informeSnap = await get(ref(this.db, `informe_de_viaje/${informeId}`));
-    const informeData = informeSnap.exists() ? informeSnap.val() : {};
-    const truckId = String(informeData?.camion || informeData?.camionId || 'ASIGNADO');
-
-    // 2. Marcar informe como finalizado en Firebase
+    // 1. Marcar informe como finalizado
     await update(ref(this.db, `informe_de_viaje/${informeId}`), {
+      activo: false,
       estado: 'finalizado',
       finalizadoEl: new Date().toISOString(),
       finalizadoPor: usuarioId,
     });
 
-    // 3. Apagar el monitoreo GPS en el dispositivo y actualizar el nodo tracking
+    // 2. Detener el rastreo enviando un string válido
     this.locationService.stopSupervisorTracking(usuarioId);
   }
 

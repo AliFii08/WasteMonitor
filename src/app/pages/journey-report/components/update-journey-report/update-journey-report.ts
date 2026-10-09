@@ -15,6 +15,7 @@ import { SessionTimeoutService } from '../../../../@core/services/session-timeou
 
 import { InformeService } from '../../../../@core/services/informe.service';
 import { Auth } from '@angular/fire/auth';
+import { LocationService } from '../../../../@core/services/location.service';
 
 export interface ViajeItem {
   id: string;
@@ -39,6 +40,7 @@ export class UpdateJourneyReport implements OnChanges {
   private cdr = inject(ChangeDetectorRef);
   private authService = inject(AuthService);
   private sessionTimeoutService = inject(SessionTimeoutService);
+  private locationService = inject(LocationService);
 
   activeTab: string = 'general';
   viajesList: ViajeItem[] = [];
@@ -93,32 +95,27 @@ export class UpdateJourneyReport implements OnChanges {
   errorMessage: string = '';
   nombreUsuario: string = '';
 
-  // Inyección de dependencias correcta para resolver TS2564
   constructor(
     private db: Database,
     private auth: Auth,
     private informe: InformeService,
-  ) {}
+  ) { }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['reporte'] && this.reporte) {
-      // 1. Asignar los campos base del informe (vehículo y ruta)
       this.camion = this.reporte.camionId || this.reporte.camion || '';
       this.ruta = this.reporte.rutaId || this.reporte.ruta || '';
 
-      // 2. Asignar nombre previo si ya viene cargado en el objeto principal
       if (this.reporte.nombreUsuario) {
         this.nombreUsuario = this.reporte.nombreUsuario;
       }
 
-      // 3. Obtener el ID del usuario creador
       const userId = this.reporte.usuario || this.reporte.usuarioId;
       if (userId) {
         this.cargarNombreUsuario(userId);
         this.completarAsignacionSiHaceFalta(userId);
       }
 
-      // 4. CARGAR LOS VIAJES ASOCIADOS AL INFORME
       this.cargarViajes();
     }
   }
@@ -143,13 +140,12 @@ export class UpdateJourneyReport implements OnChanges {
 
       if (snapshot.exists()) {
         const userData = snapshot.val();
-        // Construir nombre completo
         const nombre = userData.name || userData.nombre || '';
         const apellido = userData.lastName || userData.apellido || '';
 
         this.nombreUsuario = `${nombre} ${apellido}`.trim() || 'Usuario sin nombre';
       } else {
-        this.nombreUsuario = uid; // Fallback al ID si el nodo no existe
+        this.nombreUsuario = uid;
       }
     } catch (error) {
       console.error('Error al cargar nombre del usuario:', error);
@@ -244,7 +240,6 @@ export class UpdateJourneyReport implements OnChanges {
     return this.viajesList.find((v) => v.key === this.activeTab);
   }
 
-  // Guarda únicamente el viaje de la pestaña abierta
   async actualizarViajeActivo(): Promise<void> {
     if (!this.puedeEditarInforme) return;
     const viaje = this.viajeActivo;
@@ -258,14 +253,13 @@ export class UpdateJourneyReport implements OnChanges {
     this.isSubmitting = true;
 
     try {
-      // Llamada directa al servicio pasando solo el objeto plano del viaje
       await this.informe.updateViajeIndividual(viaje.id, {
         descripcion: String(viaje.descripcion || ''),
         direccionDelLlenado: String(viaje.direccionDelLlenado || ''),
         tonRecogidas: Number(viaje.tonRecogidas) || 0,
       });
 
-      await this.cargarViajes(); // Recarga para sincronizar los cambios
+      await this.cargarViajes();
     } catch (error) {
       console.error('Error al actualizar viaje:', error);
       this.errorMessage = 'Ocurrió un error al actualizar el viaje.';
@@ -275,24 +269,13 @@ export class UpdateJourneyReport implements OnChanges {
       this.cdr.detectChanges();
     }
   }
-  // Método que delega la actualización al servicio para resolver TS2339
-  async updateInforme(
-    informeId: string,
-    camion: string,
-    ruta: string,
-    viajes: ViajeItem[],
-  ): Promise<void> {
-    return this.informe.updateInforme(informeId, camion, ruta, viajes);
-  }
 
-  // --- GUARDAR EDICIONES DEL INFORME Y SUS VIAJES EXISTENTES ---
   async onSubmit(): Promise<void> {
     if (!this.reporte?.id || !this.puedeEditarInforme) return;
     this.isSubmitting = true;
 
     try {
-      await this.updateInforme(this.reporte.id, this.camion, this.ruta, this.viajesList);
-
+      await this.informe.updateInforme(this.reporte.id, this.camion, this.ruta, this.viajesList);
       this.closeModal();
     } catch (error) {
       console.error('Error al actualizar informe:', error);
@@ -300,6 +283,37 @@ export class UpdateJourneyReport implements OnChanges {
       this.showErrorModal = true;
     } finally {
       this.isSubmitting = false;
+    }
+  }
+
+  async finalizarInforme(): Promise<void> {
+    if (!this.reporte?.id || !this.puedeFinalizar) return;
+
+    const currentUser = this.auth.currentUser;
+    if (!currentUser) {
+      this.errorMessage = 'No hay una sesión de usuario activa para finalizar la jornada.';
+      this.showErrorModal = true;
+      return;
+    }
+
+    if (!confirm('¿Confirmas que todos los viajes de esta jornada están registrados?')) return;
+
+    this.isSubmitting = true;
+
+    try {
+      await this.informe.finalizarInforme(this.reporte.id, currentUser.uid);
+      this.reporte.estado = 'finalizado';
+      this.reporte.finalizadoEl = new Date().toISOString();
+      this.reporte.finalizadoPor = currentUser.uid;
+      this.sessionTimeoutService.setJourneyActive(false);
+      this.closeModal();
+    } catch (error) {
+      console.error('Error al finalizar el informe:', error);
+      this.errorMessage = 'No se pudo finalizar la jornada.';
+      this.showErrorModal = true;
+    } finally {
+      this.isSubmitting = false;
+      this.cdr.detectChanges();
     }
   }
 
@@ -355,13 +369,11 @@ export class UpdateJourneyReport implements OnChanges {
       const payloadActualizacion = {
         estado: 'firmado',
         firmadoEl: new Date().toISOString(),
-        firmadoPor: currentUser.uid, // Guardamos el UID del usuario que firma
+        firmadoPor: currentUser.uid,
       };
 
-      // Actualizar en Realtime Database
       await update(informeRef, payloadActualizacion);
 
-      // Actualizar estado local para la vista
       this.reporte.estado = 'firmado';
       this.reporte.firmadoEl = payloadActualizacion.firmadoEl;
       this.reporte.firmadoPor = payloadActualizacion.firmadoPor;
@@ -374,37 +386,6 @@ export class UpdateJourneyReport implements OnChanges {
     } catch (error) {
       console.error('Error al firmar el informe:', error);
       this.errorMessage = 'No se pudo registrar la firma del informe.';
-      this.showErrorModal = true;
-    } finally {
-      this.isSubmitting = false;
-      this.cdr.detectChanges();
-    }
-  }
-
-  async finalizarInforme(): Promise<void> {
-    if (!this.reporte?.id || !this.puedeFinalizar) return;
-
-    const currentUser = this.auth.currentUser;
-    if (!currentUser) {
-      this.errorMessage = 'No hay una sesión de usuario activa para finalizar la jornada.';
-      this.showErrorModal = true;
-      return;
-    }
-
-    if (!confirm('¿Confirmas que todos los viajes de esta jornada están registrados?')) return;
-
-    this.isSubmitting = true;
-
-    try {
-      await this.informe.finalizarInforme(this.reporte.id, currentUser.uid);
-      this.reporte.estado = 'finalizado';
-      this.reporte.finalizadoEl = new Date().toISOString();
-      this.reporte.finalizadoPor = currentUser.uid;
-      this.sessionTimeoutService.setJourneyActive(false);
-      this.closeModal();
-    } catch (error) {
-      console.error('Error al finalizar el informe:', error);
-      this.errorMessage = 'No se pudo finalizar la jornada.';
       this.showErrorModal = true;
     } finally {
       this.isSubmitting = false;

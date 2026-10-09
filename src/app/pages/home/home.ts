@@ -152,44 +152,54 @@ export class Home implements AfterViewInit, OnDestroy {
      * Escucha en tiempo real la propiedad /usuarios/{uid}/location de cada supervisor
      */
   private listenSupervisorLocations(): void {
-    const usersRef = ref(this.database, 'usuarios');
+    const trackingRef = ref(this.database, 'tracking');
 
-    this.unsubscribeSupervisores = onValue(usersRef, (snapshot) => {
+    this.unsubscribeSupervisores = onValue(trackingRef, (snapshot) => {
       if (!snapshot.exists()) return;
-      const data = snapshot.val();
+      const trackingData = snapshot.val();
 
       this.ngZone.run(() => {
-        Object.entries<any>(data).forEach(([uid, user]) => {
-          // Filtrar por rol 'supervisor' y comprobar la nueva propiedad 'location'
-          if (user.rol === 'supervisor' && user.location?.lat && user.location?.lng) {
-            const lat = Number(user.location.lat);
-            const lng = Number(user.location.lng);
-            const nombre = `${user.name || ''} ${user.lastName || ''}`.trim() || 'Supervisor';
+        Object.entries<any>(trackingData).forEach(([userId, payload]) => {
+          const current = payload?.current;
 
-            if (this.supervisorMarkers.has(uid)) {
-              // Mover marcador existente a las nuevas coordenadas
-              this.supervisorMarkers.get(uid)!.setLatLng([lat, lng]);
+          // Comprobar que esté activo y contenga coordenadas válidas
+          if (current && current.active && current.latitude && current.longitude) {
+            const lat = Number(current.latitude);
+            const lng = Number(current.longitude);
+            const label = `Supervisor (${userId.substring(0, 5)}...)`;
+
+            if (this.supervisorMarkers.has(userId)) {
+              // Mover marcador existente a las nuevas coordenadas en tiempo real
+              this.supervisorMarkers.get(userId)!.setLatLng([lat, lng]);
             } else {
-              // Crear icono personalizado para el supervisor
+              // Crear marcador nuevo en Leaflet
               const supervisorIcon = L.divIcon({
                 className: 'supervisor-custom-marker',
                 html: `<div style="background:#06523f; color:#fff; padding:5px 10px; border-radius:20px; font-weight:800; font-size:12px; border:2px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,0.3); display:flex; align-items:center; gap:5px; white-space:nowrap;">
-                        <i class="pi pi-user" style="font-size: 11px;"></i> ${nombre}
+                        <i class="pi pi-user" style="font-size: 11px;"></i> ${label}
                        </div>`,
                 iconAnchor: [30, 15],
               });
 
               const marker = L.marker([lat, lng], { icon: supervisorIcon })
-                .bindPopup(`<b>Supervisor:</b> ${nombre}<br><b>Última actualización:</b> ${user.location.timestamp ? new Date(user.location.timestamp).toLocaleTimeString() : 'Reciente'}`)
+                .bindPopup(`<b>Supervisor:</b> ${userId}<br><b>Informe:</b> ${current.informeId || 'N/A'}`)
                 .addTo(this.map);
 
-              this.supervisorMarkers.set(uid, marker);
+              this.supervisorMarkers.set(userId, marker);
+            }
+          } else {
+            // Si active es false, remover el pin del mapa
+            if (this.supervisorMarkers.has(userId)) {
+              this.supervisorMarkers.get(userId)!.remove();
+              this.supervisorMarkers.delete(userId);
             }
           }
         });
       });
     });
   }
+
+  
   private async drawAllRoutes(): Promise<void> {
     try {
       const routesRef = ref(this.database, 'routes');

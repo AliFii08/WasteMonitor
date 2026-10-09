@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { getDatabase, ref, update } from 'firebase/database';
 import { MessageService } from 'primeng/api';
+import { LocationService } from '../../../../@core/services/location.service';
 
 @Component({
   selector: 'app-delete-journey-report',
@@ -20,7 +21,9 @@ export class DeleteJourneyReport {
 
   isDeleting: boolean = false;
   isClosing = false;
+
   private messageService = inject(MessageService);
+  private locationService = inject(LocationService);
 
   private get db() {
     return getDatabase();
@@ -60,10 +63,16 @@ export class DeleteJourneyReport {
       const updatesPayload: Record<string, any> = {};
 
       lista.forEach((item) => {
-        // En la BD Realtime, la clave del objeto es 'id' o 'key' (ej: -P1eqtP73yoDIxGmkMuO)
         const id = item.id || item.key;
         if (id) {
           updatesPayload[`informe_de_viaje/${id}/activo`] = false;
+        }
+
+        // Obtener el ID del supervisor asociado al informe
+        const userId = item.usuario || item.usuarioId || item.idUsuario || item.uidUsuario;
+        if (userId) {
+          // Apaga la transmisión GPS nativa y marca /tracking/{userId}/current como inactivo
+          this.locationService.stopSupervisorTracking(String(userId));
         }
       });
 
@@ -75,7 +84,10 @@ export class DeleteJourneyReport {
       this.messageService.add({
         severity: 'success',
         summary: 'Eliminado correctamente',
-        detail: lista.length === 1 ? 'El informe fue ocultado correctamente.' : 'Los informes fueron ocultados correctamente.',
+        detail:
+          lista.length === 1
+            ? 'El informe fue ocultado correctamente.'
+            : 'Los informes fueron ocultados correctamente.',
       });
       this.reportesEliminados.emit();
       this.closeModal();
