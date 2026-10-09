@@ -67,17 +67,10 @@ export class DeleteJourneyReport {
         if (id) {
           updatesPayload[`informe_de_viaje/${id}/activo`] = false;
         }
-
-        // Obtener el ID del supervisor asociado al informe
-        const userId = item.usuario || item.usuarioId || item.idUsuario || item.uidUsuario;
-        if (userId) {
-          // Apaga la transmisión GPS nativa y marca /tracking/{userId}/current como inactivo
-          this.locationService.stopSupervisorTracking(String(userId));
-        }
       });
 
-      console.log('💾 Payload enviado a Firebase:', updatesPayload);
-
+      // Al ejecutarse esta actualización en RTDB, el teléfono del supervisor
+      // recibirá la notificación en su 'onValue' y apagará 'watchPosition' inmediatamente.
       await update(ref(this.db), updatesPayload);
 
       this.isDeleting = false;
@@ -90,6 +83,7 @@ export class DeleteJourneyReport {
             : 'Los informes fueron ocultados correctamente.',
       });
       this.reportesEliminados.emit();
+
       this.closeModal();
     } catch (error) {
       console.error('❌ Error al ocultar los informes:', error);

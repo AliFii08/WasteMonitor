@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Database, ref, set, push, get } from '@angular/fire/database';
+import { Database, ref, set, push, get, onValue, Unsubscribe } from '@angular/fire/database';
 import { Auth } from '@angular/fire/auth';
 
 export interface LocationPayload {
@@ -21,6 +21,7 @@ export class LocationService {
   private readonly db = inject(Database);
   private readonly auth = inject(Auth);
   private watchId: number | null = null;
+  private informeUnsubscribe: Unsubscribe | null = null;
 
   public readonly isTracking = signal<boolean>(false);
   public readonly lastLocation = signal<LocationPayload | null>(null);
@@ -28,6 +29,62 @@ export class LocationService {
 
   private lastSentTimestamp = 0;
   private readonly MIN_INTERVAL_MS = 3000;
+
+  startSupervisorTracking(userId: string, informeId: string): void {
+    if (this.isTracking()) return;
+
+    if (!('geolocation' in navigator)) {
+      this.errorState.set('La geolocalización no está soportada en este dispositivo.');
+      return;
+    }
+
+    this.errorState.set(null);
+    this.isTracking.set(true);
+
+    // ESCUCHAR EN TIEMPO REAL EL ESTADO DEL INFORME
+    const informeRef = ref(this.db, `informe_de_viaje/${informeId}`);
+    this.informeUnsubscribe = onValue(informeRef, (snapshot) => {
+      const data = snapshot.val();
+
+      // Si el informe se eliminó (null), o activo cambió a false, apagar el GPS en ESTE teléfono
+      if (!snapshot.exists() || data?.activo === false || data?.estado === 'finalizado') {
+        console.log('🛑 [LocationService] El informe fue desactivado/eliminado. Deteniendo GPS...');
+        this.stopSupervisorTracking(userId);
+      }
+    });
+
+    this.watchId = navigator.geolocation.watchPosition(
+      (position) => this.handlePositionUpdate(position, userId, informeId),
+      (error) => this.handlePositionError(error),
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  }
+
+  stopSupervisorTracking(userId: string): void {
+    // 1. Cancelar la escucha en tiempo real del informe
+    if (this.informeUnsubscribe) {
+      this.informeUnsubscribe();
+      this.informeUnsubscribe = null;
+    }
+
+    // 2. Detener el watchPosition del navegador móvil
+    if (this.watchId !== null) {
+      navigator.geolocation.clearWatch(this.watchId);
+      this.watchId = null;
+    }
+
+    this.isTracking.set(false);
+
+    // 3. Notificar a Firebase que la transmisión del usuario pasó a inactiva
+    const currentRef = ref(this.db, `tracking/${userId}/current`);
+    set(currentRef, { active: false, timestamp: Date.now(), userId }).catch((err) => {
+      console.error('Error al desactivar tracking:', err);
+    });
+  }
 
   /**
    * Verifica al cargar/recargar la app si el usuario activo tiene una jornada en curso
@@ -55,42 +112,6 @@ export class LocationService {
     } catch (err) {
       console.error('Error al intentar reanudar el rastreo GPS tras F5:', err);
     }
-  }
-
-  startSupervisorTracking(userId: string, informeId: string): void {
-    if (this.isTracking()) return; // Previene duplicar watchers
-
-    if (!('geolocation' in navigator)) {
-      this.errorState.set('La geolocalización no está soportada en este dispositivo.');
-      return;
-    }
-
-    this.errorState.set(null);
-    this.isTracking.set(true);
-
-    this.watchId = navigator.geolocation.watchPosition(
-      (position) => this.handlePositionUpdate(position, userId, informeId),
-      (error) => this.handlePositionError(error),
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
-      }
-    );
-  }
-
-  stopSupervisorTracking(userId: string): void {
-    if (this.watchId !== null) {
-      navigator.geolocation.clearWatch(this.watchId);
-      this.watchId = null;
-    }
-
-    this.isTracking.set(false);
-
-    const currentRef = ref(this.db, `tracking/${userId}/current`);
-    set(currentRef, { active: false, timestamp: Date.now(), userId }).catch((err) => {
-      console.error('Error al desactivar tracking:', err);
-    });
   }
 
   private handlePositionUpdate(

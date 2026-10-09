@@ -367,6 +367,7 @@ export class UpdateJourneyReport implements OnChanges {
       const informeRef = ref(this.db, `informe_de_viaje/${this.reporte.id}`);
 
       const payloadActualizacion = {
+        activo: false, // Asegurar que quede inactivo al firmar
         estado: 'firmado',
         firmadoEl: new Date().toISOString(),
         firmadoPor: currentUser.uid,
@@ -378,6 +379,10 @@ export class UpdateJourneyReport implements OnChanges {
       this.reporte.firmadoEl = payloadActualizacion.firmadoEl;
       this.reporte.firmadoPor = payloadActualizacion.firmadoPor;
 
+      // DETENER GPS EXPLÍCITAMENTE AL FIRMAR
+      const usuarioId = this.reporte.usuario || this.reporte.usuarioId || currentUser.uid;
+      this.locationService.stopSupervisorTracking(usuarioId);
+
       if (this.authService.hasRole(['supervisor'])) {
         this.sessionTimeoutService.setJourneyActive(false);
       }
@@ -388,7 +393,7 @@ export class UpdateJourneyReport implements OnChanges {
       this.errorMessage = 'No se pudo registrar la firma del informe.';
       this.showErrorModal = true;
     } finally {
-      this.isSubmitting = false;
+      this.isSubmitting = true;
       this.cdr.detectChanges();
     }
   }
