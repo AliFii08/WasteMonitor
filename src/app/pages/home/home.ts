@@ -1,12 +1,10 @@
 import { Component, AfterViewInit, OnDestroy, inject, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Database, ref, get, onValue, Unsubscribe } from '@angular/fire/database';
+import { Database, ref, get, onValue, Unsubscribe, query, equalTo, orderByChild } from '@angular/fire/database';
 import * as L from 'leaflet';
-
-import { UserService } from '../../@core/services/user.service';
-import { AuthService } from '../../@core/services/auth.service';
-import { user } from '@angular/fire/auth';
+import { UserService } from '../../@core/services/user.service'; // Ajusta la ruta si aplica
+import { AuthService } from '../../@core/services/auth.service'; // Ajusta la ruta si aplica
 
 interface Punto {
   x: number; // latitud
@@ -15,8 +13,24 @@ interface Punto {
 
 interface RutaData {
   id: string;
-  puntos: [number, number][]; // Array de [lat, lng]
+  puntos: [number, number][];
 }
+
+interface UserAddress {
+  lat?: string | number;
+  lng?: string | number;
+}
+
+interface UserData {
+  rol?: string;
+  name?: string;
+  address?: UserAddress;
+  ruta?: string;
+  rutaId?: string;
+  camionId?: string;
+}
+
+const ROLES_SIN_PIN_CASA = ['admin', 'conductor', 'supervisor', 'crew', 'mecanico'] as const;
 
 @Component({
   selector: 'app-home',
@@ -50,6 +64,7 @@ export class Home implements AfterViewInit, OnDestroy {
   private routeLayer!: L.LayerGroup;
   private supervisorMarkers: Map<string, L.Marker> = new Map();
   private unsubscribeSupervisores?: Unsubscribe;
+
   // Coordenadas por defecto (Maracaibo centro)
   private initialCoords: [number, number] = [10.6447, -71.6106];
 
@@ -69,7 +84,6 @@ export class Home implements AfterViewInit, OnDestroy {
 
     L.control.zoom({ position: 'bottomright' }).addTo(this.map);
 
-    // Capturar clics sobre el mapa para obtener coordenadas exactas
     this.map.on('click', (e: L.LeafletMouseEvent) => {
       const lat = e.latlng.lat;
       const lng = e.latlng.lng;
@@ -81,8 +95,7 @@ export class Home implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Obtiene la información del usuario y decide si dibujar todas las rutas (admin)
-   * o únicamente la más cercana (usuario regular).
+   * Obtiene la información del usuario y evalúa permisos/acciones por rol.
    */
   private async loadUserDataAndFindRoute(): Promise<void> {
     this.loading = true;
@@ -112,32 +125,40 @@ export class Home implements AfterViewInit, OnDestroy {
         return;
       }
 
-      const userData = snapshot.val();
-      const userRole = userData.rol; // 'admin', 'user', 'supervisor', etc.
-      this.userRole = userRole ?? null;
+      const userData: UserData = snapshot.val() || {};
+      const rawRole = userData.rol ?? '';
+      const normalizedRole = rawRole.trim().toLowerCase();
+
+      this.userRole = userData.rol ?? null;
       const address = userData.address;
 
-      // 2. Posicionar el pin de la vivienda del usuario si posee coordenadas ademas de ocultarlo si el usuario es 'admin'
-      if (address && address.lat && address.lng && userRole != 'admin') {
-        const numLat = parseFloat(address.lat);
-        const numLng = parseFloat(address.lng);
+      // 2. Normalización y comparación case-insensitive para la exclusión del Pin
+      const esRolExcluido = ROLES_SIN_PIN_CASA.includes(normalizedRole as typeof ROLES_SIN_PIN_CASA[number]);
 
-        if (!isNaN(numLat) && !isNaN(numLng)) {
+      if (!esRolExcluido && address?.lat != null && address?.lng != null) {
+        const numLat = Number(address.lat);
+        const numLng = Number(address.lng);
+
+        if (Number.isFinite(numLat) && Number.isFinite(numLng)) {
           this.userCoords = [numLat, numLng];
-          this.addUserMarker(this.userCoords, `${userData.name || 'Usuario'}, tu ubicación`);
+          const userName = userData.name?.trim() || 'Usuario';
+          this.addUserMarker(this.userCoords, `${userName}, tu ubicación`);
         }
       }
 
-      // 3. Lógica de renderizado según el Rol
-      if (userRole === 'admin') {
+      // 3. Lógica de renderizado basada en la variable normalizada
+      if (normalizedRole === 'admin') {
         console.log('Rol de Admin detectado: renderizando todas las rutas.');
         await this.drawAllRoutes();
         this.listenSupervisorLocations();
-      } else if (userRole === 'user' && this.userCoords) {
+      } else if (normalizedRole === 'user' && this.userCoords) {
         console.log('👤 Rol estándar detectado: calculando ruta más cercana.');
         await this.findAndDrawNearestRoute(this.userCoords);
-      } else if (userRole === 'user') {
+      } else if (normalizedRole === 'user') {
         console.warn('Usuario estándar sin coordenadas válidas para buscar rutas.');
+      } else if (['conductor', 'crew', 'supervisor', 'mecanico'].includes(normalizedRole)) {
+        console.log('Usuario operativo detectado: ', normalizedRole, 'Con ruta: ', userData.ruta);
+        this.findAndDrawAsignedRoute(currentUser.uid);
       }
 
     } catch (error) {
@@ -148,9 +169,7 @@ export class Home implements AfterViewInit, OnDestroy {
       });
     }
   }
-  /**
-     * Escucha en tiempo real la propiedad /usuarios/{uid}/location de cada supervisor
-     */
+
   private listenSupervisorLocations(): void {
     const trackingRef = ref(this.database, 'tracking');
 
@@ -162,17 +181,14 @@ export class Home implements AfterViewInit, OnDestroy {
         Object.entries<any>(trackingData).forEach(([userId, payload]) => {
           const current = payload?.current;
 
-          // Comprobar que esté activo y contenga coordenadas válidas
           if (current && current.active && current.latitude && current.longitude) {
             const lat = Number(current.latitude);
             const lng = Number(current.longitude);
             const label = `Supervisor (${userId.substring(0, 5)}...)`;
 
             if (this.supervisorMarkers.has(userId)) {
-              // Mover marcador existente a las nuevas coordenadas en tiempo real
               this.supervisorMarkers.get(userId)!.setLatLng([lat, lng]);
             } else {
-              // Crear marcador nuevo en Leaflet
               const supervisorIcon = L.divIcon({
                 className: 'supervisor-custom-marker',
                 html: `<div style="background:#06523f; color:#fff; padding:5px 10px; border-radius:20px; font-weight:800; font-size:12px; border:2px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,0.3); display:flex; align-items:center; gap:5px; white-space:nowrap;">
@@ -188,7 +204,6 @@ export class Home implements AfterViewInit, OnDestroy {
               this.supervisorMarkers.set(userId, marker);
             }
           } else {
-            // Si active es false, remover el pin del mapa
             if (this.supervisorMarkers.has(userId)) {
               this.supervisorMarkers.get(userId)!.remove();
               this.supervisorMarkers.delete(userId);
@@ -199,7 +214,6 @@ export class Home implements AfterViewInit, OnDestroy {
     });
   }
 
-  
   private async drawAllRoutes(): Promise<void> {
     try {
       const routesRef = ref(this.database, 'routes');
@@ -275,21 +289,15 @@ export class Home implements AfterViewInit, OnDestroy {
     }
   }
 
-  /**
-   * Geocodificador adaptativo para direcciones complejas de Maracaibo
-   */
   private async geocodeAddressDynamic(street?: string, sector?: string): Promise<[number, number] | null> {
     const queries: string[] = [];
 
     if (street) {
-      // Normalizar términos locales ("con" -> "&", eliminar prefijos)
       const cleanStreet = street.replace(/con/gi, '&').replace(/Urb-|Sect-/gi, '');
       queries.push(`${cleanStreet}, Maracaibo, Venezuela`);
 
-      // Descomponer si contiene intersección (ej. "Av. 15Q con calle 55")
       const parts = street.split(/con|y/i);
       if (parts.length > 1) {
-        // Probar buscando la calle o avenida secundaria con el sector
         const cleanSector = sector ? sector.replace(/Urb-|Sect-/gi, '') : '';
         queries.push(`${parts[1].trim()}, ${cleanSector}, Maracaibo, Venezuela`);
         queries.push(`${parts[0].trim()}, Maracaibo, Venezuela`);
@@ -301,7 +309,6 @@ export class Home implements AfterViewInit, OnDestroy {
       queries.push(`${cleanSector}, Maracaibo, Venezuela`);
     }
 
-    // Probar las consultas en orden de especificidad
     for (const query of queries) {
       const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`;
       try {
@@ -310,7 +317,6 @@ export class Home implements AfterViewInit, OnDestroy {
           const resLat = parseFloat(results[0].lat);
           const resLon = parseFloat(results[0].lon);
 
-          // Descartar si devuelve las coordenadas del centro exacto de Maracaibo (fallback por defecto)
           if (Math.abs(resLat - 10.6447) > 0.001 || Math.abs(resLon - (-71.6106)) > 0.001) {
             return [resLat, resLon];
           }
@@ -323,9 +329,6 @@ export class Home implements AfterViewInit, OnDestroy {
     return null;
   }
 
-  /**
-   * Geocodificación usando Nominatim (OSM)
-   */
   private geocodeAddress(addressQuery: string): Promise<[number, number] | null> {
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressQuery)}`;
 
@@ -337,7 +340,6 @@ export class Home implements AfterViewInit, OnDestroy {
             const lon = parseFloat(results[0].lon);
             resolve([lat, lon]);
           } else {
-            // Si la búsqueda exacta falla, probar con el sector genérico en Maracaibo
             const fallbackUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent('Maracaibo, Venezuela')}`;
             this.http.get<any[]>(fallbackUrl).subscribe({
               next: (fbResults) => {
@@ -356,9 +358,6 @@ export class Home implements AfterViewInit, OnDestroy {
     });
   }
 
-  /**
-   * Marca la casa del usuario en el mapa
-   */
   private addUserMarker(coords: [number, number], title: string): void {
     const homeIcon = L.divIcon({
       className: 'custom-home-icon',
@@ -379,9 +378,6 @@ export class Home implements AfterViewInit, OnDestroy {
     this.map.flyTo(coords, 15);
   }
 
-  /**
-   * Obtiene las rutas de Firebase, calcula cuál pasa más cerca de la casa y la dibuja con OSRM
-   */
   private async findAndDrawNearestRoute(userCoords: [number, number]): Promise<void> {
     const routesRef = ref(this.database, 'routes');
     const snapshot = await get(routesRef);
@@ -417,9 +413,103 @@ export class Home implements AfterViewInit, OnDestroy {
     }
   }
 
-  /**
-   * Llama al motor OSRM para trazar el camino real sobre las vías urbanas
-   */
+  private async findAndDrawAsignedRoute(userId: string): Promise<void> {
+    try {
+      // 1. Obtener la información del usuario
+      const userSnap = await get(ref(this.database, `usuarios/${userId}`));
+      if (!userSnap.exists()) {
+        console.warn('No se encontró información del usuario.');
+        return;
+      }
+
+      const userData = userSnap.val();
+      let rutaId = userData?.rutaId || userData?.ruta || '';
+      let camionId = userData?.camionId || '';
+
+      // 2. Si no tiene ruta o camión directo, buscar en 'grupoTripulacion'
+      if (!rutaId && !camionId) {
+        const gruposSnap = await get(ref(this.database, 'grupoTripulacion'));
+        if (gruposSnap.exists()) {
+          const gruposObj = gruposSnap.val();
+
+          for (const key of Object.keys(gruposObj)) {
+            const grupo = gruposObj[key];
+            if (!grupo) continue;
+
+            const esSupervisor = grupo.supervisor === userId;
+            const esConductor = grupo.conductor === userId;
+            const esCrew = grupo.crew && Object.values(grupo.crew).includes(userId);
+
+            if (esSupervisor || esConductor || esCrew) {
+              camionId = grupo.camion || '';
+              break;
+            }
+          }
+        }
+      }
+
+      // 3. Si tenemos camionId pero no rutaId, obtener la ruta del camión
+      if (!rutaId && camionId) {
+        const camionSnap = await get(ref(this.database, `camiones/${camionId}`));
+        if (camionSnap.exists()) {
+          const camionData = camionSnap.val();
+          rutaId = camionData?.ruta || camionData?.rutaId || '';
+        }
+      }
+
+      if (!rutaId) {
+        console.warn('El usuario con rol operativo no tiene ninguna ruta asignada.');
+        return;
+      }
+
+      // 4. Traer todas las rutas de Firebase en una sola petición
+      const allRoutesSnap = await get(ref(this.database, 'routes'));
+      if (!allRoutesSnap.exists()) {
+        console.warn('No existe la colección de rutas en Firebase.');
+        return;
+      }
+
+      const allRoutes = allRoutesSnap.val();
+      let routeData: any = null;
+      let actualRouteKey = rutaId;
+
+      // A) Verificar si el id coincide exactamente con la Key (ej: 'route1' o '-P11jl1mB1ZkDjPp7ERN')
+      if (allRoutes[rutaId]) {
+        routeData = allRoutes[rutaId];
+      } else {
+        // B) Búsqueda y filtrado local por la propiedad 'nombreRuta' (ej: 'Algo')
+        const foundKey = Object.keys(allRoutes).find(
+          (key) => allRoutes[key]?.nombreRuta === rutaId
+        );
+
+        if (foundKey) {
+          actualRouteKey = foundKey;
+          routeData = allRoutes[foundKey];
+        }
+      }
+
+      if (!routeData) {
+        console.warn(`La ruta asignada '${rutaId}' no existe en Firebase.`);
+        return;
+      }
+
+      // 5. Mapear y filtrar los puntos válidos (x = latitud, y = longitud)
+      const puntos: [number, number][] = Object.values(routeData)
+        .filter((val: any) => val && typeof val === 'object' && val.x !== undefined && val.y !== undefined)
+        .map((p: any) => [p.x, p.y]);
+
+      if (puntos.length === 0) {
+        console.warn('La ruta asignada no posee puntos válidos.');
+        return;
+      }
+
+      this.nearestRouteId = actualRouteKey;
+      this.trazarRutaConOSRM(puntos);
+
+    } catch (error) {
+      console.error('Error al buscar y dibujar la ruta asignada:', error);
+    }
+  }
   private trazarRutaConOSRM(points: [number, number][]): void {
     if (points.length < 2) return;
 
@@ -451,9 +541,6 @@ export class Home implements AfterViewInit, OnDestroy {
     });
   }
 
-  /**
-   * Fórmula Haversine para calcular distancia en kilómetros entre dos coordenadas
-   */
   private calcularDistanciaHaversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
     const R = 6371;
     const dLat = this.deg2rad(lat2 - lat1);
@@ -471,7 +558,6 @@ export class Home implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    // Desuscribir el listener en tiempo real de Firebase para liberar recursos
     if (this.unsubscribeSupervisores) {
       this.unsubscribeSupervisores();
     }
