@@ -508,7 +508,7 @@ export class InformeService {
     });
 
     // 2. Detener el rastreo enviando un string válido
-    this.locationService.stopSupervisorTracking(usuarioId);
+    this.locationService.stopSupervisorTracking(usuarioId, informeId);
   }
 
   private async verificarInformeEditable(informeId: string): Promise<void> {

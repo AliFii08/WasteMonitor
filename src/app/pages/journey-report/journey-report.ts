@@ -38,7 +38,7 @@ export class JourneyReport implements OnInit, OnDestroy {
   hasSelectedReport: boolean = false;
 
 
-selectedReportsList: any[] = [];
+  selectedReportsList: any[] = [];
   private selectedReportIds = new Set<string>();
 
 
@@ -54,7 +54,7 @@ selectedReportsList: any[] = [];
   // private auth = inject(Auth);
   private authService = inject(AuthService);
 
-  constructor(private informeService: InformeService) {}
+  constructor(private informeService: InformeService) { }
 
   ngOnInit(): void {
     this.cargarInformes();
@@ -113,17 +113,17 @@ selectedReportsList: any[] = [];
     const searchTerm = this.reportSearchTerm.trim().toLocaleLowerCase();
     this.reportes = searchTerm
       ? this.allReportes.filter((reporte) => {
-          const values = [
-            reporte.nombreUsuario,
-            reporte.camionId,
-            reporte.rutaId,
-            this.isReportSigned(reporte) ? 'Firmado' : 'Pendiente',
-            reporte.creadoEn?.toLocaleDateString(),
-          ];
-          return values.some((value) =>
-            String(value ?? '').toLocaleLowerCase().includes(searchTerm),
-          );
-        })
+        const values = [
+          reporte.nombreUsuario,
+          reporte.camionId,
+          reporte.rutaId,
+          this.isReportSigned(reporte) ? 'Firmado' : 'Pendiente',
+          reporte.creadoEn?.toLocaleDateString(),
+        ];
+        return values.some((value) =>
+          String(value ?? '').toLocaleLowerCase().includes(searchTerm),
+        );
+      })
       : [...this.allReportes];
 
     this.syncReportSelection();

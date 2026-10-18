@@ -381,7 +381,7 @@ export class UpdateJourneyReport implements OnChanges {
 
       // DETENER GPS EXPLÍCITAMENTE AL FIRMAR
       const usuarioId = this.reporte.usuario || this.reporte.usuarioId || currentUser.uid;
-      this.locationService.stopSupervisorTracking(usuarioId);
+      this.locationService.stopSupervisorTracking(usuarioId, this.reporte.id);
 
       if (this.authService.hasRole(['supervisor'])) {
         this.sessionTimeoutService.setJourneyActive(false);

@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Database, ref, set, push, get, onValue, Unsubscribe } from '@angular/fire/database';
+import { Database, ref, set, remove, get, onValue, Unsubscribe } from '@angular/fire/database';
 import { Auth } from '@angular/fire/auth';
 
 export interface LocationPayload {
@@ -22,6 +22,9 @@ export class LocationService {
   private readonly auth = inject(Auth);
   private watchId: number | null = null;
   private informeUnsubscribe: Unsubscribe | null = null;
+  // Mantiene a mano a quién pertenece el tracking activo, para poder limpiar
+  // completo desde cualquier punto (error de GPS, cierre de jornada, etc.)
+  private contexto: { userId: string; informeId: string } | null = null;
 
   public readonly isTracking = signal<boolean>(false);
   public readonly lastLocation = signal<LocationPayload | null>(null);
@@ -40,6 +43,7 @@ export class LocationService {
 
     this.errorState.set(null);
     this.isTracking.set(true);
+    this.contexto = { userId, informeId };
 
     // ESCUCHAR EN TIEMPO REAL EL ESTADO DEL INFORME
     const informeRef = ref(this.db, `informe_de_viaje/${informeId}`);
@@ -49,7 +53,7 @@ export class LocationService {
       // Si el informe se eliminó (null), o activo cambió a false, apagar el GPS en ESTE teléfono
       if (!snapshot.exists() || data?.activo === false || data?.estado === 'finalizado') {
         console.log('🛑 [LocationService] El informe fue desactivado/eliminado. Deteniendo GPS...');
-        this.stopSupervisorTracking(userId);
+        this.stopSupervisorTracking(userId, informeId);
       }
     });
 
@@ -64,26 +68,99 @@ export class LocationService {
     );
   }
 
-  stopSupervisorTracking(userId: string): void {
-    // 1. Cancelar la escucha en tiempo real del informe
-    if (this.informeUnsubscribe) {
-      this.informeUnsubscribe();
-      this.informeUnsubscribe = null;
-    }
+  /**
+   * Apaga el tracking de `userId`: detiene el GPS local (solo si le pertenece
+   * a ESTE dispositivo), marca `active: false` en su nodo /tracking y limpia
+   * el historial residual.
+   *
+   * Llamarlo desde el dispositivo de otro usuario (p. ej. un admin que elimina
+   * el informe de un supervisor) es el "kill switch" remoto: no toca el GPS
+   * local, solo escribe en la BD.
+   */
+  stopSupervisorTracking(userId: string, informeId?: string): void {
+    // ¿El tracking activo en ESTE dispositivo es el de ese usuario?
+    // Si no lo es (un admin con su propia jornada borrando el informe de otro),
+    // no debemos apagar nuestro propio GPS.
+    const esTrackingLocal = !this.contexto || this.contexto.userId === userId;
 
-    // 2. Detener el watchPosition del navegador móvil
-    if (this.watchId !== null) {
-      navigator.geolocation.clearWatch(this.watchId);
-      this.watchId = null;
-    }
+    if (esTrackingLocal) {
+      // 1. Cancelar la escucha en tiempo real del informe
+      if (this.informeUnsubscribe) {
+        this.informeUnsubscribe();
+        this.informeUnsubscribe = null;
+      }
 
-    this.isTracking.set(false);
+      // 2. Detener el watchPosition del navegador móvil
+      if (this.watchId !== null) {
+        navigator.geolocation.clearWatch(this.watchId);
+        this.watchId = null;
+      }
+
+      this.contexto = null;
+      this.isTracking.set(false);
+    }
 
     // 3. Notificar a Firebase que la transmisión del usuario pasó a inactiva
-    const currentRef = ref(this.db, `tracking/${userId}/current`);
-    set(currentRef, { active: false, timestamp: Date.now(), userId }).catch((err) => {
-      console.error('Error al desactivar tracking:', err);
-    });
+    if (userId) {
+      const currentRef = ref(this.db, `tracking/${userId}/current`);
+      set(currentRef, { active: false, timestamp: Date.now(), userId }).catch((err) => {
+        console.error('Error al desactivar tracking:', err);
+      });
+    }
+
+    // 4. Limpiar cualquier residuo de historial (ya no se escribe, pero puede
+    //    quedar basura de versiones anteriores de la app)
+    void this.limpiarHistorialTracking(userId, informeId);
+  }
+
+  /**
+   * Borra el historial de tracking de un usuario.
+   * Con `informeId` borra solo el de ese informe; sin él, todo el del usuario.
+   */
+  async limpiarHistorialTracking(userId: string, informeId?: string): Promise<void> {
+    if (!userId) return;
+
+    const paths = [`tracking/${userId}/history`];
+    if (informeId) {
+      paths.push(`tracking_historial/${userId}/${informeId}`);
+    }
+
+    try {
+      await Promise.all(paths.map((path) => remove(ref(this.db, path))));
+    } catch (err) {
+      console.error('Error al limpiar historial de tracking:', err);
+    }
+  }
+
+  /**
+   * Kill switch remoto: usado desde el dispositivo de un admin que elimina
+   * informes ajenos, porque el listener de `startSupervisorTracking` vive en el
+   * teléfono del supervisor y no se dispara si él tiene la app cerrada.
+   *
+   * Solo apaga si el tracking en curso de ese usuario apunta a ALGUNO de los
+   * informes eliminados. Si el supervisor está en otra jornada, se respeta.
+   */
+  async apagarTrackingDeInformes(ownerId: string, informeIds: string[]): Promise<void> {
+    if (!ownerId || informeIds.length === 0) return;
+
+    // El historial residual se limpia siempre, sea cual sea el caso.
+    void this.limpiarHistorialTracking(ownerId);
+
+    try {
+      const snap = await get(ref(this.db, `tracking/${ownerId}/current`));
+      if (!snap.exists()) return;
+
+      const current = snap.val();
+      if (current?.active !== true) return;
+
+      const informeEnCurso = String(current?.informeId || '');
+      if (!informeEnCurso || !informeIds.includes(informeEnCurso)) return;
+
+      console.log(`🛑 [LocationService] Apagando tracking de ${ownerId} (informe ${informeEnCurso})`);
+      this.stopSupervisorTracking(ownerId, informeEnCurso);
+    } catch (err) {
+      console.error('Error al apagar tracking remoto:', err);
+    }
   }
 
   /**
@@ -143,11 +220,11 @@ export class LocationService {
 
   private async syncToFirebase(payload: LocationPayload): Promise<void> {
     try {
+      // Solo se mantiene la posición actual. El historial ya NO se escribe:
+      // /tracking queda plano, así los mapas (home y AdminTracking) que escuchan
+      // el nodo completo solo bajan este único objeto por usuario.
       const currentRef = ref(this.db, `tracking/${payload.userId}/current`);
-      const historyRef = ref(this.db, `tracking/${payload.userId}/history`);
-
       await set(currentRef, payload);
-      await push(historyRef, payload);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Error al sincronizar coordenadas';
       this.errorState.set(`Error de sincronización: ${message}`);
@@ -156,6 +233,14 @@ export class LocationService {
 
   private handlePositionError(error: GeolocationPositionError): void {
     this.errorState.set(`Error GPS (${error.code}): ${error.message}`);
-    this.isTracking.set(false);
+
+    // Antes solo se ponía isTracking=false y el watch seguía corriendo en el
+    // navegador (fuga de batería + doble escritura). Ahora se limpia completo.
+    const contexto = this.contexto;
+    if (contexto) {
+      this.stopSupervisorTracking(contexto.userId, contexto.informeId);
+    } else {
+      this.isTracking.set(false);
+    }
   }
 }
