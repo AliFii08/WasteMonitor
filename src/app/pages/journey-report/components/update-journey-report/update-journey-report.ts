@@ -301,12 +301,60 @@ export class UpdateJourneyReport implements OnChanges {
     this.isSubmitting = true;
 
     try {
-      await this.informe.finalizarInforme(this.reporte.id, currentUser.uid);
+      // 1. Sanitizar IDs
+      const informeId = String(this.reporte.id || '').trim();
+      const userUid = String(currentUser.uid || '').trim();
+      const finalizadoEl = new Date().toISOString();
+
+      if (!informeId) {
+        throw new Error('El ID del informe es inválido.');
+      }
+
+      // 2. Actualizar estado del informe mediante API REST (fetch)
+      const firebaseUrl = `https://wastemonitor-c425a-default-rtdb.firebaseio.com/informe_de_viaje/${informeId}.json`;
+
+      const response = await fetch(firebaseUrl, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          estado: 'finalizado',
+          finalizadoEl: finalizadoEl,
+          finalizadoPor: userUid,
+          activo: false,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error en HTTP: ${response.status} ${response.statusText}`);
+      }
+
+      // 3. Actualizar estado local
       this.reporte.estado = 'finalizado';
-      this.reporte.finalizadoEl = new Date().toISOString();
-      this.reporte.finalizadoPor = currentUser.uid;
+      this.reporte.finalizadoEl = finalizadoEl;
+      this.reporte.finalizadoPor = userUid;
+
+      // 4. Detener rastreo GPS de forma segura (sin bloquear el cierre)
+      try {
+        const rawUsuarioId =
+          this.reporte.usuario ||
+          this.reporte.usuarioId ||
+          this.reporte.uidUsuario ||
+          userUid;
+        const usuarioId = String(rawUsuarioId || '').trim();
+
+        if (usuarioId && this.locationService) {
+          this.locationService.stopSupervisorTracking(usuarioId, informeId);
+        }
+      } catch (locErr) {
+        console.warn('Advertencia al detener el rastreo de ubicación:', locErr);
+      }
+
+      // 5. Desactivar jornada activa y cerrar modal
       this.sessionTimeoutService.setJourneyActive(false);
       this.closeModal();
+
     } catch (error) {
       console.error('Error al finalizar el informe:', error);
       this.errorMessage = 'No se pudo finalizar la jornada.';

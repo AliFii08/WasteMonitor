@@ -2,6 +2,7 @@ import { Component, AfterViewInit, OnDestroy, inject, NgZone } from '@angular/co
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Database, ref, get, onValue, Unsubscribe, query, equalTo, orderByChild } from '@angular/fire/database';
+import { firstValueFrom } from 'rxjs';
 import * as L from 'leaflet';
 import { UserService } from '../../@core/services/user.service'; // Ajusta la ruta si aplica
 import { AuthService } from '../../@core/services/auth.service'; // Ajusta la ruta si aplica
@@ -61,9 +62,12 @@ export class Home implements AfterViewInit, OnDestroy {
   // Capas del mapa Leaflet
   private userMarker!: L.Marker;
   private routePolyline!: L.Polyline;
-  private routeLayer!: L.LayerGroup;
+  private routeLayer?: L.LayerGroup;
   private supervisorMarkers: Map<string, L.Marker> = new Map();
   private unsubscribeSupervisores?: Unsubscribe;
+  // Solo rol 'mecanico': rutas de los informes que están en curso
+  private unsubscribeInformesActivos?: Unsubscribe;
+  private activeRoutesSignature = '';
 
   // Coordenadas por defecto (Maracaibo centro)
   private initialCoords: [number, number] = [10.6447, -71.6106];
@@ -156,7 +160,11 @@ export class Home implements AfterViewInit, OnDestroy {
         await this.findAndDrawNearestRoute(this.userCoords);
       } else if (normalizedRole === 'user') {
         console.warn('Usuario estándar sin coordenadas válidas para buscar rutas.');
-      } else if (['conductor', 'crew', 'supervisor', 'mecanico'].includes(normalizedRole)) {
+      } else if (normalizedRole === 'mecanico') {
+        // El mecánico ve las rutas de los informes que están EN CURSO
+        console.log('🔧 Rol Mecánico detectado: renderizando rutas de informes activos.');
+        await this.drawRouteFromAciveJourney();
+      } else if (['conductor', 'crew', 'supervisor'].includes(normalizedRole)) {
         console.log('Usuario operativo detectado: ', normalizedRole, 'Con ruta: ', userData.ruta);
         this.findAndDrawAsignedRoute(currentUser.uid);
       }
@@ -212,6 +220,240 @@ export class Home implements AfterViewInit, OnDestroy {
         });
       });
     });
+  }
+
+
+  /**
+   * RUTAS ACTIVAS — solo para el rol 'mecanico'.
+   *
+   * Dibuja en el mapa únicamente las rutas de los informes de viaje que están
+   * en curso, es decir los que cumplen:
+   *   - `activo !== false`  (no fueron eliminados/ocultados)
+   *   - `estado` distinto de 'finalizado' y 'firmado' (no cerrados)
+   *
+   * La doble condición es intencional: al finalizar y al firmar se pone
+   * `activo: false`, pero puede existir informes antiguos sin el campo `activo`
+   * que sí tengan estado cerrado, y esos también deben quedar fuera.
+   *
+   * Se suscribe en tiempo real a `informe_de_viaje`, de modo que si un
+   * supervisor crea, finaliza o firma un informe el mapa del mecánico se
+   * actualiza solo, sin recargar.
+   */
+  private async drawRouteFromAciveJourney(): Promise<void> {
+    this.unsubscribeInformesActivos = onValue(
+      ref(this.database, 'informe_de_viaje'),
+      async (snapshot) => {
+        const informes = snapshot.val() || {};
+
+        // 1. Filtrar los informes que siguen en curso
+        const activos = Object.entries<any>(informes).filter(([_, inf]) => {
+          if (!inf) return false;
+
+          const estado = String(inf?.estado ?? '').toLowerCase();
+          const estaCerrado =
+            estado === 'finalizado' ||
+            estado === 'firmado' ||
+            inf?.estado === true ||
+            inf?.activo === false;
+
+          return !estaCerrado;
+        });
+
+        if (activos.length === 0) {
+          console.log('ℹ️ No hay informes activos. Se limpian las rutas del mapa.');
+          this.clearActiveJourneyRoutes();
+          return;
+        }
+
+        // 2. Resolver el rutaId de cada informe activo (puede venir en el
+        //    propio informe o derivarse del camión asignado)
+        const rutasActivas = await this.resolveActiveRouteIds(activos);
+
+        // 3. Evitar llamadas repetidas a OSRM: solo se re-traza si cambió el
+        //    conjunto de rutas activas
+        const signature = [...rutasActivas.keys()].sort().join('|');
+        if (signature === this.activeRoutesSignature) return;
+        this.activeRoutesSignature = signature;
+
+        await this.drawActiveJourneyRoutes(rutasActivas);
+      },
+      (error) => console.error('Error al escuchar informes activos:', error),
+    );
+  }
+
+  /**
+   * A partir de los informes activos devuelve un Map<rutaId, datosRuta>.
+   * Duplica el nombre de la ruta si varios informes comparten la misma, que
+   * es el caso normal (varias tripulaciones en una misma ruta).
+   */
+  private async resolveActiveRouteIds(
+    activos: [string, any][],
+  ): Promise<Map<string, { nombreRuta: string; supervisors: string[] }>> {
+    const rutas = new Map<string, { nombreRuta: string; supervisors: string[] }>();
+
+    // Cachés para no repetir lecturas cuando varios informes apuntan al mismo
+    // camión o al mismo usuario
+    const camionesCache = new Map<string, string>();
+    const usuariosCache = new Map<string, string>();
+
+    const normalizar = (valor: unknown): string =>
+      String(valor ?? '').trim();
+
+    const addRuta = (rutaId: string, nombreRuta: string, supervisor: string) => {
+      if (!rutaId) return;
+      const existente = rutas.get(rutaId);
+      if (existente) {
+        if (supervisor && !existente.supervisors.includes(supervisor)) {
+          existente.supervisors.push(supervisor);
+        }
+        if (!existente.nombreRuta && nombreRuta) existente.nombreRuta = nombreRuta;
+      } else {
+        rutas.set(rutaId, {
+          nombreRuta,
+          supervisors: supervisor ? [supervisor] : [],
+        });
+      }
+    };
+
+    for (const [, inf] of activos) {
+      let rutaId = normalizar(inf?.rutaId || inf?.ruta);
+      const camionId = normalizar(inf?.camionId || inf?.camion);
+      const uid = normalizar(inf?.usuario || inf?.uidUsuario || inf?.usuarioId);
+
+      // Sin ruta directa, se deriva del camión asignado al informe
+      if (!rutaId && camionId) {
+        if (!camionesCache.has(camionId)) {
+          try {
+            const snap = await get(ref(this.database, `camiones/${camionId}`));
+            camionesCache.set(
+              camionId,
+              normalizar(snap.exists() ? snap.val()?.ruta || snap.val()?.rutaId : ''),
+            );
+          } catch {
+            camionesCache.set(camionId, '');
+          }
+        }
+        rutaId = camionesCache.get(camionId) || '';
+      }
+
+      // Nombre del supervisor para el popup de la ruta
+      let supervisor = '';
+      if (uid) {
+        if (!usuariosCache.has(uid)) {
+          try {
+            const snap = await get(ref(this.database, `usuarios/${uid}`));
+            const u = snap.exists() ? snap.val() : null;
+            const nombre = String(u?.name || u?.nombre || '').trim();
+            const apellido = String(u?.lastName || u?.apellido || '').trim();
+            usuariosCache.set(uid, `${nombre} ${apellido}`.trim());
+          } catch {
+            usuariosCache.set(uid, '');
+          }
+        }
+        supervisor = usuariosCache.get(uid) || '';
+      }
+
+      addRuta(rutaId, '', supervisor);
+    }
+
+    return rutas;
+  }
+
+  /**
+   * Traza las rutas activas en el mapa. Cada polilínea lleva en el popup el
+   * nombre de la ruta y los supervisors que la están recorriendo.
+   */
+  private async drawActiveJourneyRoutes(
+    rutas: Map<string, { nombreRuta: string; supervisors: string[] }>,
+  ): Promise<void> {
+    const allRoutesSnap = await get(ref(this.database, 'routes'));
+    const allRoutes = allRoutesSnap.exists() ? allRoutesSnap.val() : {};
+
+    if (this.routeLayer) {
+      this.map.removeLayer(this.routeLayer);
+    }
+    this.routeLayer = L.layerGroup().addTo(this.map);
+
+    const colors = ['#28a745', '#007bff', '#dc3545', '#ffc107', '#17a2b8', '#6f42c1'];
+    const allBounds: L.LatLngBounds = L.latLngBounds([]);
+    let colorIndex = 0;
+
+    for (const [rutaId, meta] of rutas) {
+      // El informe puede guardar la key de 'routes' o el nombre visible
+      const routeData = allRoutes[rutaId]
+        ? allRoutes[rutaId]
+        : Object.values<any>(allRoutes).find((r) => r?.nombreRuta === rutaId);
+
+      if (!routeData) {
+        console.warn(`⚠️ La ruta '${rutaId}' de un informe activo no existe en /routes.`);
+        continue;
+      }
+
+      // x = latitud, y = longitud. Se ordenan por clave (p1, p2, p3...)
+      const puntos: [number, number][] = Object.keys(routeData)
+        .filter((key) => /^p\d+$/.test(key))
+        .sort((a, b) => parseInt(a.slice(1), 10) - parseInt(b.slice(1), 10))
+        .map((key) => [routeData[key]?.x, routeData[key]?.y] as [number, number])
+        .filter(([x, y]) => Number.isFinite(x) && Number.isFinite(y));
+
+      if (puntos.length < 2) continue;
+
+      const color = colors[colorIndex % colors.length];
+      colorIndex++;
+
+      const nombre = routeData.nombreRuta || meta.nombreRuta || rutaId;
+      const popup =
+        `<b>Ruta:</b> ${nombre}<br>` +
+        `<b>En curso:</b> ${meta.supervisors.length} supervisor(es)` +
+        (meta.supervisors.length
+          ? `<br><b>Supervisors:</b> ${meta.supervisors.join(', ')}`
+          : '');
+
+      const coordsString = puntos.map((p) => `${p[1]},${p[0]}`).join(';');
+      const url = `https://router.project-osrm.org/route/v1/driving/${coordsString}?geometries=geojson&overview=full`;
+
+      try {
+        const data = await firstValueFrom(this.http.get<any>(url));
+
+        if (data?.routes?.length > 0) {
+          const latLngs: [number, number][] = data.routes[0].geometry.coordinates.map(
+            (c: number[]) => [c[1], c[0]],
+          );
+
+          L.polyline(latLngs, { color, weight: 5, opacity: 0.85 })
+            .bindPopup(popup)
+            .addTo(this.routeLayer!);
+
+          latLngs.forEach((coord) => allBounds.extend(coord));
+          continue;
+        }
+      } catch {
+        // Si OSRM falla se dibuja la línea directa como respaldo
+      }
+
+      L.polyline(puntos, {
+        color,
+        weight: 4,
+        dashArray: '5, 10',
+        opacity: 0.7,
+      })
+        .bindPopup(`${popup}<br><i>(Trazado directo)</i>`)
+        .addTo(this.routeLayer!);
+
+      puntos.forEach((coord) => allBounds.extend(coord));
+    }
+
+    if (allBounds.isValid()) {
+      this.map.fitBounds(allBounds, { padding: [40, 40] });
+    }
+  }
+
+  private clearActiveJourneyRoutes(): void {
+    this.activeRoutesSignature = '';
+    if (this.routeLayer) {
+      this.map.removeLayer(this.routeLayer);
+      this.routeLayer = undefined;
+    }
   }
 
   private async drawAllRoutes(): Promise<void> {
@@ -560,6 +802,9 @@ export class Home implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.unsubscribeSupervisores) {
       this.unsubscribeSupervisores();
+    }
+    if (this.unsubscribeInformesActivos) {
+      this.unsubscribeInformesActivos();
     }
     if (this.map) {
       this.map.remove();
