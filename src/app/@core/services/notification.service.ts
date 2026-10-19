@@ -1,9 +1,11 @@
-import { Injectable, inject, NgZone } from '@angular/core';
+import { Injectable, PLATFORM_ID, inject, NgZone } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Database, ref, onValue } from '@angular/fire/database';
 import { Auth, user } from '@angular/fire/auth';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { NotificacionItem } from '../interfaces/notification.model';
 import { environment } from '../../../environments/environment';
+import { BrowserNotificationService } from './browser-notification.service';
 
 @Injectable({
   providedIn: 'root',
@@ -12,6 +14,8 @@ export class NotificationService {
   private db = inject(Database);
   private auth = inject(Auth);
   private ngZone = inject(NgZone);
+  private platformId = inject(PLATFORM_ID);
+  private browserNotifications = inject(BrowserNotificationService);
 
   // URL base de la Realtime Database
   private readonly DB_URL = environment.firebaseConfig.databaseURL;
@@ -24,6 +28,8 @@ export class NotificationService {
   public unreadCount$: Observable<number> = this.unreadCountSubject.asObservable();
 
   private unsubscribeListener: any = null;
+  private knownNotificationIds = new Set<string>();
+  private isFirstSnapshot = true;
 
   constructor() {
     this.authSubscription();
@@ -59,6 +65,8 @@ export class NotificationService {
    */
   private iniciarEscuchaTiempoReal(userRole: string, userId: string): void {
     this.limpiarEscucha();
+    this.knownNotificationIds.clear();
+    this.isFirstSnapshot = true;
     const notifRef = ref(this.db, 'notificaciones');
 
     this.unsubscribeListener = onValue(notifRef, (snapshot) => {
@@ -94,6 +102,18 @@ export class NotificationService {
           }
 
           if (esVisible) {
+            if (
+              !this.isFirstSnapshot &&
+              !this.knownNotificationIds.has(key) &&
+              item.creadoPor !== userId
+            ) {
+              this.mostrarNotificacionLocal(
+                item.titulo || 'Notificación',
+                item.mensaje || '',
+                key,
+              );
+            }
+            this.knownNotificationIds.add(key);
             const notif: NotificacionItem = {
               id: key,
               titulo: item.titulo || 'Notificación',
@@ -113,10 +133,31 @@ export class NotificationService {
         lista.sort((a, b) => b.timestamp - a.timestamp);
       }
 
+      this.isFirstSnapshot = false;
       this.ngZone.run(() => {
         this.notificationsSubject.next(lista);
         this.unreadCountSubject.next(noLeidas);
       });
+    });
+  }
+
+  private mostrarNotificacionLocal(titulo: string, mensaje: string, id: string): void {
+    if (
+      !isPlatformBrowser(this.platformId) ||
+      !this.browserNotifications.isEnabled
+    ) {
+      return;
+    }
+
+    void (async () => {
+      const registration = await navigator.serviceWorker?.getRegistration();
+      if (registration) {
+        await registration.showNotification(titulo, { body: mensaje, tag: `wastemonitor-${id}` });
+        return;
+      }
+      new Notification(titulo, { body: mensaje, tag: `wastemonitor-${id}` });
+    })().catch((error: unknown) => {
+      console.error('No se pudo mostrar la notificación del navegador:', error);
     });
   }
 
@@ -177,24 +218,22 @@ export class NotificationService {
     titulo: string,
     mensaje: string,
     tipo: string = 'info',
-    rolDestino: string = 'todos'
+    rolDestino: string | string[] = 'todos'
   ): Promise<void> {
     try {
-      const body = {
-        titulo,
-        mensaje,
-        tipo,
-        leida: false,
-        timestamp: Date.now(),
-        rolDestino,
-      };
-
       const res = await fetch(this.API_NOTIFICACIONES, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+        body: JSON.stringify({
+          titulo,
+          mensaje,
+          tipo,
+          leida: false,
+          timestamp: Date.now(),
+          rolDestino,
+          creadoPor: this.auth.currentUser?.uid || null,
+        }),
       });
-
       if (!res.ok) throw new Error('Error en el servidor al enviar la notificación.');
     } catch (error) {
       console.error('Error al enviar notificación:', error);
@@ -203,7 +242,7 @@ export class NotificationService {
   }
 
   /**
-   * Crear notificación enviando una petición POST individual por cada usuario mediante fetch (Promise.all)
+   * Crear notificación para los usuarios seleccionados.
    */
   async crearNotificacionParaUsuarios(
     titulo: string,
@@ -214,10 +253,11 @@ export class NotificationService {
     if (uniqueUserIds.length === 0) throw new Error('Selecciona al menos un destinatario.');
 
     const timestamp = Date.now();
-
-    // Enviamos las solicitudes POST en paralelo mediante fetch
-    const peticiones = uniqueUserIds.map((userId) => {
-      const body = {
+    const responses = await Promise.all(uniqueUserIds.map((userId) =>
+      fetch(this.API_NOTIFICACIONES, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
         titulo,
         mensaje,
         tipo: 'info',
@@ -225,19 +265,11 @@ export class NotificationService {
         timestamp,
         rolDestino: 'destinatario',
         uidDestino: userId,
-      };
-
-      return fetch(this.API_NOTIFICACIONES, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-    });
-
-    const resultados = await Promise.all(peticiones);
-    const algunaFallo = resultados.some((res) => !res.ok);
-
-    if (algunaFallo) {
+        creadoPor: this.auth.currentUser?.uid || null,
+        }),
+      }),
+    ));
+    if (responses.some((response) => !response.ok)) {
       throw new Error('No se pudieron enviar algunas notificaciones.');
     }
   }

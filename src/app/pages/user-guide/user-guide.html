@@ -1,0 +1,135 @@
+<main class="guide-page">
+  <section class="guide-hero">
+    <div class="hero-copy">
+      <span class="eyebrow"><i class="pi pi-sparkles"></i> Centro de ayuda WasteMonitor</span>
+      <h1>Manual de Uso y Preguntas frecuentes</h1>
+      <p>Encuentra instrucciones claras, resuelve tus dudas y vuelve a lo que necesitas hacer.</p>
+    </div>
+
+    <div class="hero-art" aria-hidden="true">
+      <div class="art-orbit orbit-one"></div>
+      <div class="art-orbit orbit-two"></div>
+      <div class="art-center"><i class="pi pi-compass"></i></div>
+      <div class="art-badge badge-route"><i class="pi pi-map-marker"></i></div>
+      <div class="art-badge badge-help"><i class="pi pi-question-circle"></i></div>
+      <div class="art-badge badge-check"><i class="pi pi-check"></i></div>
+    </div>
+
+    <div class="hero-bottom">
+      <span><i class="pi pi-book"></i> Manual práctico</span>
+      <span><i class="pi pi-users"></i> Guías por rol</span>
+      <span><i class="pi pi-comments"></i> Preguntas frecuentes</span>
+    </div>
+  </section>
+
+  <section class="welcome-row" aria-label="Guía recomendada">
+    <div class="welcome-icon"><i [class]="currentGuide.icon"></i></div>
+    <div class="welcome-copy">
+      <span>EMPIEZA POR AQUÍ · GUÍA PARA {{ currentGuide.title | uppercase }}</span>
+      <h2>{{ currentGuide.subtitle }}</h2>
+    </div>
+    <button
+      class="welcome-link"
+      type="button"
+      [attr.aria-expanded]="guideExpanded"
+      aria-controls="manual"
+      (click)="toggleGuide()"
+    >
+      {{ guideExpanded ? 'Ocultar guía' : 'Ver mi guía' }}
+      <i [class]="guideExpanded ? 'pi pi-arrow-up' : 'pi pi-arrow-down'"></i>
+    </button>
+  </section>
+
+  <div
+    class="manual-reveal"
+    [class.expanded]="guideExpanded"
+    [attr.aria-hidden]="!guideExpanded"
+    [attr.inert]="guideExpanded ? null : ''"
+  >
+    <section class="manual-section" id="manual">
+      <div class="section-heading">
+        <div>
+          <span class="section-kicker">MANUAL DE USUARIO</span>
+          <h2>Un paso a la vez</h2>
+          <p>Instrucciones rápidas para las tareas más habituales de tu rol.</p>
+        </div>
+        <span class="role-pill"><i class="pi pi-user"></i> {{ currentGuide.title }}</span>
+      </div>
+
+      <div class="manual-grid">
+        @for (step of currentGuide.steps; track step.title; let index = $index) {
+          <article class="step-card">
+            <div class="step-number">{{ (index + 1).toString().padStart(2, '0') }}</div>
+            <div>
+              <h3>{{ step.title }}</h3>
+              <p>{{ step.description }}</p>
+            </div>
+          </article>
+        }
+      </div>
+
+      @if (currentGuide.links.length) {
+        <nav class="quick-links" aria-label="Accesos rápidos de la guía">
+          <span>Accesos rápidos</span>
+          @for (link of currentGuide.links; track link.route) {
+            <a [routerLink]="link.route">{{ link.label }} <i class="pi pi-arrow-up-right"></i></a>
+          }
+        </nav>
+      }
+    </section>
+  </div>
+
+  <section class="faq-section" id="preguntas">
+    <div class="section-heading faq-heading">
+      <div>
+        <span class="section-kicker">¿NECESITAS UNA RESPUESTA?</span>
+        <h2>Preguntas frecuentes</h2>
+        <p>Selecciona un tema para encontrar respuestas relacionadas.</p>
+      </div>
+      <div class="faq-count"><strong>{{ filteredFaqs.length }}</strong><span>respuestas</span></div>
+    </div>
+
+    <div class="category-list" role="group" aria-label="Filtrar preguntas por categoría">
+      @for (category of categories; track category) {
+        <button
+          type="button"
+          [class.selected]="activeCategory === category"
+          [attr.aria-pressed]="activeCategory === category"
+          (click)="selectCategory(category)"
+        >
+          @if (category === 'Todas') { <i class="pi pi-th-large"></i> }
+          {{ category }}
+        </button>
+      }
+    </div>
+
+    <div class="faq-list">
+      @for (faq of filteredFaqs; track faq.question) {
+        <article class="faq-item" [class.open]="expandedFaq === faq.question">
+          <button
+            type="button"
+            class="faq-question"
+            [attr.aria-expanded]="expandedFaq === faq.question"
+            (click)="toggleFaq(faq.question)"
+          >
+            <span class="faq-category">{{ faq.category }}</span>
+            <span class="faq-question-text">{{ faq.question }}</span>
+            <i [class]="expandedFaq === faq.question ? 'pi pi-minus' : 'pi pi-plus'"></i>
+          </button>
+          @if (expandedFaq === faq.question) {
+            <div class="faq-answer"><p>{{ faq.answer }}</p></div>
+          }
+        </article>
+      }
+    </div>
+  </section>
+
+  <section class="help-card">
+    <div class="help-icon"><i class="pi pi-heart"></i></div>
+    <div>
+      <span>¿AÚN NECESITAS AYUDA?</span>
+      <h2>Estamos para ayudarte a mantener todo en marcha.</h2>
+      <p>Para problemas de acceso o permisos, comunícate con la persona administradora de WasteMonitor.</p>
+    </div>
+  </section>
+</main>

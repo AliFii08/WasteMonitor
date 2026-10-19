@@ -16,6 +16,8 @@ import { SessionTimeoutService } from '../../../../@core/services/session-timeou
 import { InformeService } from '../../../../@core/services/informe.service';
 import { Auth } from '@angular/fire/auth';
 import { LocationService } from '../../../../@core/services/location.service';
+import { JourneyTrackingNotificationService } from '../../../../@core/services/journey-tracking-notification.service';
+import { NotificationService } from '../../../../@core/services/notification.service';
 
 export interface ViajeItem {
   id: string;
@@ -41,6 +43,8 @@ export class UpdateJourneyReport implements OnChanges {
   private authService = inject(AuthService);
   private sessionTimeoutService = inject(SessionTimeoutService);
   private locationService = inject(LocationService);
+  private trackingNotification = inject(JourneyTrackingNotificationService);
+  private notificationService = inject(NotificationService);
 
   activeTab: string = 'general';
   viajesList: ViajeItem[] = [];
@@ -351,9 +355,36 @@ export class UpdateJourneyReport implements OnChanges {
         console.warn('Advertencia al detener el rastreo de ubicación:', locErr);
       }
 
+      let notificationFailed = false;
+      try {
+        await this.notificationService.crearNotificacion(
+          'Jornada finalizada',
+          'Un supervisor finalizó una jornada de recolección.',
+          'info',
+          'admin',
+        );
+      } catch (notificationError) {
+        console.error('No se pudo enviar el aviso push de fin de jornada:', notificationError);
+        notificationFailed = true;
+      }
+      try {
+        await this.trackingNotification.showFinished(informeId);
+      } catch (notificationError) {
+        console.error('No se pudo actualizar la notificación local de seguimiento:', notificationError);
+        notificationFailed = true;
+      }
+
       // 5. Desactivar jornada activa y cerrar modal
       this.sessionTimeoutService.setJourneyActive(false);
       this.closeModal();
+      if (notificationFailed) {
+        this.errorMessage =
+          'La jornada finalizó, pero no se pudo entregar el push a administración o actualizar el aviso de este dispositivo.';
+        setTimeout(() => {
+          this.showErrorModal = true;
+          this.cdr.detectChanges();
+        }, 200);
+      }
 
     } catch (error) {
       console.error('Error al finalizar el informe:', error);

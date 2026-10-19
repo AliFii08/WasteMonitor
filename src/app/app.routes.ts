@@ -108,6 +108,11 @@ export const routes: Routes = [
         title: 'Perfil',
         loadComponent: () => import('./pages/profile/profile').then((m) => m.Profile),
       },
+      {
+        path: 'home/ayuda',
+        title: 'Manual y preguntas frecuentes',
+        loadComponent: () => import('./pages/user-guide/user-guide').then((m) => m.UserGuide),
+      },
     ],
   },
   {

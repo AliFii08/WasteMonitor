@@ -16,6 +16,23 @@
       }
     </header>
 
+    <div class="push-setup">
+      <p class="push-hint">Los avisos aparecen con la aplicación abierta, conectada y con sesión iniciada.</p>
+      @if (!notificationsEnabled) {
+        <button type="button" class="btn-enable-push" [disabled]="activatingNotifications" (click)="activarPush()">
+          <i class="pi pi-mobile"></i>
+          {{ activatingNotifications ? 'Activando...' : 'Activar avisos del navegador' }}
+        </button>
+      } @else {
+        <button type="button" class="btn-disable-push" [disabled]="disablingNotifications" (click)="desactivarPush()">
+          {{ disablingNotifications ? 'Desactivando...' : 'Desactivar avisos del navegador' }}
+        </button>
+      }
+      @if (browserNotificationMessage) {
+        <p class="push-feedback" [class.error]="browserNotificationError" role="status">{{ browserNotificationMessage }}</p>
+      }
+    </div>
+
     <div class="popover-body">
       @if (notificaciones.length === 0) {
         <div class="empty-notif">

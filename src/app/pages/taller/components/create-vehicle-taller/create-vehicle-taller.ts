@@ -135,11 +135,11 @@ export class CreateVehicleTaller {
       // 5) 🔔 GUARDAR NOTIFICACIÓN EN FIREBASE (Esperar a que finalice la escritura)
       try {
         // 🔔 Guardar la notificación
-        this.notificationService.crearNotificacion(
+        await this.notificationService.crearNotificacion(
           'Nuevo Ingreso a Taller',
           `El vehículo ${this.form.idCamion} ingresó por ${razonFinal}.`,
           'alerta',
-          'mecanico'
+          ['admin', 'mecanico']
         );
       } catch (e) {
         console.error('Error enviando notificación:', e);

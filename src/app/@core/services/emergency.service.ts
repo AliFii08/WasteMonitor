@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Database, onValue, ref } from '@angular/fire/database';
 import { environment } from '../../../environments/environment';
+import { NotificationService } from './notification.service';
 
 export type EmergencyKind = 'delay' | 'mechanic' | 'tow';
 
@@ -27,6 +28,7 @@ export interface EmergencyAlert {
 export class EmergencyService {
   private database = inject(Database);
   private databaseUrl = environment.firebaseConfig.databaseURL;
+  private notificationService = inject(NotificationService);
 
   /**
    * Mantenemos el listener en tiempo real mediante WebSocket para actualizar la UI automáticamente
@@ -53,7 +55,10 @@ export class EmergencyService {
   /**
    * Reporta una nueva emergencia usando fetch
    */
-  async report(alert: Omit<EmergencyAlert, 'id' | 'events'>, firstEvent: EmergencyEvent): Promise<void> {
+  async report(
+    alert: Omit<EmergencyAlert, 'id' | 'events'>,
+    firstEvent: EmergencyEvent,
+  ): Promise<boolean> {
     // 1. Crear la nueva emergencia con POST para obtener un ID automático
     const bodyEmergencia = {
       ...alert,
@@ -79,31 +84,26 @@ export class EmergencyService {
 
     if (!resEvent.ok) throw new Error('No se pudo guardar el evento de la emergencia.');
 
-    // 3. Crear la notificación enviándola a /notificaciones.json
+    // 3. Crear el aviso para la administración.
+    let pushFailed = false;
     try {
-      const nuevaNotificacion = {
-        titulo: `Emergencia: ${alert.vehicle}`,
-        mensaje: firstEvent.message,
-        tipo: 'alerta',
-        rolDestino: 'admin',
-        leida: false,
-        timestamp: Date.now(),
-      };
-
-      await fetch(`${this.databaseUrl}/notificaciones.json`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(nuevaNotificacion),
-      });
+      await this.notificationService.crearNotificacion(
+        `Emergencia: ${alert.vehicle}`,
+        firstEvent.message,
+        'alerta',
+        'admin',
+      );
     } catch (e) {
-      console.warn('La emergencia se creó pero la notificación con fetch falló:', e);
+      console.warn('La emergencia se creó, pero falló la notificación push a administración:', e);
+      pushFailed = true;
     }
+    return pushFailed;
   }
 
   /**
    * Agrega una respuesta y actualiza el estado de la emergencia usando fetch
    */
-  async addUpdate(id: string, status: string, event: EmergencyEvent): Promise<void> {
+  async addUpdate(id: string, status: string, event: EmergencyEvent): Promise<boolean> {
     // 1. Agregar el nuevo evento al historial de la emergencia
     const resEvent = await fetch(`${this.databaseUrl}/emergencias/${id}/events.json`, {
       method: 'POST',
@@ -123,27 +123,22 @@ export class EmergencyService {
     if (!resStatus.ok) throw new Error('No se pudo actualizar el estado de la emergencia.');
 
     // 3. Registrar la notificación correspondiente
+    let pushFailed = false;
     try {
       let rolDestino = 'supervisor';
       if (event.role === 'supervisor') rolDestino = 'admin';
       if (event.role === 'admin' && status.includes('mecanico')) rolDestino = 'mecanico';
 
-      const nuevaNotificacion = {
-        titulo: `Respuesta a emergencia (${event.author})`,
-        mensaje: event.message,
-        tipo: 'alerta',
+      await this.notificationService.crearNotificacion(
+        `Respuesta a emergencia (${event.author})`,
+        event.message,
+        'alerta',
         rolDestino,
-        leida: false,
-        timestamp: Date.now(),
-      };
-
-      await fetch(`${this.databaseUrl}/notificaciones.json`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(nuevaNotificacion),
-      });
+      );
     } catch (e) {
-      console.warn('La emergencia se actualizó pero la notificación falló:', e);
+      console.warn('La emergencia se actualizó, pero falló la notificación push de respuesta:', e);
+      pushFailed = true;
     }
+    return pushFailed;
   }
 }

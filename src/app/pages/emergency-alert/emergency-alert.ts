@@ -77,7 +77,7 @@ export class EmergencyAlertComponent implements OnInit, OnDestroy {
     const createdAt = Date.now();
 
     try {
-      await this.emergencyService.report({
+      const pushFailed = await this.emergencyService.report({
         vehicle,
         kind: this.kind,
         description,
@@ -93,6 +93,10 @@ export class EmergencyAlertComponent implements OnInit, OnDestroy {
       });
       this.vehicle = '';
       this.description = '';
+      if (pushFailed) {
+        this.errorMessage =
+          'La emergencia se registró, pero no se pudo entregar el aviso push a administración.';
+      }
     } catch {
       this.errorMessage = 'No se pudo enviar el reporte. Inténtalo de nuevo.';
     } finally {
@@ -109,7 +113,11 @@ export class EmergencyAlertComponent implements OnInit, OnDestroy {
     };
 
     try {
-      await this.emergencyService.addUpdate(alert.id, status, event);
+      const pushFailed = await this.emergencyService.addUpdate(alert.id, status, event);
+      if (pushFailed) {
+        this.errorMessage =
+          'La actualización se guardó, pero no se pudo entregar el aviso push al destinatario.';
+      }
     } catch {
       this.errorMessage = 'No se pudo actualizar la emergencia. Inténtalo de nuevo.';
     }
