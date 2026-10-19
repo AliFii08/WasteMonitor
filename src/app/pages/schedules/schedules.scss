@@ -164,6 +164,32 @@ body {
   background: #d59a39;
 }
 
+.actions-header {
+  max-width: 1440px;
+  margin: 0 auto 20px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.btn-create {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 8px;
+  background-color: #68a357;
+  color: #ffffff;
+  font: 800 13px 'Raleway', sans-serif;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: #4f8e43;
+  }
+}
+
 @media (max-width: 1024px) {
   .title {
     padding: 0 16px;

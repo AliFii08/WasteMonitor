@@ -4,6 +4,13 @@
 </div>
 
 <main class="schedule-page">
+  <div class="actions-header">
+    <button type="button" class="btn-create" (click)="openCreateModal()">
+      <i class="pi pi-plus"></i>
+      <span>Añadir horario</span>
+    </button>
+  </div>
+
   <section class="week-grid" aria-label="Programación semanal de camiones">
     @for (day of weekDays; track day.key) {
       <article class="day-card" [class.weekend-card]="day.key === 'saturday' || day.key === 'sunday'">
@@ -25,3 +32,9 @@
     }
   </section>
 </main>
+
+<app-create-schesules-component
+  [isOpen]="isCreateModalOpen()"
+  (close)="closeCreateModal()"
+  (scheduleCreated)="onScheduleCreated()">
+</app-create-schesules-component>
