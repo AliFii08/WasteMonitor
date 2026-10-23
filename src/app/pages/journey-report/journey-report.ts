@@ -9,6 +9,8 @@ import { TableModule } from 'primeng/table';
 import { UpdateJourneyReport } from './components/update-journey-report/update-journey-report';
 import { AuthService } from '../../@core/services/auth.service';
 import { DeleteJourneyReport } from './components/delete-journey-report/delete-journey-report';
+import { PdfReportService } from '../../@core/services/pdf-report.service';
+import { PdfExportConfirmation } from '../../@core/components/pdf-export-confirmation/pdf-export-confirmation';
 
 
 @Component({
@@ -21,6 +23,7 @@ import { DeleteJourneyReport } from './components/delete-journey-report/delete-j
     ViewJourneyReport,
     UpdateJourneyReport,
     DeleteJourneyReport,
+    PdfExportConfirmation,
   ],
   templateUrl: './journey-report.html',
   styleUrls: ['./journey-report.scss'],
@@ -31,6 +34,7 @@ export class JourneyReport implements OnInit, OnDestroy {
   reportSearchTerm: string = '';
 
   private cdr = inject(ChangeDetectorRef);
+  private pdfReportService = inject(PdfReportService);
 
   // Control de selección
   selectedReportRows: boolean[] = [];
@@ -40,6 +44,14 @@ export class JourneyReport implements OnInit, OnDestroy {
 
   selectedReportsList: any[] = [];
   private selectedReportIds = new Set<string>();
+  pdfConfirmationVisible = false;
+  pdfName = '';
+  pdfFilterSummary = '';
+  private pdfRows: string[][] = [];
+
+  get pdfRecordCount(): number {
+    return this.pdfRows.length;
+  }
 
 
   // Modales
@@ -127,6 +139,44 @@ export class JourneyReport implements OnInit, OnDestroy {
       : [...this.allReportes];
 
     this.syncReportSelection();
+  }
+
+  openPdfConfirmation(): void {
+    const term = this.reportSearchTerm.trim();
+    this.pdfFilterSummary = term
+      ? `Búsqueda: "${term}"`
+      : `Sin filtros: todos los informes de jornada (${this.reportes.length})`;
+    const fecha = new Date();
+    const fechaArchivo = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
+    this.pdfName = `Informe_de_Jornada_${fechaArchivo}.pdf`;
+    this.pdfRows = this.reportes.map((reporte) => {
+      const fecha = reporte.creadoEn instanceof Date && !Number.isNaN(reporte.creadoEn.getTime())
+        ? reporte.creadoEn.toLocaleString('es-ES')
+        : 'N/A';
+      return [
+        String(reporte.nombreUsuario || 'Usuario sin nombre'),
+        String(reporte.camionId || 'N/A'),
+        this.isReportSigned(reporte) ? 'Firmado' : 'Pendiente',
+        fecha,
+      ];
+    });
+    this.pdfConfirmationVisible = true;
+  }
+
+  async generatePdf(): Promise<void> {
+    try {
+      await this.pdfReportService.generate(
+        'Informe de Jornada',
+        this.pdfName,
+        this.pdfFilterSummary,
+        ['Usuario', 'Vehículo', 'Estado de firma', 'Fecha de creación'],
+        this.pdfRows,
+      );
+      this.pdfConfirmationVisible = false;
+    } catch (error) {
+      console.error('Error al generar el PDF de jornada:', error);
+      window.alert('No se pudo generar el PDF de jornada. Inténtalo de nuevo.');
+    }
   }
 
   toggleReportRow(index: number, isChecked: boolean): void {

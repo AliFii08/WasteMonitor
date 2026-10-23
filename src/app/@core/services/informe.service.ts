@@ -199,8 +199,8 @@ export class InformeService {
     if (!currentUser) throw new Error('Se requiere una sesión para crear el informe.');
     const userSnapshot = await get(ref(this.db, `usuarios/${currentUser.uid}`));
     const role = userSnapshot.val()?.rol;
-    if (role !== 'admin' && role !== 'supervisor') {
-      throw new Error('El usuario no tiene permiso para crear informes administrativos.');
+    if (role !== 'admin') {
+      throw new Error('Solo el administrador puede crear informes administrativos.');
     }
     const informeRef = push(ref(this.db, 'informe_administrativo'));
     await update(informeRef, {
@@ -315,7 +315,7 @@ export class InformeService {
     if (!snapshot.exists() || snapshot.val()?.finalizado === true) {
       throw new Error('El informe ya está finalizado y no se puede modificar.');
     }
-    await this.verificarPermisoInformeAdministrativo(snapshot.val());
+    await this.verificarPermisoAdministradorInforme();
     await update(informeRef, {
       fecha: data.fecha,
       toneladasTotales: data.toneladasTotales,
@@ -340,7 +340,7 @@ export class InformeService {
     if (!snapshot.exists() || snapshot.val()?.finalizado === true) {
       throw new Error('El informe ya está finalizado y no se puede modificar.');
     }
-    await this.verificarPermisoInformeAdministrativo(snapshot.val());
+    await this.verificarPermisoAdministradorInforme();
     await update(informeRef, {
       ...data,
       observaciones: data.observaciones.trim(),
@@ -353,23 +353,18 @@ export class InformeService {
     const informeRef = ref(this.db, `informe_administrativo/${id}`);
     const snapshot = await get(informeRef);
     if (!snapshot.exists()) throw new Error('No se encontró el informe.');
-    const isAdmin = await this.verificarPermisoInformeAdministrativo(snapshot.val());
-    if (snapshot.val()?.finalizado === true && !isAdmin) {
-      throw new Error('El informe ya está finalizado y no se puede eliminar.');
-    }
+    await this.verificarPermisoAdministradorInforme();
     await remove(informeRef);
   }
 
-  private async verificarPermisoInformeAdministrativo(informe: any): Promise<boolean> {
+  private async verificarPermisoAdministradorInforme(): Promise<void> {
     const currentUser = getAuth().currentUser;
     if (!currentUser) throw new Error('Se requiere una sesión para modificar el informe.');
     const userSnapshot = await get(ref(this.db, `usuarios/${currentUser.uid}`));
     const role = userSnapshot.val()?.rol;
-    const isAdmin = role === 'admin';
-    if (!isAdmin && (role !== 'supervisor' || informe?.creadoPor !== currentUser.uid)) {
-      throw new Error('Solo el creador puede modificar o eliminar este informe.');
+    if (role !== 'admin') {
+      throw new Error('Solo el administrador puede gestionar informes administrativos.');
     }
-    return isAdmin;
   }
 
   private obtenerFechaClave(fecha: unknown): string {

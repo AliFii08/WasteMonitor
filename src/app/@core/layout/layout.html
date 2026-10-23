@@ -32,7 +32,7 @@
       <p-button pTooltip="Tripulación" class="mb-2 nav-link" label="Tripulación" icon="pi pi-fw pi-users" routerLink="/home/crew" routerLinkActive="active" (click)="closeMobileMenu()"></p-button>
     }
 
-    @if (authService.hasRole(['admin', 'supervisor'])) {
+    @if (authService.hasRole(['admin'])) {
       <p-button pTooltip="Informe Administrativo" class="mb-2 nav-link" label="Informe Administrativo" icon="pi pi-fw pi-chart-bar" routerLink="/home/admin-journey-report" routerLinkActive="active" (click)="closeMobileMenu()"></p-button>
     }
 

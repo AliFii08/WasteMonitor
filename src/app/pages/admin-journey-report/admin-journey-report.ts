@@ -7,11 +7,21 @@ import { CreateAdminReport } from './components/create-admin-report/create-admin
 import { UpdateAdminReport } from './components/update-admin-report/update-admin-report';
 import { DeleteAdminReport } from './components/delete-admin-report/delete-admin-report';
 import { UserService } from '../../@core/services/user.service';
+import { PdfReportService } from '../../@core/services/pdf-report.service';
+import { PdfExportConfirmation } from '../../@core/components/pdf-export-confirmation/pdf-export-confirmation';
 
 @Component({
   selector: 'app-admin-journey-report',
   standalone: true,
-  imports: [CommonModule, FormsModule, TablePagination, CreateAdminReport, UpdateAdminReport, DeleteAdminReport],
+  imports: [
+    CommonModule,
+    FormsModule,
+    TablePagination,
+    CreateAdminReport,
+    UpdateAdminReport,
+    DeleteAdminReport,
+    PdfExportConfirmation,
+  ],
   templateUrl: './admin-journey-report.html',
   styleUrl: './admin-journey-report.scss',
 })
@@ -19,6 +29,7 @@ export class AdminJourneyReport implements OnInit {
   private informeService = inject(InformeService);
   private changeDetector = inject(ChangeDetectorRef);
   private userService = inject(UserService);
+  private pdfReportService = inject(PdfReportService);
 
   fechaSeleccionada = '';
   fechaInicial = this.obtenerFechaActual();
@@ -33,14 +44,21 @@ export class AdminJourneyReport implements OnInit {
   eliminarVisible = false;
   informeSeleccionado: InformeAdministrativo | null = null;
   informesParaEliminar: InformeAdministrativo[] = [];
+  pdfConfirmationVisible = false;
+  pdfName = '';
+  pdfFilterSummary = '';
+  private pdfRows: string[][] = [];
+
+  get pdfRecordCount(): number {
+    return this.pdfRows.length;
+  }
 
   ngOnInit(): void {
     void this.cargarInformesGuardados();
   }
 
   get canCreateReports(): boolean {
-    const role = this.userService.currentUserSignal()?.rol;
-    return role === 'admin' || role === 'supervisor';
+    return this.userService.currentUserSignal()?.rol === 'admin';
   }
 
   get hasManageableReports(): boolean {
@@ -49,9 +67,7 @@ export class AdminJourneyReport implements OnInit {
 
   canManageReport(informe: InformeAdministrativo): boolean {
     const currentUser = this.userService.currentUserSignal();
-    if (!currentUser) return false;
-    if (currentUser.rol === 'admin') return true;
-    return !informe.finalizado && informe.creadoPor === currentUser.uid;
+    return Boolean(informe.id) && currentUser?.rol === 'admin';
   }
 
   canEditReport(informe: InformeAdministrativo): boolean {
@@ -92,6 +108,43 @@ export class AdminJourneyReport implements OnInit {
   get informesPaginados(): InformeAdministrativo[] {
     const inicio = this.paginaInformes * this.tamanoPaginaInformes;
     return this.informesFiltrados.slice(inicio, inicio + this.tamanoPaginaInformes);
+  }
+
+  abrirConfirmacionPdf(): void {
+    const term = this.searchTerm.trim();
+    const filtros: string[] = [];
+    if (term) filtros.push(`Búsqueda: "${term}"`);
+    if (this.fechaSeleccionada) filtros.push(`Fecha: ${this.fechaSeleccionada}`);
+
+    const informes = this.informesFiltrados;
+    this.pdfFilterSummary = filtros.length
+      ? filtros.join(' · ')
+      : `Sin filtros: todos los informes administrativos (${informes.length})`;
+    this.pdfName = `Informe_Administrativo_${this.obtenerFechaActual()}.pdf`;
+    this.pdfRows = informes.map((informe) => [
+      informe.fecha || 'N/A',
+      informe.finalizado ? 'Finalizado' : 'En edición',
+      String(informe.informesFinalizados || 0),
+      String(informe.viajesTotales || 0),
+      `${Number(informe.toneladasTotales || 0).toFixed(2)} ton`,
+    ]);
+    this.pdfConfirmationVisible = true;
+  }
+
+  async generarPdf(): Promise<void> {
+    try {
+      await this.pdfReportService.generate(
+        'Informe Administrativo',
+        this.pdfName,
+        this.pdfFilterSummary,
+        ['Fecha', 'Estado', 'Informes finalizados', 'Viajes', 'Toneladas'],
+        this.pdfRows,
+      );
+      this.pdfConfirmationVisible = false;
+    } catch (error) {
+      console.error('Error al generar el PDF administrativo:', error);
+      window.alert('No se pudo generar el PDF administrativo. Inténtalo de nuevo.');
+    }
   }
 
   abrirEditar(informe: InformeAdministrativo): void {

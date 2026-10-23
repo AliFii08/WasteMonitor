@@ -53,7 +53,21 @@
           <h2>Un paso a la vez</h2>
           <p>Instrucciones rápidas para las tareas más habituales de tu rol.</p>
         </div>
-        <span class="role-pill"><i class="pi pi-user"></i> {{ currentGuide.title }}</span>
+        <div class="manual-actions">
+          <button
+            type="button"
+            class="manual-download-btn"
+            (click)="downloadRoleManual()"
+            [attr.aria-label]="'Descargar el manual PDF para ' + currentGuide.title"
+          >
+            <i class="pi pi-download" aria-hidden="true"></i>
+            Descargar PDF
+          </button>
+          <span class="role-pill">
+            <i class="pi pi-user" aria-hidden="true"></i>
+            {{ currentGuide.title }}
+          </span>
+        </div>
       </div>
 
       <div class="manual-grid">
@@ -84,13 +98,13 @@
       <div>
         <span class="section-kicker">¿NECESITAS UNA RESPUESTA?</span>
         <h2>Preguntas frecuentes</h2>
-        <p>Selecciona un tema para encontrar respuestas relacionadas.</p>
+        <p>Respuestas para {{ currentGuide.title }}. Selecciona un tema para filtrar.</p>
       </div>
       <div class="faq-count"><strong>{{ filteredFaqs.length }}</strong><span>respuestas</span></div>
     </div>
 
     <div class="category-list" role="group" aria-label="Filtrar preguntas por categoría">
-      @for (category of categories; track category) {
+      @for (category of availableCategories; track $index) {
         <button
           type="button"
           [class.selected]="activeCategory === category"

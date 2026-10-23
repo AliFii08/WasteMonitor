@@ -1,10 +1,12 @@
 :host {
   display: block;
+  min-width: 0;
   min-height: 100%;
   background: #f5f8f6;
 }
 
 .guide-page {
+  box-sizing: border-box;
   --green: #07543f;
   --green-dark: #043d30;
   --mint: #c9e8d0;
@@ -233,18 +235,46 @@
   p { margin: 0; color: var(--muted); font-size: 0.96rem; line-height: 1.6; }
 }
 
+.manual-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.manual-download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  color: #fff;
+  background: #07543f;
+  border: 1px solid #07543f;
+  border-radius: 999px;
+  font: 700 0.8rem 'Raleway', sans-serif;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+
+  &:hover { background: #0b6b4f; box-shadow: 0 5px 14px rgba(7, 84, 63, 0.16); transform: translateY(-1px); }
+  &:focus-visible { outline: 3px solid #b5d6b9; outline-offset: 3px; }
+}
+
 .role-pill {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 5px;
   padding: 8px 12px;
   color: #285b3e;
   background: #e5f1e7;
   border: 1px solid #d4e8d8;
   border-radius: 999px;
+  font-family: 'Raleway', sans-serif;
   font-size: 0.82rem;
   font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .manual-grid {
@@ -451,14 +481,15 @@
 }
 
 @media (max-width: 900px) {
-  .guide-page { width: min(100% - 36px, 760px); padding-top: 90px; }
+  .guide-page { width: min(100% - 36px, 760px); padding-top: 72px; }
   .guide-hero { min-height: 320px; padding: 34px 32px 22px; }
-  .hero-art { right: -25px; opacity: 0.48; }
+  .hero-art { right: -25px; transform: translateY(-50%) scale(0.86); opacity: 0.4; }
   .hero-copy { max-width: 68%; }
+  .faq-section { padding: 24px; }
 }
 
 @media (max-width: 620px) {
-  .guide-page { width: calc(100% - 24px); padding: 88px 0 38px; }
+  .guide-page { width: calc(100% - 24px); padding: 64px 0 38px; }
   .guide-hero { min-height: 350px; padding: 27px 21px 20px; border-radius: 20px; }
   .hero-copy {
     max-width: 100%;
@@ -468,16 +499,43 @@
   }
   .hero-art { top: 56%; right: -103px; transform: translateY(-50%) scale(0.77); transform-origin: center; opacity: 0.28; }
   .hero-bottom { gap: 10px 16px; font-size: 0.84rem; }
-  .welcome-row { align-items: flex-start; gap: 12px; margin: 15px 0 8px; padding: 15px; }
+  .welcome-row {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) 44px;
+    align-items: center;
+    gap: 12px;
+    margin: 15px 0 8px;
+    padding: 15px;
+  }
   .welcome-icon { width: 40px; height: 40px; border-radius: 12px; }
-  .welcome-copy > span { font-size: 0.66rem; }
+  .welcome-copy > span { display: block; font-size: 0.66rem; line-height: 1.4; }
   .welcome-copy h2 { font-size: 0.94rem; }
-  .welcome-row .welcome-link { align-self: center; width: 44px; height: 44px; justify-content: center; padding: 0; font-size: 0; }
-  .welcome-link i { font-size: 0.9rem; }
+  .welcome-row .welcome-link {
+    display: grid;
+    place-items: center;
+    align-self: center;
+    justify-self: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    font-size: 0;
+    line-height: 1;
+  }
+  .welcome-link i {
+    display: grid;
+    place-items: center;
+    width: 1em;
+    height: 1em;
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1;
+  }
   .section-heading { align-items: flex-start; }
   .section-heading p { font-size: 0.92rem; }
-  .role-pill { font-size: 0; padding: 9px; }
-  .role-pill i { font-size: 0.85rem; }
+  .manual-actions { align-items: flex-end; gap: 6px; }
+  .manual-download-btn { padding: 7px 9px; font-size: 0.68rem; }
+  .role-pill { gap: 6px; padding: 7px 9px; font-size: 0.7rem; }
+  .role-pill i { font-size: 0.78rem; line-height: 1; }
   .manual-grid { grid-template-columns: 1fr; gap: 10px; }
   .step-card { min-height: 0; padding: 16px; }
   .step-card h3 { font-size: 0.96rem; }
@@ -485,7 +543,13 @@
   .quick-links { align-items: flex-start; }
   .quick-links > span { flex-basis: 100%; }
   .faq-section { padding: 20px 16px; border-radius: 17px; }
-  .faq-heading { align-items: center; }
+  .faq-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 12px;
+  }
+  .faq-heading > div:first-child { min-width: 0; }
   .faq-count { min-width: 60px; }
   .category-list { gap: 6px; margin-top: 18px; }
   .category-list button { padding: 7px 10px; font-size: 0.86rem; }
@@ -500,6 +564,24 @@
   .help-card > div:nth-child(2) h2 { font-size: 0.96rem; }
   .help-card > div:nth-child(2) p { font-size: 0.88rem; }
   .help-card > a { width: 32px; height: 32px; border-radius: 9px; }
+}
+
+@media (max-width: 380px) {
+  .guide-page { width: calc(100% - 20px); padding-top: 60px; }
+  .guide-hero { min-height: 330px; padding: 23px 16px 18px; border-radius: 17px; }
+  .hero-copy {
+    .eyebrow { font-size: 0.64rem; letter-spacing: 0.08em; }
+    h1 { font-size: 1.8rem; }
+  }
+  .hero-bottom { gap: 8px 12px; font-size: 0.78rem; }
+  .welcome-row { grid-template-columns: 36px minmax(0, 1fr) 40px; gap: 9px; padding: 13px 11px; }
+  .welcome-icon { width: 36px; height: 36px; }
+  .welcome-copy > span { font-size: 0.6rem; }
+  .welcome-copy h2 { font-size: 0.86rem; }
+  .welcome-row .welcome-link { width: 40px; height: 40px; }
+  .faq-section { padding: 18px 12px; }
+  .faq-answer { padding-right: 24px; }
+  .help-card { gap: 9px; padding: 15px 11px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

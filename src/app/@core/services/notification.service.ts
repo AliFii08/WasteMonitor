@@ -151,6 +151,8 @@ export class NotificationService {
 
     void (async () => {
       const registration = await navigator.serviceWorker?.getRegistration();
+      if (!this.browserNotifications.isEnabled) return;
+
       if (registration) {
         await registration.showNotification(titulo, { body: mensaje, tag: `wastemonitor-${id}` });
         return;

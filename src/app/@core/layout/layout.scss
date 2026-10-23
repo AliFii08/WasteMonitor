@@ -329,6 +329,7 @@ button {
 }
 
 .notification-btn-wrapper {
+  --notification-action-size: 52px;
   position: fixed;
   top: 12px;
   right: 16px;
@@ -339,10 +340,10 @@ button {
   gap: 8px;
 
   ::ng-deep .p-button {
-    width: 52px !important;
-    height: 52px !important;
-    min-width: 52px !important;
-    min-height: 52px !important;
+    width: var(--notification-action-size) !important;
+    height: var(--notification-action-size) !important;
+    min-width: var(--notification-action-size) !important;
+    min-height: var(--notification-action-size) !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -394,10 +395,10 @@ button {
   .emergency-trigger {
     display: grid;
     place-items: center;
-    width: 52px;
-    height: 52px;
-    min-width: 52px;
-    min-height: 52px;
+    width: var(--notification-action-size);
+    height: var(--notification-action-size);
+    min-width: var(--notification-action-size);
+    min-height: var(--notification-action-size);
     padding: 0;
     color: #b42318 !important;
     background: #fee2e2 !important;
@@ -414,10 +415,10 @@ button {
   .announcement-trigger {
     display: grid;
     place-items: center;
-    width: 52px;
-    height: 52px;
-    min-width: 52px;
-    min-height: 52px;
+    width: var(--notification-action-size);
+    height: var(--notification-action-size);
+    min-width: var(--notification-action-size);
+    min-height: var(--notification-action-size);
     padding: 0;
     color: #8b6700 !important;
     background: #fff4cc !important;
@@ -432,14 +433,6 @@ button {
   }
 }
 
-
-@media (min-width: 1025px) {
-  .notification-btn-wrapper {
-    position: fixed;
-    top: 12px;
-    right: 16px;
-  }
-}
 
 @media (max-width: 1024px) {
   nav {
@@ -540,8 +533,8 @@ button {
 
   .mobile-menu-trigger {
     position: fixed;
-    top: 10px;
-    left: 10px;
+    top: max(10px, env(safe-area-inset-top));
+    left: max(10px, env(safe-area-inset-left));
     z-index: 31;
     display: inline-flex;
     align-items: center;
@@ -582,6 +575,7 @@ button {
     width: 100%;
     margin-left: 0 !important;
     padding-top: 20px;
+    overflow-x: clip;
   }
 
   ::ng-deep .content > app-complaints,
@@ -601,8 +595,15 @@ button {
   }
 
   .notification-btn-wrapper {
-    top: 10px;
-    right: 10px;
+    top: max(10px, env(safe-area-inset-top));
+    right: max(10px, env(safe-area-inset-right));
+  }
+}
+
+@media (max-width: 420px) {
+  .notification-btn-wrapper {
+    --notification-action-size: 44px;
+    gap: 4px;
   }
 }
 

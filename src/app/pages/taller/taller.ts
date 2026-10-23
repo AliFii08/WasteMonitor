@@ -9,6 +9,8 @@ import { UserService } from '../../@core/services/user.service';
 import { NotificationService } from '../../@core/services/notification.service';
 import { TablePagination } from '../../@core/components/table-pagination/table-pagination';
 import { MessageService } from 'primeng/api';
+import { PdfReportService, PdfTableSection } from '../../@core/services/pdf-report.service';
+import { PdfExportConfirmation } from '../../@core/components/pdf-export-confirmation/pdf-export-confirmation';
 
 
 @Component({
@@ -20,6 +22,7 @@ import { MessageService } from 'primeng/api';
     CreateVehicleTaller,
     UpdateVehicleTaller,
     TablePagination,
+    PdfExportConfirmation,
   ],
   templateUrl: './taller.html',
   styleUrl: './taller.scss',
@@ -31,6 +34,7 @@ export class Taller implements OnInit {
   private notificationService = inject(NotificationService);
   private userService = inject(UserService);
   private messageService = inject(MessageService);
+  private pdfReportService = inject(PdfReportService);
 
   @ViewChild(CreateVehicleTaller) createModal!: CreateVehicleTaller;
   @ViewChild(UpdateVehicleTaller) updateModal!: UpdateVehicleTaller;
@@ -46,6 +50,14 @@ export class Taller implements OnInit {
   allTallerSelected = false;
   loading = false;
   desplegableListosAbierto = false;
+  pdfConfirmationVisible = false;
+  pdfName = '';
+  pdfFilterSummary = '';
+  private pdfSections: PdfTableSection[] = [];
+
+  get pdfRecordCount(): number {
+    return this.pdfSections.reduce((count, section) => count + section.rows.length, 0);
+  }
 
   get isAdmin(): boolean {
     return this.userService.currentUserSignal()?.rol === 'admin';
@@ -104,6 +116,54 @@ export class Taller implements OnInit {
   get registrosListosPaginados(): TallerRegistro[] {
     const start = this.tallerListosPage * this.tallerPageSize;
     return this.registrosListosFiltrados.slice(start, start + this.tallerPageSize);
+  }
+
+  get registrosFiltrados(): TallerRegistro[] {
+    return this.tallerList.filter((_, index) => this.tallerRowVisible[index]);
+  }
+
+  openPdfConfirmation(): void {
+    const term = this.tallerSearchTerm.trim();
+    this.pdfFilterSummary = term
+      ? `Búsqueda: "${term}"`
+      : `Sin filtros: todos los registros de taller (${this.registrosFiltrados.length})`;
+    const fecha = new Date();
+    const fechaArchivo = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
+    this.pdfName = `Informe_de_Taller_${fechaArchivo}.pdf`;
+    const toPdfRows = (registros: TallerRegistro[]): string[][] => registros.map((item) => [
+      String(item.idCamion || 'N/A'),
+      String(item.razon || 'N/A'),
+      this.formatEstado(item.estado) || 'N/A',
+      String(item.creadoEl || 'N/A'),
+    ]);
+    this.pdfSections = [
+      {
+        subtitle: 'Vehículos en proceso / en espera',
+        rows: toPdfRows(this.registrosActivosFiltrados),
+      },
+      {
+        subtitle: 'Vehículos listos y entregados',
+        rows: toPdfRows(this.registrosListosFiltrados),
+      },
+    ];
+    this.pdfConfirmationVisible = true;
+  }
+
+  async generatePdf(): Promise<void> {
+    try {
+      await this.pdfReportService.generate(
+        'Informe de Taller',
+        this.pdfName,
+        this.pdfFilterSummary,
+        ['Vehículo', 'Razón de ingreso', 'Estado', 'Fecha de ingreso'],
+        [],
+        this.pdfSections,
+      );
+      this.pdfConfirmationVisible = false;
+    } catch (error) {
+      console.error('Error al generar el PDF de taller:', error);
+      window.alert('No se pudo generar el PDF de taller. Inténtalo de nuevo.');
+    }
   }
 
   onTallerSearchChange(): void {

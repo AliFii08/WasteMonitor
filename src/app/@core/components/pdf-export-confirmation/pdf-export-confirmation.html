@@ -1,0 +1,45 @@
+@if (visible) {
+  <div class="pdf-confirmation-backdrop" [class.is-closing]="isClosing" (click)="close(false)">
+    <section
+      class="pdf-confirmation-modal"
+      [class.is-closing]="isClosing"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="pdf-confirmation-title"
+      (click)="$event.stopPropagation()">
+      <div class="pdf-confirmation-heading">
+        <span class="pdf-icon"><i class="pi pi-file-pdf"></i></span>
+        <div>
+          <h2 id="pdf-confirmation-title">Confirmar generación del PDF</h2>
+          <p>Revisa el contenido que se incluirá en el archivo.</p>
+        </div>
+      </div>
+
+      <dl class="pdf-specifications">
+        <div>
+          <dt>Nombre del PDF</dt>
+          <dd>{{ pdfName }}</dd>
+        </div>
+        <div>
+          <dt>Filtro o búsqueda</dt>
+          <dd>{{ filterSummary }}</dd>
+        </div>
+        <div>
+          <dt>Registros incluidos</dt>
+          <dd>{{ recordCount }}</dd>
+        </div>
+      </dl>
+
+      <p class="pdf-note">Se incluirán todos los resultados, aunque estén en páginas diferentes.</p>
+
+      <div class="pdf-confirmation-actions">
+        <button type="button" class="pdf-cancel-button" (click)="close(false)">Cancelar</button>
+        <button type="button" class="pdf-generate-button" [disabled]="recordCount === 0"
+          (click)="close(true)">
+          <i class="pi pi-download"></i>
+          Generar PDF
+        </button>
+      </div>
+    </section>
+  </div>
+}

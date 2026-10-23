@@ -18,18 +18,19 @@
 
     <div class="push-setup">
       <p class="push-hint">Los avisos aparecen con la aplicación abierta, conectada y con sesión iniciada.</p>
-      @if (!notificationsEnabled) {
-        <button type="button" class="btn-enable-push" [disabled]="activatingNotifications" (click)="activarPush()">
-          <i class="pi pi-mobile"></i>
-          {{ activatingNotifications ? 'Activando...' : 'Activar avisos del navegador' }}
+      @if (!notificationsEnabled()) {
+        <button type="button" class="btn-enable-push" [disabled]="activatingNotifications()" (click)="activarPush()">
+          <i [class]="activatingNotifications() ? 'pi pi-spin pi-spinner' : 'pi pi-mobile'"></i>
+          {{ activatingNotifications() ? 'Activando...' : 'Activar avisos del navegador' }}
         </button>
       } @else {
-        <button type="button" class="btn-disable-push" [disabled]="disablingNotifications" (click)="desactivarPush()">
-          {{ disablingNotifications ? 'Desactivando...' : 'Desactivar avisos del navegador' }}
+        <button type="button" class="btn-disable-push" [disabled]="disablingNotifications()" (click)="desactivarPush()">
+          <i [class]="disablingNotifications() ? 'pi pi-spin pi-spinner' : 'pi pi-bell-slash'"></i>
+          {{ disablingNotifications() ? 'Desactivando...' : 'Desactivar avisos del navegador' }}
         </button>
       }
-      @if (browserNotificationMessage) {
-        <p class="push-feedback" [class.error]="browserNotificationError" role="status">{{ browserNotificationMessage }}</p>
+      @if (browserNotificationMessage()) {
+        <p class="push-feedback" [class.error]="browserNotificationError()" role="status">{{ browserNotificationMessage() }}</p>
       }
     </div>
 

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NotificationService } from '../../@core/services/notification.service';
 import { NotificacionItem } from '../../@core/interfaces/notification.model';
@@ -21,17 +21,15 @@ export class NotificationPopover implements OnInit, OnDestroy {
 
   notificaciones: NotificacionItem[] = [];
   unreadCount: number = 0;
-  activatingNotifications = false;
-  disablingNotifications = false;
-  browserNotificationMessage = '';
-  browserNotificationError = false;
+  readonly activatingNotifications = signal(false);
+  readonly disablingNotifications = signal(false);
+  readonly browserNotificationMessage = signal('');
+  readonly browserNotificationError = signal(false);
 
   private subNotif: Subscription | null = null;
   private subCount: Subscription | null = null;
 
-  get notificationsEnabled(): boolean {
-    return this.browserNotificationService.isEnabled;
-  }
+  readonly notificationsEnabled = this.browserNotificationService.enabled;
 
   ngOnInit(): void {
     this.subNotif = this.notificationService.notifications$.subscribe((data) => {
@@ -59,40 +57,42 @@ export class NotificationPopover implements OnInit, OnDestroy {
   }
 
   async activarPush(): Promise<void> {
-    if (this.activatingNotifications) return;
-    this.activatingNotifications = true;
-    this.browserNotificationMessage = '';
-    this.browserNotificationError = false;
+    if (this.activatingNotifications()) return;
+    this.activatingNotifications.set(true);
+    this.browserNotificationMessage.set('');
+    this.browserNotificationError.set(false);
 
     try {
       await this.browserNotificationService.enable();
-      this.browserNotificationMessage = 'Avisos del navegador activados mientras la aplicación esté abierta.';
+      this.browserNotificationMessage.set('Avisos del navegador activados mientras la aplicación esté abierta.');
     } catch (error) {
       console.error('No se pudieron activar los avisos del navegador:', error);
-      this.browserNotificationError = true;
-      this.browserNotificationMessage =
-        error instanceof Error ? error.message : 'No se pudieron activar los avisos del navegador.';
+      this.browserNotificationError.set(true);
+      this.browserNotificationMessage.set(
+        error instanceof Error ? error.message : 'No se pudieron activar los avisos del navegador.',
+      );
     } finally {
-      this.activatingNotifications = false;
+      this.activatingNotifications.set(false);
     }
   }
 
   async desactivarPush(): Promise<void> {
-    if (this.disablingNotifications) return;
-    this.disablingNotifications = true;
-    this.browserNotificationMessage = '';
-    this.browserNotificationError = false;
+    if (this.disablingNotifications()) return;
+    this.disablingNotifications.set(true);
+    this.browserNotificationMessage.set('');
+    this.browserNotificationError.set(false);
 
     try {
       this.browserNotificationService.disable();
-      this.browserNotificationMessage = 'Avisos del navegador desactivados en este dispositivo.';
+      this.browserNotificationMessage.set('Avisos del navegador desactivados en este dispositivo.');
     } catch (error) {
       console.error('No se pudieron desactivar los avisos del navegador:', error);
-      this.browserNotificationError = true;
-      this.browserNotificationMessage =
-        error instanceof Error ? error.message : 'No se pudieron desactivar los avisos del navegador.';
+      this.browserNotificationError.set(true);
+      this.browserNotificationMessage.set(
+        error instanceof Error ? error.message : 'No se pudieron desactivar los avisos del navegador.',
+      );
     } finally {
-      this.disablingNotifications = false;
+      this.disablingNotifications.set(false);
     }
   }
 

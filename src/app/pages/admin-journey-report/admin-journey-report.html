@@ -19,6 +19,10 @@
           Eliminar seleccionados ({{ selectedCount }})
         </button>
       }
+      <button type="button" class="pdf-export-btn" [disabled]="informesFiltrados.length === 0"
+        (click)="abrirConfirmacionPdf()">
+        <i class="pi pi-file-pdf"></i> Exportar PDF
+      </button>
     </div>
     @if (canCreateReports) {
       <button type="button" class="create-btn" (click)="crearVisible = true">
@@ -101,3 +105,7 @@
 <app-create-admin-report [(visible)]="crearVisible" [fechaInicial]="fechaInicial" (created)="cargarInformesGuardados()"></app-create-admin-report>
 <app-update-admin-report [(visible)]="editarVisible" [informe]="informeSeleccionado" [readOnly]="!canManageSelectedReport" (updated)="cargarInformesGuardados()"></app-update-admin-report>
 <app-delete-admin-report [(visible)]="eliminarVisible" [informe]="informeSeleccionado" [informesSeleccionados]="informesParaEliminar" (deleted)="onInformesEliminados()"></app-delete-admin-report>
+<app-pdf-export-confirmation [(visible)]="pdfConfirmationVisible" [pdfName]="pdfName"
+  [filterSummary]="pdfFilterSummary" [recordCount]="pdfRecordCount"
+  (confirmed)="generarPdf()">
+</app-pdf-export-confirmation>

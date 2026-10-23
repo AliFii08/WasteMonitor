@@ -3,6 +3,11 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
 
+:root,
+:root * {
+  color-scheme: only light !important;
+}
+
 @font-face {
   font-family: 'LoveloBlack'; // Nombre que usarás
   src: url('./assets/fonts/Lovelo\ Black.otf') format('otf');
@@ -13,6 +18,17 @@
 body {
   margin: 0;
   background-color: #f1ffed;
+}
+
+@media (min-width: 621px) {
+  button:not(nav button):not(.notification-btn-wrapper button):not(.mobile-menu-trigger):not(.mobile-menu-close):not(.mobile-sidebar-backdrop):not(.emergency-trigger):not(.announcement-trigger):not(.icon-btn):not(.select-all-icon):not(.btn-tbl-action):not(.close-btn):not([aria-label]):not(.logout-cancel):not(.logout-accept):not(.session-warning-logout):not(.session-warning-extend) {
+    font-size: 16px !important;
+  }
+
+  input.search-input,
+  input.search-input::placeholder {
+    font-size: 17px !important;
+  }
 }
 
 .modal-backdrop.is-closing,
@@ -107,6 +123,27 @@ body {
 
 .p-toast .p-toast-summary {
   font-weight: 700 !important;
+}
+
+.p-toast .p-toast-message-success .p-toast-summary,
+.p-toast .p-toast-message-success .p-toast-detail,
+.p-toast .p-toast-message-success .p-toast-icon-close,
+.p-toast .p-toast-message-success .p-toast-message-icon {
+  color: #0b3d2f !important;
+}
+
+.p-toast .p-toast-message-error .p-toast-summary,
+.p-toast .p-toast-message-error .p-toast-detail,
+.p-toast .p-toast-message-error .p-toast-icon-close,
+.p-toast .p-toast-message-error .p-toast-message-icon {
+  color: #5a0000 !important;
+}
+
+.p-toast .p-toast-message-warn .p-toast-summary,
+.p-toast .p-toast-message-warn .p-toast-detail,
+.p-toast .p-toast-message-warn .p-toast-icon-close,
+.p-toast .p-toast-message-warn .p-toast-message-icon {
+  color: #5d4300 !important;
 }
 
 :root, body, * { scrollbar-width: thin; scrollbar-color: #78ad78 transparent; }

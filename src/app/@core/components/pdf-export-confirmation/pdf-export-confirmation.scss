@@ -1,0 +1,162 @@
+.pdf-confirmation-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(9, 31, 24, 0.58);
+  backdrop-filter: blur(2px);
+  animation: pdf-confirmation-fade-in 150ms ease-out both;
+}
+
+.pdf-confirmation-backdrop.is-closing {
+  animation: pdf-confirmation-fade-out 180ms ease-in both;
+}
+
+.pdf-confirmation-modal {
+  width: min(100%, 480px);
+  padding: 1.5rem;
+  border: 1px solid #d8e4de;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(0, 35, 24, 0.28);
+  color: #173d32;
+  font-family: 'Raleway', sans-serif;
+  animation: pdf-confirmation-panel-in 200ms ease-out both;
+}
+
+.pdf-confirmation-modal.is-closing {
+  animation: pdf-confirmation-panel-out 180ms ease-in both;
+}
+
+.pdf-confirmation-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-bottom: 1.3rem;
+}
+
+.pdf-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 14px;
+  background: #e7f3ec;
+  color: #0f4b3a;
+  font-size: 1.35rem;
+}
+
+.pdf-confirmation-heading h2 {
+  margin: 0 0 0.3rem;
+  color: #003628;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.pdf-confirmation-heading p,
+.pdf-note {
+  margin: 0;
+  color: #64756d;
+  font-size: 0.88rem;
+}
+
+.pdf-specifications {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 1rem;
+  border-radius: 12px;
+  background: #f5f9f6;
+}
+
+.pdf-specifications dt {
+  margin-bottom: 0.2rem;
+  color: #64756d;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.pdf-specifications dd {
+  overflow-wrap: anywhere;
+  margin: 0;
+  color: #173d32;
+  font-size: 0.93rem;
+  font-weight: 700;
+}
+
+.pdf-note {
+  margin-top: 0.9rem;
+  line-height: 1.45;
+}
+
+.pdf-confirmation-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  margin-top: 1.4rem;
+}
+
+.pdf-confirmation-actions button {
+  min-height: 40px;
+  padding: 0 1rem;
+  border: 0;
+  border-radius: 8px;
+  font: 700 0.86rem 'Raleway', sans-serif;
+  cursor: pointer;
+}
+
+.pdf-cancel-button {
+  background: #edf2ef;
+  color: #345348;
+}
+
+.pdf-generate-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #0f4b3a;
+  color: #fff;
+}
+
+.pdf-generate-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@media (max-width: 480px) {
+  .pdf-confirmation-modal {
+    padding: 1.15rem;
+  }
+
+  .pdf-confirmation-actions {
+    flex-direction: column-reverse;
+  }
+
+  .pdf-confirmation-actions button {
+    width: 100%;
+  }
+}
+
+@keyframes pdf-confirmation-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pdf-confirmation-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes pdf-confirmation-panel-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes pdf-confirmation-panel-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(8px) scale(0.98); }
+}

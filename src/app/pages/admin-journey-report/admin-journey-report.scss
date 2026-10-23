@@ -129,6 +129,25 @@
   cursor: pointer;
 }
 
+.pdf-export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid #0f4b3a;
+  border-radius: 8px;
+  background: #fff;
+  color: #0f4b3a;
+  font: 800 13px 'Raleway', sans-serif;
+  cursor: pointer;
+}
+
+.pdf-export-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 .preview-section {
   margin: 4px 20px 30px;
   overflow: hidden;

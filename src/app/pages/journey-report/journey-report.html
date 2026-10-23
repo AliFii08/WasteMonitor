@@ -17,6 +17,10 @@
         Eliminar seleccionados
       </button>
       }
+      <button type="button" class="pdf-export-btn" [disabled]="reportes.length === 0"
+        (click)="openPdfConfirmation()">
+        <i class="pi pi-file-pdf"></i> Exportar PDF
+      </button>
     </div>
 
     @if (!isAdmin) {
@@ -133,3 +137,8 @@
   [reportesSeleccionados]="selectedReportsList"
   (reportesEliminados)="onReportesEliminados()"
 ></app-delete-journey-report>
+
+<app-pdf-export-confirmation [(visible)]="pdfConfirmationVisible" [pdfName]="pdfName"
+  [filterSummary]="pdfFilterSummary" [recordCount]="pdfRecordCount"
+  (confirmed)="generatePdf()">
+</app-pdf-export-confirmation>
