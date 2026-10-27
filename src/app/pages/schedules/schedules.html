@@ -11,8 +11,8 @@
     </button>
   </div>
 
-  <section class="week-grid" aria-label="Programación semanal de camiones">
-    @for (day of weekDays; track day.key) {
+<section class="week-grid" aria-label="Programación semanal de camiones">
+    @for (day of weekDays(); track day.key) {
       @let diurnos = getDiurnos(day.key);
       @let nocturnos = getNocturnos(day.key);
       @let hasSchedules = diurnos.length > 0 || nocturnos.length > 0;
@@ -30,14 +30,17 @@
               <div class="shift-section">
                 <span class="shift-title"><i class="pi pi-sun"></i> Turno Diurno</span>
                 @for (item of diurnos; track item.id) {
-                  <div class="route-mini-card" [class.journey-active]="isJourneyActive(item)">
+                  @let status = getJourneyStatus(item, day.dateStr);
+                  <div class="route-mini-card" [class.journey-active]="status === 'active'" [class.journey-finished]="status === 'finished'">
                     <i class="pi pi-truck" aria-hidden="true"></i>
                     <div class="route-info">
                       <strong>Camión: {{ item.camion }}</strong>
                       <span>Ruta: {{ item.ruta }}</span>
                       <span>Sector: {{ item.sector }}</span>
-                      @if (isJourneyActive(item)) {
+                      @if (status === 'active') {
                         <span class="active-badge"><i class="pi pi-circle-fill"></i> Viaje en curso</span>
+                      } @else if (status === 'finished') {
+                        <span class="finished-badge"><i class="pi pi-check-circle"></i> Viaje finalizado</span>
                       }
                     </div>
                   </div>
@@ -53,14 +56,17 @@
               <div class="shift-section">
                 <span class="shift-title"><i class="pi pi-moon"></i> Turno Nocturno</span>
                 @for (item of nocturnos; track item.id) {
-                  <div class="route-mini-card" [class.journey-active]="isJourneyActive(item)">
+                  @let status = getJourneyStatus(item, day.dateStr);
+                  <div class="route-mini-card" [class.journey-active]="status === 'active'" [class.journey-finished]="status === 'finished'">
                     <i class="pi pi-truck" aria-hidden="true"></i>
                     <div class="route-info">
                       <strong>Camión: {{ item.camion }}</strong>
                       <span>Ruta: {{ item.ruta }}</span>
                       <span>Sector: {{ item.sector }}</span>
-                      @if (isJourneyActive(item)) {
+                      @if (status === 'active') {
                         <span class="active-badge"><i class="pi pi-circle-fill"></i> Viaje en curso</span>
+                      } @else if (status === 'finished') {
+                        <span class="finished-badge"><i class="pi pi-check-circle"></i> Viaje finalizado</span>
                       }
                     </div>
                   </div>
