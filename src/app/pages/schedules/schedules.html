@@ -13,20 +13,72 @@
 
   <section class="week-grid" aria-label="Programación semanal de camiones">
     @for (day of weekDays; track day.key) {
-      <article class="day-card" [class.weekend-card]="day.key === 'saturday' || day.key === 'sunday'">
+      @let diurnos = getDiurnos(day.key);
+      @let nocturnos = getNocturnos(day.key);
+      @let hasSchedules = diurnos.length > 0 || nocturnos.length > 0;
+
+      <article class="day-card" [class.weekend-card]="day.key === 'sabado' || day.key === 'domingo'">
         <header class="day-card-header">
+          <span class="day-number">{{ day.number }}</span>
           <h2>{{ day.name }}</h2>
         </header>
 
         <div class="day-card-content">
-          <i class="pi pi-truck" aria-hidden="true"></i>
-          <strong>Sin recorrido asignado</strong>
-          <span>Sector, camión y hora pendientes</span>
+          @if (hasSchedules) {
+            <!-- Turno Diurno -->
+            @if (diurnos.length > 0) {
+              <div class="shift-section">
+                <span class="shift-title"><i class="pi pi-sun"></i> Turno Diurno</span>
+                @for (item of diurnos; track item.id) {
+                  <div class="route-mini-card" [class.journey-active]="isJourneyActive(item)">
+                    <i class="pi pi-truck" aria-hidden="true"></i>
+                    <div class="route-info">
+                      <strong>Camión: {{ item.camion }}</strong>
+                      <span>Ruta: {{ item.ruta }}</span>
+                      <span>Sector: {{ item.sector }}</span>
+                      @if (isJourneyActive(item)) {
+                        <span class="active-badge"><i class="pi pi-circle-fill"></i> Viaje en curso</span>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- Turno Nocturno -->
+            @if (nocturnos.length > 0) {
+              @if (diurnos.length > 0) {
+                <hr class="shift-divider" />
+              }
+              <div class="shift-section">
+                <span class="shift-title"><i class="pi pi-moon"></i> Turno Nocturno</span>
+                @for (item of nocturnos; track item.id) {
+                  <div class="route-mini-card" [class.journey-active]="isJourneyActive(item)">
+                    <i class="pi pi-truck" aria-hidden="true"></i>
+                    <div class="route-info">
+                      <strong>Camión: {{ item.camion }}</strong>
+                      <span>Ruta: {{ item.ruta }}</span>
+                      <span>Sector: {{ item.sector }}</span>
+                      @if (isJourneyActive(item)) {
+                        <span class="active-badge"><i class="pi pi-circle-fill"></i> Viaje en curso</span>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          } @else {
+            <div class="empty-state">
+              <i class="pi pi-truck" aria-hidden="true"></i>
+              <strong>Sin recorrido asignado</strong>
+              <span>Sector, camión y hora pendientes</span>
+            </div>
+          }
         </div>
 
         <footer class="day-card-footer">
-          <span class="status-dot" aria-hidden="true"></span>
-          Horario no publicado
+          <span class="status-dot" [style.background-color]="hasSchedules ? '#68a357' : '#d59a39'" aria-hidden="true"></span>
+          {{ hasSchedules ? 'Horario publicado' : 'Horario no publicado' }}
         </footer>
       </article>
     }
