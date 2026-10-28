@@ -31,13 +31,13 @@ export class CreateSchesulesComponent implements OnInit {
   readonly vehicles = signal<Vehicle[]>([]);
 
   readonly weekDays = [
-    { label: 'Lunes', value: 'monday' },
-    { label: 'Martes', value: 'tuesday' },
-    { label: 'Miércoles', value: 'wednesday' },
-    { label: 'Jueves', value: 'thursday' },
-    { label: 'Viernes', value: 'friday' },
-    { label: 'Sábado', value: 'saturday' },
-    { label: 'Domingo', value: 'sunday' },
+    { label: 'Lunes', value: 'lunes' },
+    { label: 'Martes', value: 'martes' },
+    { label: 'Miércoles', value: 'miercoles' },
+    { label: 'Jueves', value: 'jueves' },
+    { label: 'Viernes', value: 'viernes' },
+    { label: 'Sábado', value: 'sabado' },
+    { label: 'Domingo', value: 'domingo' },
   ];
 
   readonly sectorSelect = [

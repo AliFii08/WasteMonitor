@@ -43,12 +43,24 @@ export class SchedulesService {
     }
   }
 
+  async getActiveJourneys(): Promise<Record<string, any>> {
+    try {
+      const response = await fetch(`${this.baseUrl}/informe_de_viaje.json`);
+      if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+      const data = await response.json();
+      return data || {};
+    } catch (error) {
+      console.error('Error al obtener los informes de viaje:', error);
+      return {};
+    }
+  }
+
   async createSchedule(schedule: CreateScheduleDto): Promise<{ name: string }> {
     try {
       const payload: Omit<ScheduleItem, 'id'> = {
         camion: schedule.camion,
         culminado: schedule.culminado ?? false,
-        dia: schedule.dia.toLowerCase(),
+        dia: schedule.dia.toLowerCase().trim(),
         turno: schedule.turno,
         ruta: schedule.ruta,
         sector: schedule.sector,
