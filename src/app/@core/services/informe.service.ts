@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Database as NgDatabase, listVal, objectVal } from '@angular/fire/database';
 import { getAuth } from 'firebase/auth';
 import { getDatabase, ref, get, push, update, remove, onValue } from 'firebase/database';
+import { environment } from '../../../environments/environment';
 import { Observable, combineLatest, from } from 'rxjs';
 import { ViajeItem } from '../../pages/journey-report/components/update-journey-report/update-journey-report';
 import { LocationService } from './location.service';
@@ -499,16 +500,33 @@ export class InformeService {
 
     await this.verificarInformeEditable(informeId);
 
-    // 1. Marcar informe como finalizado
-    await update(ref(this.db, `informe_de_viaje/${informeId}`), {
-      activo: false,
-      estado: 'finalizado',
-      finalizadoEl: new Date().toISOString(),
-      finalizadoPor: usuarioId,
-    });
+    // 1. Marcar informe como finalizado vía REST (fetch): el SDK modular a veces
+    //    lanza "childPathObj.split is not a function" por mezclar dos copias de
+    //    firebase/database presentes en node_modules.
+    const res = await fetch(
+      `${environment.firebaseConfig.databaseURL}/informe_de_viaje/${informeId}.json`,
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          activo: false,
+          estado: 'finalizado',
+          finalizadoEl: new Date().toISOString(),
+          finalizadoPor: usuarioId,
+        }),
+      },
+    );
 
-    // 2. Detener el rastreo enviando un string válido
-    this.locationService.stopSupervisorTracking(usuarioId, informeId);
+    if (!res.ok) throw new Error('No se pudo finalizar el informe. Intenta de nuevo.');
+
+    // 2. Detener el rastreo. Si el SDK falla aquí, no debe impedir que el
+    //    informe quede finalizado (el listener del propio supervisor también
+    //    reacciona al estado 'finalizado' y apaga su GPS).
+    try {
+      this.locationService.stopSupervisorTracking(usuarioId, informeId);
+    } catch (err) {
+      console.warn('El informe se finalizó, pero falló al detener el rastreo:', err);
+    }
   }
 
   private async verificarInformeEditable(informeId: string): Promise<void> {
