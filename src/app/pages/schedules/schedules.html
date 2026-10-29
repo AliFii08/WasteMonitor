@@ -9,15 +9,25 @@
       <i class="pi pi-plus"></i>
       <span>Añadir horario</span>
     </button>
+
+    @if (checkedSchedules().length > 0) {
+      <button type="button" class="btn-delete-checked" (click)="openDeleteCheckedModal()">
+        <i class="pi pi-trash"></i>
+        <span> Eliminar seleccionados ({{ checkedSchedules().length }}) </span>
+      </button>
+    }
   </div>
 
-<section class="week-grid" aria-label="Programación semanal de camiones">
+  <section class="week-grid" aria-label="Programación semanal de camiones">
     @for (day of weekDays(); track day.key) {
       @let diurnos = getDiurnos(day.key);
       @let nocturnos = getNocturnos(day.key);
       @let hasSchedules = diurnos.length > 0 || nocturnos.length > 0;
 
-      <article class="day-card" [class.weekend-card]="day.key === 'sabado' || day.key === 'domingo'">
+      <article
+        class="day-card"
+        [class.weekend-card]="day.key === 'sabado' || day.key === 'domingo'"
+      >
         <header class="day-card-header">
           <span class="day-number">{{ day.number }}</span>
           <h2>{{ day.name }}</h2>
@@ -31,18 +41,49 @@
                 <span class="shift-title"><i class="pi pi-sun"></i> Turno Diurno</span>
                 @for (item of diurnos; track item.id) {
                   @let status = getJourneyStatus(item, day.dateStr);
-                  <div class="route-mini-card" [class.journey-active]="status === 'active'" [class.journey-finished]="status === 'finished'">
+                  <div
+                    class="route-mini-card"
+                    [class.journey-active]="status === 'active'"
+                    [class.journey-finished]="status === 'finished'"
+                  >
+                    <input
+                      type="checkbox"
+                      class="card-check"
+                      [checked]="isChecked(item)"
+                      (change)="toggleCheck(item)"
+                      [attr.aria-label]="'Seleccionar horario del camión ' + item.camion"
+                    />
                     <i class="pi pi-truck" aria-hidden="true"></i>
                     <div class="route-info">
                       <strong>Camión: {{ item.camion }}</strong>
                       <span>Ruta: {{ item.ruta }}</span>
                       <span>Sector: {{ item.sector }}</span>
                       @if (status === 'active') {
-                        <span class="active-badge"><i class="pi pi-circle-fill"></i> Viaje en curso</span>
+                        <span class="active-badge"
+                          ><i class="pi pi-circle-fill"></i> Viaje en curso</span
+                        >
                       } @else if (status === 'finished') {
-                        <span class="finished-badge"><i class="pi pi-check-circle"></i> Viaje finalizado</span>
+                        <span class="finished-badge"
+                          ><i class="pi pi-check-circle"></i> Viaje finalizado</span
+                        >
                       }
                     </div>
+                    <button
+                      type="button"
+                      class="btn-edit"
+                      (click)="openUpdateModal(item)"
+                      aria-label="Editar horario"
+                    >
+                      <i class="pi pi-pencil" aria-hidden="true"></i>
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-delete"
+                      (click)="openDeleteModal(item)"
+                      aria-label="Eliminar horario"
+                    >
+                      <i class="pi pi-trash" aria-hidden="true"></i>
+                    </button>
                   </div>
                 }
               </div>
@@ -57,18 +98,49 @@
                 <span class="shift-title"><i class="pi pi-moon"></i> Turno Nocturno</span>
                 @for (item of nocturnos; track item.id) {
                   @let status = getJourneyStatus(item, day.dateStr);
-                  <div class="route-mini-card" [class.journey-active]="status === 'active'" [class.journey-finished]="status === 'finished'">
+                  <div
+                    class="route-mini-card"
+                    [class.journey-active]="status === 'active'"
+                    [class.journey-finished]="status === 'finished'"
+                  >
+                    <input
+                      type="checkbox"
+                      class="card-check"
+                      [checked]="isChecked(item)"
+                      (change)="toggleCheck(item)"
+                      [attr.aria-label]="'Seleccionar horario del camión ' + item.camion"
+                    />
                     <i class="pi pi-truck" aria-hidden="true"></i>
                     <div class="route-info">
                       <strong>Camión: {{ item.camion }}</strong>
                       <span>Ruta: {{ item.ruta }}</span>
                       <span>Sector: {{ item.sector }}</span>
                       @if (status === 'active') {
-                        <span class="active-badge"><i class="pi pi-circle-fill"></i> Viaje en curso</span>
+                        <span class="active-badge"
+                          ><i class="pi pi-circle-fill"></i> Viaje en curso</span
+                        >
                       } @else if (status === 'finished') {
-                        <span class="finished-badge"><i class="pi pi-check-circle"></i> Viaje finalizado</span>
+                        <span class="finished-badge"
+                          ><i class="pi pi-check-circle"></i> Viaje finalizado</span
+                        >
                       }
                     </div>
+                    <button
+                      type="button"
+                      class="btn-edit"
+                      (click)="openUpdateModal(item)"
+                      aria-label="Editar horario"
+                    >
+                      <i class="pi pi-pencil" aria-hidden="true"></i>
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-delete"
+                      (click)="openDeleteModal(item)"
+                      aria-label="Eliminar horario"
+                    >
+                      <i class="pi pi-trash" aria-hidden="true"></i>
+                    </button>
                   </div>
                 }
               </div>
@@ -83,7 +155,11 @@
         </div>
 
         <footer class="day-card-footer">
-          <span class="status-dot" [style.background-color]="hasSchedules ? '#68a357' : '#d59a39'" aria-hidden="true"></span>
+          <span
+            class="status-dot"
+            [style.background-color]="hasSchedules ? '#68a357' : '#d59a39'"
+            aria-hidden="true"
+          ></span>
           {{ hasSchedules ? 'Horario publicado' : 'Horario no publicado' }}
         </footer>
       </article>
@@ -94,5 +170,22 @@
 <app-create-schesules-component
   [isOpen]="isCreateModalOpen()"
   (close)="closeCreateModal()"
-  (scheduleCreated)="onScheduleCreated()">
+  (scheduleCreated)="onScheduleCreated()"
+>
 </app-create-schesules-component>
+
+<app-update-schesules-component
+  [isOpen]="isUpdateModalOpen()"
+  [schedule]="selectedSchedule()"
+  (close)="closeUpdateModal()"
+  (scheduleUpdated)="onScheduleUpdated()"
+>
+</app-update-schesules-component>
+
+<app-delete-schesules-component
+  [isOpen]="isDeleteModalOpen()"
+  [schedules]="schedulesToDelete()"
+  (close)="closeDeleteModal()"
+  (schedulesDeleted)="onSchedulesDeleted()"
+>
+</app-delete-schesules-component>

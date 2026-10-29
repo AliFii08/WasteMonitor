@@ -47,9 +47,7 @@
                 {{ isLoadingVehicles() ? 'Cargando vehículos...' : 'Seleccione un vehículo' }}
               </option>
               @for (veh of vehicles(); track veh.id) {
-                <option [value]="veh.id">
-                  {{ veh.id }} - {{ veh.type }} ({{ veh.plate }})
-                </option>
+                <option [value]="veh.id">{{ veh.id }} - {{ veh.type }} ({{ veh.plate }})</option>
               }
             </select>
           </div>
@@ -67,7 +65,12 @@
 
         <div class="form-field">
           <label for="description">Notas / Descripción</label>
-          <textarea id="description" formControlName="description" rows="3" placeholder="Detalles u observaciones del recorrido..."></textarea>
+          <textarea
+            id="description"
+            formControlName="description"
+            rows="3"
+            placeholder="Detalles u observaciones del recorrido..."
+          ></textarea>
         </div>
 
         <footer class="modal-footer">
