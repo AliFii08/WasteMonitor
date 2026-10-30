@@ -10,7 +10,7 @@
       <span>Añadir horario</span>
     </button>
 
-    @if (checkedSchedules().length > 0) {
+    @if (isAdmin && checkedSchedules().length > 0) {
       <button type="button" class="btn-delete-checked" (click)="openDeleteCheckedModal()">
         <i class="pi pi-trash"></i>
         <span> Eliminar seleccionados ({{ checkedSchedules().length }}) </span>
@@ -46,13 +46,15 @@
                     [class.journey-active]="status === 'active'"
                     [class.journey-finished]="status === 'finished'"
                   >
-                    <input
-                      type="checkbox"
-                      class="card-check"
-                      [checked]="isChecked(item)"
-                      (change)="toggleCheck(item)"
-                      [attr.aria-label]="'Seleccionar horario del camión ' + item.camion"
-                    />
+                    @if (isAdmin) {
+                      <input
+                        type="checkbox"
+                        class="card-check"
+                        [checked]="isChecked(item)"
+                        (change)="toggleCheck(item)"
+                        [attr.aria-label]="'Seleccionar horario del camión ' + item.camion"
+                      />
+                    }
                     <i class="pi pi-truck" aria-hidden="true"></i>
                     <div class="route-info">
                       <strong>Camión: {{ item.camion }}</strong>
@@ -68,22 +70,24 @@
                         >
                       }
                     </div>
-                    <button
-                      type="button"
-                      class="btn-edit"
-                      (click)="openUpdateModal(item)"
-                      aria-label="Editar horario"
-                    >
-                      <i class="pi pi-pencil" aria-hidden="true"></i>
-                    </button>
-                    <button
-                      type="button"
-                      class="btn-delete"
-                      (click)="openDeleteModal(item)"
-                      aria-label="Eliminar horario"
-                    >
-                      <i class="pi pi-trash" aria-hidden="true"></i>
-                    </button>
+                    @if (isAdmin) {
+                      <button
+                        type="button"
+                        class="btn-edit"
+                        (click)="openUpdateModal(item)"
+                        aria-label="Editar horario"
+                      >
+                        <i class="pi pi-pencil" aria-hidden="true"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="btn-delete"
+                        (click)="openDeleteModal(item)"
+                        aria-label="Eliminar horario"
+                      >
+                        <i class="pi pi-trash" aria-hidden="true"></i>
+                      </button>
+                    }
                   </div>
                 }
               </div>
@@ -103,13 +107,15 @@
                     [class.journey-active]="status === 'active'"
                     [class.journey-finished]="status === 'finished'"
                   >
-                    <input
-                      type="checkbox"
-                      class="card-check"
-                      [checked]="isChecked(item)"
-                      (change)="toggleCheck(item)"
-                      [attr.aria-label]="'Seleccionar horario del camión ' + item.camion"
-                    />
+                    @if (isAdmin) {
+                      <input
+                        type="checkbox"
+                        class="card-check"
+                        [checked]="isChecked(item)"
+                        (change)="toggleCheck(item)"
+                        [attr.aria-label]="'Seleccionar horario del camión ' + item.camion"
+                      />
+                    }
                     <i class="pi pi-truck" aria-hidden="true"></i>
                     <div class="route-info">
                       <strong>Camión: {{ item.camion }}</strong>
@@ -125,22 +131,24 @@
                         >
                       }
                     </div>
-                    <button
-                      type="button"
-                      class="btn-edit"
-                      (click)="openUpdateModal(item)"
-                      aria-label="Editar horario"
-                    >
-                      <i class="pi pi-pencil" aria-hidden="true"></i>
-                    </button>
-                    <button
-                      type="button"
-                      class="btn-delete"
-                      (click)="openDeleteModal(item)"
-                      aria-label="Eliminar horario"
-                    >
-                      <i class="pi pi-trash" aria-hidden="true"></i>
-                    </button>
+                    @if (isAdmin) {
+                      <button
+                        type="button"
+                        class="btn-edit"
+                        (click)="openUpdateModal(item)"
+                        aria-label="Editar horario"
+                      >
+                        <i class="pi pi-pencil" aria-hidden="true"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="btn-delete"
+                        (click)="openDeleteModal(item)"
+                        aria-label="Eliminar horario"
+                      >
+                        <i class="pi pi-trash" aria-hidden="true"></i>
+                      </button>
+                    }
                   </div>
                 }
               </div>

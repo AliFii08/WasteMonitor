@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { SchedulesService, ScheduleItem } from '../../@core/services/schedules.service';
+import { AuthService } from '../../@core/services/auth.service';
 import { CreateSchesulesComponent } from './component/create-schesules-component/create-schesules-component';
 import { UpdateSchesulesComponent } from './component/update-schesules-component/update-schesules-component';
 import { DeleteSchesulesComponent } from './component/delete-schesules-component/delete-schesules-component';
@@ -20,6 +21,12 @@ interface WeekDay {
 })
 export class Schedules implements OnInit {
   private schedulesService = inject(SchedulesService);
+  private authService = inject(AuthService);
+
+  /** Solo el administrador puede editar o eliminar horarios. */
+  get isAdmin(): boolean {
+    return this.authService.hasRole(['admin']);
+  }
 
   readonly isCreateModalOpen = signal<boolean>(false);
   readonly isUpdateModalOpen = signal<boolean>(false);
