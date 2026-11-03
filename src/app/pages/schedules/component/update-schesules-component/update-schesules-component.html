@@ -1,0 +1,83 @@
+@if (isVisible()) {
+  <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal-panel" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <div class="modal-title">
+          <i class="pi pi-calendar" aria-hidden="true"></i>
+          <h2>Editar Horario</h2>
+        </div>
+        <button type="button" class="close-btn" (click)="closeModal()" aria-label="Cerrar modal">
+          <i class="pi pi-times"></i>
+        </button>
+      </header>
+
+      <form [formGroup]="scheduleForm" (ngSubmit)="onSubmit()" class="modal-body">
+        @if (errorMessage()) {
+          <div class="error-msg">
+            <i class="pi pi-exclamation-circle"></i>
+            <span>{{ errorMessage() }}</span>
+          </div>
+        }
+
+        <div class="form-field">
+          <label for="day">Día de la Semana <span class="req">*</span></label>
+          <select id="day" formControlName="day">
+            <option value="" disabled>Seleccione un día</option>
+            @for (day of weekDays; track day.value) {
+              <option [value]="day.value">{{ day.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label for="sector">Sector <span class="req">*</span></label>
+            <select id="sector" formControlName="sector">
+              <option value="" disabled>Seleccione un sector</option>
+              @for (sec of sectorSelect; track sec.value) {
+                <option [value]="sec.value">{{ sec.label }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label for="truck">Camión / Unidad <span class="req">*</span></label>
+            <select id="truck" formControlName="truck">
+              <option value="" disabled>
+                {{ isLoadingVehicles() ? 'Cargando vehículos...' : 'Seleccione un vehículo' }}
+              </option>
+              @for (veh of vehicles(); track veh.id) {
+                <option [value]="veh.id">{{ veh.id }} - {{ veh.type }} ({{ veh.plate }})</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="turno">Turno <span class="req">*</span></label>
+          <select id="turno" formControlName="turno">
+            <option value="" disabled>Seleccione un turno</option>
+            @for (t of turnoSelect; track t.value) {
+              <option [value]="t.value">{{ t.label }}</option>
+            }
+          </select>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeModal()" [disabled]="isLoading()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-submit" [disabled]="isLoading()">
+            @if (isLoading()) {
+              <i class="pi pi-spin pi-spinner"></i>
+              <span>Guardando...</span>
+            } @else {
+              <i class="pi pi-check"></i>
+              <span>Guardar Cambios</span>
+            }
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+}

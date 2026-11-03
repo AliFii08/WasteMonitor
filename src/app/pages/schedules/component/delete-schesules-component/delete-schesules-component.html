@@ -1,0 +1,64 @@
+@if (isVisible()) {
+  <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal-panel" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <div class="modal-title">
+          <i class="pi pi-trash" aria-hidden="true"></i>
+          <h2>Eliminar {{ isMultiple ? 'horarios' : 'horario' }}</h2>
+        </div>
+        <button type="button" class="close-btn" (click)="closeModal()" aria-label="Cerrar modal">
+          <i class="pi pi-times"></i>
+        </button>
+      </header>
+
+      <div class="modal-body">
+        @if (errorMessage()) {
+          <div class="error-msg">
+            <i class="pi pi-exclamation-circle"></i>
+            <span>{{ errorMessage() }}</span>
+          </div>
+        }
+
+        <div class="warning-box">
+          <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+          <span>
+            El horario{{ isMultiple ? 's' : '' }} se {{ isMultiple ? 'ocultarán' : 'ocultará' }} de
+            la programación semanal. Esta acción no borra los datos de viajes ya registrados.
+          </span>
+        </div>
+
+        <ul class="schedule-list">
+          @for (item of schedules; track item.id) {
+            <li>
+              <i class="pi pi-truck" aria-hidden="true"></i>
+              <div class="schedule-info">
+                <strong>Camión: {{ item.camion }}</strong>
+                <span>{{ item.dia }} · {{ item.turno }} · {{ item.sector }}</span>
+              </div>
+            </li>
+          }
+        </ul>
+
+        <footer class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeModal()" [disabled]="isLoading()">
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="btn-delete"
+            (click)="confirmDelete()"
+            [disabled]="isLoading()"
+          >
+            @if (isLoading()) {
+              <i class="pi pi-spin pi-spinner"></i>
+              <span>Eliminando...</span>
+            } @else {
+              <i class="pi pi-trash"></i>
+              <span>Eliminar{{ isMultiple ? ' (' + schedules.length + ')' : '' }}</span>
+            }
+          </button>
+        </footer>
+      </div>
+    </div>
+  </div>
+}

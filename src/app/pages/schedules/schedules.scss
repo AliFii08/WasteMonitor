@@ -169,6 +169,9 @@ body {
   margin: 0 auto 20px;
   display: flex;
   justify-content: flex-start;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
 }
 
 .btn-create {
@@ -181,7 +184,9 @@ body {
   border-radius: 8px;
   background-color: #68a357;
   color: #ffffff;
-  font: 800 13px 'Raleway', sans-serif;
+  font:
+    800 13px 'Raleway',
+    sans-serif;
   cursor: pointer;
   transition: background-color 0.15s ease;
 
@@ -280,7 +285,7 @@ body {
   background: #ffffff;
   border: 1px solid #e4eee8;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 
   i {
     color: #68a357;
@@ -322,8 +327,10 @@ body {
   background: #ffffff;
   border: 1px solid #e4eee8;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 
   i {
     color: #68a357;
@@ -369,8 +376,10 @@ body {
   background: #ffffff;
   border: 1px solid #d8e4de;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 
   i {
     color: #68a357;
@@ -394,7 +403,7 @@ body {
     box-shadow: 0 2px 8px rgba(240, 173, 78, 0.15);
 
     i {
-    color: #f0ad4e;
+      color: #f0ad4e;
     }
   }
 }
@@ -434,6 +443,93 @@ body {
   i {
     font-size: 9px;
     color: #f0ad4e;
+  }
+}
+
+.btn-edit {
+  margin-left: auto;
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 6px;
+  background: #eef3f0;
+  color: #0f4b3a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+
+  i {
+    font-size: 11px;
+    color: inherit;
+    margin-top: 0;
+  }
+
+  &:hover {
+    background: #68a357;
+    color: #ffffff;
+  }
+}
+
+.btn-delete {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 6px;
+  background: #fdeaea;
+  color: #b3261e;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+
+  i {
+    font-size: 11px;
+    color: inherit;
+    margin-top: 0;
+  }
+
+  &:hover {
+    background: #d62828;
+    color: #ffffff;
+  }
+}
+
+.card-check {
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  margin-top: 3px;
+  accent-color: #d62828;
+  cursor: pointer;
+}
+
+.btn-delete-checked {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 8px;
+  background-color: #d62828;
+  color: #ffffff;
+  font:
+    800 13px 'Raleway',
+    sans-serif;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: #b01e1e;
   }
 }
 

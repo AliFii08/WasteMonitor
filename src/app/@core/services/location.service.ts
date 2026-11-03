@@ -1,6 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Database, ref, set, remove, get, onValue, Unsubscribe } from '@angular/fire/database';
+import { Database, ref, set, get, onValue, Unsubscribe } from '@angular/fire/database';
 import { Auth } from '@angular/fire/auth';
+import { environment } from '../../../environments/environment';
 
 export interface LocationPayload {
   userId: string;
@@ -64,7 +65,7 @@ export class LocationService {
         enableHighAccuracy: true,
         timeout: 10000,
         maximumAge: 0,
-      }
+      },
     );
   }
 
@@ -100,17 +101,39 @@ export class LocationService {
       this.isTracking.set(false);
     }
 
-    // 3. Notificar a Firebase que la transmisión del usuario pasó a inactiva
+    // 3. Notificar a la BD que la transmisión del usuario pasó a inactiva.
+    //    Se hace con fetch (REST) en vez del SDK: el SDK modular a veces lanza
+    //    "childPathObj.split is not a function" por mezclar dos copias de
+    //    firebase/database presentes en node_modules.
     if (userId) {
-      const currentRef = ref(this.db, `tracking/${userId}/current`);
-      set(currentRef, { active: false, timestamp: Date.now(), userId }).catch((err) => {
-        console.error('Error al desactivar tracking:', err);
-      });
+      void this.marcarTrackingInactivo(userId);
     }
 
     // 4. Limpiar cualquier residuo de historial (ya no se escribe, pero puede
     //    quedar basura de versiones anteriores de la app)
     void this.limpiarHistorialTracking(userId, informeId);
+  }
+
+  /**
+   * Marca `tracking/{userId}/current` como inactivo usando fetch (REST),
+   * sin depender del SDK modular.
+   */
+  private async marcarTrackingInactivo(userId: string): Promise<void> {
+    try {
+      const res = await fetch(
+        `${environment.firebaseConfig.databaseURL}/tracking/${userId}/current.json`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ active: false, timestamp: Date.now(), userId }),
+        },
+      );
+      if (!res.ok) {
+        console.error(`Error al desactivar tracking (HTTP ${res.status})`);
+      }
+    } catch (err) {
+      console.error('Error al desactivar tracking:', err);
+    }
   }
 
   /**
@@ -126,7 +149,12 @@ export class LocationService {
     }
 
     try {
-      await Promise.all(paths.map((path) => remove(ref(this.db, path))));
+      // fetch (REST) en vez de remove() del SDK, por la misma razón de arriba.
+      await Promise.all(
+        paths.map((path) =>
+          fetch(`${environment.firebaseConfig.databaseURL}/${path}.json`, { method: 'DELETE' }),
+        ),
+      );
     } catch (err) {
       console.error('Error al limpiar historial de tracking:', err);
     }
@@ -156,7 +184,9 @@ export class LocationService {
       const informeEnCurso = String(current?.informeId || '');
       if (!informeEnCurso || !informeIds.includes(informeEnCurso)) return;
 
-      console.log(`🛑 [LocationService] Apagando tracking de ${ownerId} (informe ${informeEnCurso})`);
+      console.log(
+        `🛑 [LocationService] Apagando tracking de ${ownerId} (informe ${informeEnCurso})`,
+      );
       this.stopSupervisorTracking(ownerId, informeEnCurso);
     } catch (err) {
       console.error('Error al apagar tracking remoto:', err);
@@ -183,7 +213,9 @@ export class LocationService {
 
       if (informeActivoEntry) {
         const [informeId] = informeActivoEntry;
-        console.log(`🔄 [LocationService] Reanudando rastreo GPS tras recarga para el informe: ${informeId}`);
+        console.log(
+          `🔄 [LocationService] Reanudando rastreo GPS tras recarga para el informe: ${informeId}`,
+        );
         this.startSupervisorTracking(currentUser.uid, informeId);
       }
     } catch (err) {
@@ -194,7 +226,7 @@ export class LocationService {
   private handlePositionUpdate(
     position: GeolocationPosition,
     userId: string,
-    informeId: string
+    informeId: string,
   ): void {
     const coords = position.coords;
 

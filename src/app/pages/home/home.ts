@@ -68,6 +68,15 @@ export class Home implements AfterViewInit, OnDestroy {
   // Solo rol 'mecanico': rutas de los informes que están en curso
   private unsubscribeInformesActivos?: Unsubscribe;
   private activeRoutesSignature = '';
+  // Solo rol 'user': ruta más cercana a la casa del usuario. El mapa solo
+  // muestra los supervisores cuya jornada activa sea de esa ruta; en null
+  // (rol admin) no se filtra y se muestran TODOS los supervisores activos.
+  private supervisorFilterRoute: { id: string; nombre: string } | null = null;
+  // Caché informeId -> ruta, para no re-leer Firebase en cada actualización
+  // de tracking (que llega cada pocos segundos)
+  private informeRouteCache = new Map<string, string>();
+  // Secuencia para descartar snapshots desfasados del listener de tracking
+  private trackingSeq = 0;
 
   // Coordenadas por defecto (Maracaibo centro)
   private initialCoords: [number, number] = [10.6447, -71.6106];
@@ -152,12 +161,17 @@ export class Home implements AfterViewInit, OnDestroy {
 
       // 3. Lógica de renderizado basada en la variable normalizada
       if (normalizedRole === 'admin') {
+        // El admin ve TODAS las rutas y la ubicación en tiempo real de
+        // TODOS los supervisores con jornada activa (sin filtro de ruta)
         console.log('Rol de Admin detectado: renderizando todas las rutas.');
         await this.drawAllRoutes();
         this.listenSupervisorLocations();
       } else if (normalizedRole === 'user' && this.userCoords) {
         console.log('👤 Rol estándar detectado: calculando ruta más cercana.');
         await this.findAndDrawNearestRoute(this.userCoords);
+        // El usuario solo ve al supervisor de SU ruta más cercana
+        // cuya jornada esté activa
+        this.listenSupervisorLocations();
       } else if (normalizedRole === 'user') {
         console.warn('Usuario estándar sin coordenadas válidas para buscar rutas.');
       } else if (normalizedRole === 'mecanico') {
@@ -178,50 +192,136 @@ export class Home implements AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Escucha en tiempo real la ubicación de los supervisores con jornada
+   * activa. El admin ve a TODOS; el rol 'user' solo ve a los supervisores
+   * cuya jornada activa corresponda a su ruta más cercana.
+   */
   private listenSupervisorLocations(): void {
     const trackingRef = ref(this.database, 'tracking');
 
-    this.unsubscribeSupervisores = onValue(trackingRef, (snapshot) => {
-      if (!snapshot.exists()) return;
+    this.unsubscribeSupervisores = onValue(trackingRef, async (snapshot) => {
+      const seq = ++this.trackingSeq;
+
+      if (!snapshot.exists()) {
+        // Sin datos de tracking: limpiar marcadores visibles
+        this.ngZone.run(() => this.clearSupervisorMarkers());
+        return;
+      }
       const trackingData = snapshot.val();
 
-      this.ngZone.run(() => {
-        Object.entries<any>(trackingData).forEach(([userId, payload]) => {
-          const current = payload?.current;
+      // Marcadores que ya no aplican y deben retirarse del mapa
+      const activeUserIds = new Set<string>();
 
-          if (current && current.active && current.latitude && current.longitude) {
-            const lat = Number(current.latitude);
-            const lng = Number(current.longitude);
-            const label = `Supervisor (${userId.substring(0, 5)}...)`;
+      for (const [userId, payload] of Object.entries<any>(trackingData)) {
+        const current = payload?.current;
 
-            if (this.supervisorMarkers.has(userId)) {
-              this.supervisorMarkers.get(userId)!.setLatLng([lat, lng]);
-            } else {
-              const supervisorIcon = L.divIcon({
-                className: 'supervisor-custom-marker',
-                html: `<div style="background:#06523f; color:#fff; padding:5px 10px; border-radius:20px; font-weight:800; font-size:12px; border:2px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,0.3); display:flex; align-items:center; gap:5px; white-space:nowrap;">
-                        <i class="pi pi-user" style="font-size: 11px;"></i> ${label}
-                       </div>`,
-                iconAnchor: [30, 15],
-              });
+        if (!(current && current.active && current.latitude && current.longitude)) continue;
 
-              const marker = L.marker([lat, lng], { icon: supervisorIcon })
-                .bindPopup(`<b>Supervisor:</b> ${userId}<br><b>Informe:</b> ${current.informeId || 'N/A'}`)
-                .addTo(this.map);
+        // Filtrado por ruta más cercana (solo aplica al rol 'user')
+        if (this.supervisorFilterRoute) {
+          const rutaDelSupervisor = await this.resolveTrackingRouteId(current.informeId);
+          // Llegó un snapshot más reciente mientras se resolvía la ruta
+          if (seq !== this.trackingSeq) return;
+          if (!this.matchesNearestRoute(rutaDelSupervisor)) continue;
+        }
 
-              this.supervisorMarkers.set(userId, marker);
-            }
+        activeUserIds.add(userId);
+
+        const lat = Number(current.latitude);
+        const lng = Number(current.longitude);
+        const label = `Supervisor (${userId.substring(0, 5)}...)`;
+
+        this.ngZone.run(() => {
+          if (this.supervisorMarkers.has(userId)) {
+            this.supervisorMarkers.get(userId)!.setLatLng([lat, lng]);
           } else {
-            if (this.supervisorMarkers.has(userId)) {
-              this.supervisorMarkers.get(userId)!.remove();
-              this.supervisorMarkers.delete(userId);
-            }
+            const supervisorIcon = L.divIcon({
+              className: 'supervisor-custom-marker',
+              html: `<div style="background:#06523f; color:#fff; padding:5px 10px; border-radius:20px; font-weight:800; font-size:12px; border:2px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,0.3); display:flex; align-items:center; gap:5px; white-space:nowrap;">
+                      <i class="pi pi-user" style="font-size: 11px;"></i> ${label}
+                     </div>`,
+              iconAnchor: [30, 15],
+            });
+
+            const marker = L.marker([lat, lng], { icon: supervisorIcon })
+              .bindPopup(`<b>Supervisor:</b> ${userId}<br><b>Informe:</b> ${current.informeId || 'N/A'}`)
+              .addTo(this.map);
+
+            this.supervisorMarkers.set(userId, marker);
           }
         });
+      }
+
+      // Retirar los marcadores que quedaron fuera del filtro
+      this.ngZone.run(() => {
+        for (const [userId, marker] of this.supervisorMarkers) {
+          if (!activeUserIds.has(userId)) {
+            marker.remove();
+            this.supervisorMarkers.delete(userId);
+          }
+        }
       });
     });
   }
 
+  /**
+   * Resuelve a qué ruta pertenece la jornada activa de un supervisor a partir
+   * del informeId de su payload de tracking:
+   *   - ruta directa en el informe (`ruta`/`rutaId`), o
+   *   - derivada del camión asignado (`camiones/{id}`).
+   * Se cachea porque el tracking se actualiza cada pocos segundos.
+   */
+  private async resolveTrackingRouteId(informeId: string): Promise<string> {
+    const id = String(informeId ?? '').trim();
+    if (!id) return '';
+
+    if (this.informeRouteCache.has(id)) {
+      return this.informeRouteCache.get(id)!;
+    }
+
+    let rutaId = '';
+
+    try {
+      const snap = await get(ref(this.database, `informe_de_viaje/${id}`));
+      if (snap.exists()) {
+        const informe = snap.val();
+        rutaId = String(informe?.rutaId || informe?.ruta || '').trim();
+
+        if (!rutaId) {
+          const camionId = String(informe?.camionId || informe?.camion || '').trim();
+          if (camionId) {
+            const camionSnap = await get(ref(this.database, `camiones/${camionId}`));
+            if (camionSnap.exists()) {
+              rutaId = String(camionSnap.val()?.rutaId || camionSnap.val()?.ruta || '').trim();
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error(`Error resolviendo la ruta del informe ${id}:`, error);
+    }
+
+    this.informeRouteCache.set(id, rutaId);
+    return rutaId;
+  }
+
+  /**
+   * Compara la ruta resuelta del supervisor con la ruta más cercana del
+   * usuario. El informe puede guardar la key de 'routes' (id) o el nombre
+   * visible (`nombreRuta`), por eso se comprueban ambos.
+   */
+  private matchesNearestRoute(rutaDelSupervisor: string): boolean {
+    if (!this.supervisorFilterRoute || !rutaDelSupervisor) return false;
+
+    const { id, nombre } = this.supervisorFilterRoute;
+    return rutaDelSupervisor === id || (!!nombre && rutaDelSupervisor === nombre);
+  }
+
+  private clearSupervisorMarkers(): void {
+    this.supervisorMarkers.forEach((marker) => marker.remove());
+    this.supervisorMarkers.clear();
+  }
 
   /**
    * RUTAS ACTIVAS — solo para el rol 'mecanico'.
@@ -620,15 +720,22 @@ export class Home implements AfterViewInit, OnDestroy {
     this.map.flyTo(coords, 15);
   }
 
-  private async findAndDrawNearestRoute(userCoords: [number, number]): Promise<void> {
+  /**
+   * Calcula la ruta más cercana a unas coordenadas sin dibujar nada.
+   * Devuelve el id, el nombre visible, los puntos y la distancia en km.
+   */
+  private async findNearestRoute(
+    coords: [number, number],
+  ): Promise<{ id: string; nombre: string; puntos: [number, number][]; distanciaKm: number } | null> {
     const routesRef = ref(this.database, 'routes');
     const snapshot = await get(routesRef);
 
-    if (!snapshot.exists()) return;
+    if (!snapshot.exists()) return null;
 
     const data = snapshot.val();
     let minDistance = Infinity;
     let closestRoute: RutaData | null = null;
+    let closestNombre = '';
 
     for (const [routeId, routeObj] of Object.entries<any>(data)) {
       if (!routeObj) continue;
@@ -640,19 +747,40 @@ export class Home implements AfterViewInit, OnDestroy {
       if (puntos.length === 0) continue;
 
       for (const punto of puntos) {
-        const dist = this.calcularDistanciaHaversine(userCoords[0], userCoords[1], punto[0], punto[1]);
+        const dist = this.calcularDistanciaHaversine(coords[0], coords[1], punto[0], punto[1]);
         if (dist < minDistance) {
           minDistance = dist;
           closestRoute = { id: routeId, puntos };
+          closestNombre = String(routeObj.nombreRuta ?? '').trim();
         }
       }
     }
 
-    if (closestRoute) {
-      this.nearestRouteId = closestRoute.id;
-      this.routeDistanceKm = parseFloat(minDistance.toFixed(2));
-      this.trazarRutaConOSRM(closestRoute.puntos);
+    if (!closestRoute) return null;
+
+    return {
+      id: closestRoute.id,
+      nombre: closestNombre,
+      puntos: closestRoute.puntos,
+      distanciaKm: parseFloat(minDistance.toFixed(2)),
+    };
+  }
+
+  private async findAndDrawNearestRoute(userCoords: [number, number]): Promise<void> {
+    const nearest = await this.findNearestRoute(userCoords);
+
+    if (nearest) {
+      this.nearestRouteId = nearest.id;
+      this.routeDistanceKm = nearest.distanciaKm;
+      this.trazarRutaConOSRM(nearest.puntos);
     }
+
+    // Guarda la ruta como filtro: el usuario solo verá en tiempo real a los
+    // supervisores cuya jornada activa sea de esta ruta. Si no hay ruta
+    // cercana, el filtro queda vacío y no se muestra a ningún supervisor.
+    this.supervisorFilterRoute = nearest
+      ? { id: nearest.id, nombre: nearest.nombre }
+      : { id: '', nombre: '' };
   }
 
   private async findAndDrawAsignedRoute(userId: string): Promise<void> {
