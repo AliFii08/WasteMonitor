@@ -92,125 +92,129 @@
               }
             } @else {
               <!-- Turno Diurno -->
-              @if (diurnos.length > 0) {
-                <div class="shift-section">
-                  <span class="shift-title"><i class="pi pi-sun"></i> Turno Diurno</span>
-                  @for (item of diurnos; track item.id) {
-                    @let status = getJourneyStatus(item, day.dateStr);
-                    <div
-                      class="route-mini-card"
-                      [class.journey-active]="status === 'active'"
-                      [class.journey-finished]="status === 'finished'"
-                      role="group"
-                      tabindex="0"
-                      [attr.aria-label]="'Detalles del horario del camión ' + item.camion + '. Presiona Enter para ver.'"
-                      (click)="openViewModal(item)"
-                      (keydown.enter)="openViewModalFromKeyboard(item, $event)"
-                      (keydown.space)="openViewModalFromKeyboard(item, $event)"
-                    >
-                      <i class="pi pi-truck" aria-hidden="true"></i>
-                      <div class="route-info">
-                        <strong>Camión: {{ item.camion }}</strong>
-                        <span>Ruta: {{ item.ruta }}</span>
-                        <span>Sector: {{ item.sector }}</span>
-                        @if (status === 'active') {
-                          <span class="active-badge"
-                            ><i class="pi pi-circle-fill"></i> Viaje en curso</span
-                          >
-                        } @else if (status === 'finished') {
-                          <span class="finished-badge"
-                            ><i class="pi pi-check-circle"></i> Viaje finalizado</span
-                          >
-                        }
-                      </div>
-                      @if (isAdmin) {
-                        <button
-                          type="button"
-                          class="btn-edit"
-                          (click)="$event.stopPropagation(); openUpdateModal(item)"
-                          (keydown.enter)="$event.stopPropagation()"
-                          (keydown.space)="$event.stopPropagation()"
-                          aria-label="Editar horario"
-                        >
-                          <i class="pi pi-pencil" aria-hidden="true"></i>
-                        </button>
-                        <button
-                          type="button"
-                          class="btn-delete"
-                          (click)="$event.stopPropagation(); openDeleteModal(item)"
-                          (keydown.enter)="$event.stopPropagation()"
-                          (keydown.space)="$event.stopPropagation()"
-                          aria-label="Eliminar horario"
-                        >
-                          <i class="pi pi-trash" aria-hidden="true"></i>
-                        </button>
-                      }
-                    </div>
-                  }
-                </div>
-              }
+@if (diurnos.length > 0) {
+  <div class="shift-section">
+    <span class="shift-title"><i class="pi pi-sun"></i> Turno Diurno</span>
+    @for (item of diurnos; track item.id) {
+      @let status = getJourneyStatus(item, day.dateStr);
+      <div
+        class="route-mini-card"
+        [class.journey-active]="status === 'active'"
+        [class.journey-finished]="status === 'finished'"
+        role="group"
+        tabindex="0"
+        [attr.aria-label]="'Detalles del horario del camión ' + item.camion + '. Presiona Enter para ver.'"
+        (click)="openViewModal(item)"
+        (keydown.enter)="openViewModalFromKeyboard(item, $event)"
+        (keydown.space)="openViewModalFromKeyboard(item, $event)"
+      >
+        <i class="pi pi-truck" aria-hidden="true"></i>
+        <div class="route-info">
+          <strong>Camión: {{ item.camion }}</strong>
+          <span>Ruta: {{ item.ruta }}</span>
+          @if (item.description && item.description.trim() !== '') {
+            <span>Nota: {{ item.description }}</span>
+          }
+          @if (status === 'active') {
+            <span class="active-badge"
+              ><i class="pi pi-circle-fill"></i> Viaje en curso</span
+            >
+          } @else if (status === 'finished') {
+            <span class="finished-badge"
+              ><i class="pi pi-check-circle"></i> Viaje finalizado</span
+            >
+          }
+        </div>
+        @if (isAdmin) {
+          <button
+            type="button"
+            class="btn-edit"
+            (click)="$event.stopPropagation(); openUpdateModal(item)"
+            (keydown.enter)="$event.stopPropagation()"
+            (keydown.space)="$event.stopPropagation()"
+            aria-label="Editar horario"
+          >
+            <i class="pi pi-pencil" aria-hidden="true"></i>
+          </button>
+          <button
+            type="button"
+            class="btn-delete"
+            (click)="$event.stopPropagation(); openDeleteModal(item)"
+            (keydown.enter)="$event.stopPropagation()"
+            (keydown.space)="$event.stopPropagation()"
+            aria-label="Eliminar horario"
+          >
+            <i class="pi pi-trash" aria-hidden="true"></i>
+          </button>
+        }
+      </div>
+    }
+  </div>
+}
 
-              <!-- Turno Nocturno -->
-              @if (nocturnos.length > 0) {
-                @if (diurnos.length > 0) {
-                  <hr class="shift-divider" />
-                }
-                <div class="shift-section">
-                  <span class="shift-title"><i class="pi pi-moon"></i> Turno Nocturno</span>
-                  @for (item of nocturnos; track item.id) {
-                    @let status = getJourneyStatus(item, day.dateStr);
-                    <div
-                      class="route-mini-card"
-                      [class.journey-active]="status === 'active'"
-                      [class.journey-finished]="status === 'finished'"
-                      role="group"
-                      tabindex="0"
-                      [attr.aria-label]="'Detalles del horario del camión ' + item.camion + '. Presiona Enter para ver.'"
-                      (click)="openViewModal(item)"
-                      (keydown.enter)="openViewModalFromKeyboard(item, $event)"
-                      (keydown.space)="openViewModalFromKeyboard(item, $event)"
-                    >
-                      <i class="pi pi-truck" aria-hidden="true"></i>
-                      <div class="route-info">
-                        <strong>Camión: {{ item.camion }}</strong>
-                        <span>Ruta: {{ item.ruta }}</span>
-                        <span>Sector: {{ item.sector }}</span>
-                        @if (status === 'active') {
-                          <span class="active-badge"
-                            ><i class="pi pi-circle-fill"></i> Viaje en curso</span
-                          >
-                        } @else if (status === 'finished') {
-                          <span class="finished-badge"
-                            ><i class="pi pi-check-circle"></i> Viaje finalizado</span
-                          >
-                        }
-                      </div>
-                      @if (isAdmin) {
-                        <button
-                          type="button"
-                          class="btn-edit"
-                          (click)="$event.stopPropagation(); openUpdateModal(item)"
-                          (keydown.enter)="$event.stopPropagation()"
-                          (keydown.space)="$event.stopPropagation()"
-                          aria-label="Editar horario"
-                        >
-                          <i class="pi pi-pencil" aria-hidden="true"></i>
-                        </button>
-                        <button
-                          type="button"
-                          class="btn-delete"
-                          (click)="$event.stopPropagation(); openDeleteModal(item)"
-                          (keydown.enter)="$event.stopPropagation()"
-                          (keydown.space)="$event.stopPropagation()"
-                          aria-label="Eliminar horario"
-                        >
-                          <i class="pi pi-trash" aria-hidden="true"></i>
-                        </button>
-                      }
-                    </div>
-                  }
-                </div>
-              }
+<!-- Turno Nocturno -->
+@if (nocturnos.length > 0) {
+  @if (diurnos.length > 0) {
+    <hr class="shift-divider" />
+  }
+  <div class="shift-section">
+    <span class="shift-title"><i class="pi pi-moon"></i> Turno Nocturno</span>
+    @for (item of nocturnos; track item.id) {
+      @let status = getJourneyStatus(item, day.dateStr);
+      <div
+        class="route-mini-card"
+        [class.journey-active]="status === 'active'"
+        [class.journey-finished]="status === 'finished'"
+        role="group"
+        tabindex="0"
+        [attr.aria-label]="'Detalles del horario del camión ' + item.camion + '. Presiona Enter para ver.'"
+        (click)="openViewModal(item)"
+        (keydown.enter)="openViewModalFromKeyboard(item, $event)"
+        (keydown.space)="openViewModalFromKeyboard(item, $event)"
+      >
+        <i class="pi pi-truck" aria-hidden="true"></i>
+        <div class="route-info">
+          <strong>Camión: {{ item.camion }}</strong>
+          <span>Ruta: {{ item.ruta }}</span>
+          @if (item.description && item.description.trim() !== '') {
+            <span>Nota: {{ item.description }}</span>
+          }
+          @if (status === 'active') {
+            <span class="active-badge"
+              ><i class="pi pi-circle-fill"></i> Viaje en curso</span
+            >
+          } @else if (status === 'finished') {
+            <span class="finished-badge"
+              ><i class="pi pi-check-circle"></i> Viaje finalizado</span
+            >
+          }
+        </div>
+        @if (isAdmin) {
+          <button
+            type="button"
+            class="btn-edit"
+            (click)="$event.stopPropagation(); openUpdateModal(item)"
+            (keydown.enter)="$event.stopPropagation()"
+            (keydown.space)="$event.stopPropagation()"
+            aria-label="Editar horario"
+          >
+            <i class="pi pi-pencil" aria-hidden="true"></i>
+          </button>
+          <button
+            type="button"
+            class="btn-delete"
+            (click)="$event.stopPropagation(); openDeleteModal(item)"
+            (keydown.enter)="$event.stopPropagation()"
+            (keydown.space)="$event.stopPropagation()"
+            aria-label="Eliminar horario"
+          >
+            <i class="pi pi-trash" aria-hidden="true"></i>
+          </button>
+        }
+      </div>
+    }
+  </div>
+}
             }
           } @else {
             <div class="empty-state">
