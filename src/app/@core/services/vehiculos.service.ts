@@ -2,7 +2,7 @@ import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Database, ref, get, set, remove, push } from '@angular/fire/database';
 import { Vehicle } from '../interfaces/vehicle.model';
-import { NotificationService } from './notification.service'; // 👈 1. Importar NotificationService
+import { NotificationService } from './notification.service'; // 1. Importar NotificationService
 import { AuthService } from './auth.service';
 
 @Injectable({
@@ -11,7 +11,7 @@ import { AuthService } from './auth.service';
 export class VehiculoService {
   private database = inject(Database);
   private platformId = inject(PLATFORM_ID);
-  private notificationService = inject(NotificationService); // 👈 2. Inyectar NotificationService
+  private notificationService = inject(NotificationService); // 2. Inyectar NotificationService
   private authService = inject(AuthService);
 
   // --- OBTENER TODOS LOS VEHÍCULOS ---
@@ -66,7 +66,7 @@ export class VehiculoService {
     const nextNum = maxNum + 1;
     const customId = `VEH-${String(nextNum).padStart(3, '0')}`;
 
-    // 1. Guardar el nuevo camión
+
     const newVehicleRef = ref(this.database, `camiones/${customId}`);
     await set(newVehicleRef, {
       tipo: vehicleData.type,
@@ -115,14 +115,14 @@ export class VehiculoService {
       activo: vehicle.activo ?? true,
     });
 
-    // 2. 🔔 Si el estado cambia a 'en ruta' o 'en_ruta', enviar notificación a usuarios comunes
+    // 2. Si el estado cambia a 'en ruta' o 'en_ruta', enviar notificación a usuarios comunes
     if (newStatus === 'en ruta' || newStatus === 'en_ruta') {
       const rutaDetalle = vehicle.route ? ` en la ruta ${vehicle.route}` : '';
       await this.notificationService.crearNotificacion(
         'Unidad en Ruta',
         `El vehículo ${vehicle.id} (${vehicle.plate}) ha iniciado su recorrido${rutaDetalle}.`,
         'info',
-        'user' // 👈 Se envía a usuarios con rol 'user'
+        'user' // Se envía a usuarios con rol 'user'
       );
     }
   }
