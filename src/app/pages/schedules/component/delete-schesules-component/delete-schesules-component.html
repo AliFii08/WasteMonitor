@@ -1,10 +1,16 @@
 @if (isVisible()) {
   <div class="modal-backdrop" (click)="closeModal()">
-    <div class="modal-panel" (click)="$event.stopPropagation()">
+    <div
+      class="modal-panel danger-theme"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-schedules-title"
+      (click)="$event.stopPropagation()"
+    >
       <header class="modal-header">
         <div class="modal-title">
           <i class="pi pi-trash" aria-hidden="true"></i>
-          <h2>Eliminar {{ isMultiple ? 'horarios' : 'horario' }}</h2>
+          <h2 id="delete-schedules-title">Eliminar {{ isMultiple ? 'horarios' : 'horario' }}</h2>
         </div>
         <button type="button" class="close-btn" (click)="closeModal()" aria-label="Cerrar modal">
           <i class="pi pi-times"></i>
@@ -38,27 +44,25 @@
             </li>
           }
         </ul>
-
-        <footer class="modal-footer">
-          <button type="button" class="btn-cancel" (click)="closeModal()" [disabled]="isLoading()">
-            Cancelar
-          </button>
-          <button
-            type="button"
-            class="btn-delete"
-            (click)="confirmDelete()"
-            [disabled]="isLoading()"
-          >
-            @if (isLoading()) {
-              <i class="pi pi-spin pi-spinner"></i>
-              <span>Eliminando...</span>
-            } @else {
-              <i class="pi pi-trash"></i>
-              <span>Eliminar{{ isMultiple ? ' (' + schedules.length + ')' : '' }}</span>
-            }
-          </button>
-        </footer>
       </div>
+
+      <footer class="modal-footer">
+        <button type="button" class="btn-cancel" (click)="closeModal()" [disabled]="isLoading()">
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="btn-delete btn-danger"
+          (click)="confirmDelete()"
+          [disabled]="isLoading()"
+        >
+          @if (isLoading()) {
+            <span>Eliminando...</span>
+          } @else {
+            <span>Eliminar{{ isMultiple ? ' (' + schedules.length + ')' : '' }}</span>
+          }
+        </button>
+      </footer>
     </div>
   </div>
 }

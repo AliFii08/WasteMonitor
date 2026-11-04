@@ -416,33 +416,127 @@ body {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: hidden !important;
   color: #283127;
   background: #fff;
   border: 1px solid #dce8dd;
-  border-radius: 12px;
+  border-radius: 16px !important;
   box-shadow: 0 24px 60px rgba(0, 54, 40, 0.24);
   font-family: 'Raleway', sans-serif;
   font-size: 16px !important;
 }
 
-.modal-backdrop:not(.error-backdrop) :is(.modal-panel, .modal-container) > .modal-header,
-.modal-backdrop:not(.error-backdrop) > .modal-panel > .modal-header {
-  color: #06523f;
-  background: #e2f0e8;
-  border-color: #b8d9c4;
+.modal-backdrop:not(.error-backdrop) > :is(.modal-panel, .modal-container, .confirm-modal),
+.confirmation-backdrop > .confirmation-modal,
+.details-backdrop > .details-modal,
+.vehicle-view-backdrop > .vehicle-view-modal,
+.emergency-backdrop > .emergency-modal,
+.broadcast-backdrop > .broadcast-modal {
+  overflow: hidden !important;
+  border-radius: 16px !important;
+  font-family: 'Raleway', sans-serif !important;
 }
 
-.modal-backdrop:not(.error-backdrop) :is(.modal-panel, .modal-container) .modal-title {
-  color: #06523f;
+:is(.modal-header, .details-header, .vehicle-view-header, .confirmation-header, .broadcast-header) {
+  box-sizing: border-box;
+  display: flex !important;
+  flex: 0 0 auto;
+  align-items: center !important;
+  justify-content: space-between !important;
+  min-height: 98px;
+  padding: 1.4rem 1.7rem !important;
+  color: #06523f !important;
+  background: linear-gradient(180deg, #e7f3ec 0%, #dcefe4 100%) !important;
+  border: 0 !important;
+  border-bottom: 1px solid #cfe3d8 !important;
+  border-radius: 16px 16px 0 0;
+  font-family: 'Raleway', sans-serif !important;
 }
 
-.modal-backdrop:not(.error-backdrop) :is(.modal-panel, .modal-container) .close-btn {
-  color: #06523f;
+.confirmation-header {
+  color: #9b1c1c !important;
+  background: linear-gradient(180deg, #fde8e8 0%, #fbd5d5 100%) !important;
+  border-bottom: 1px solid #f8b4b4 !important;
 }
 
-.modal-backdrop:not(.error-backdrop) :is(.modal-panel, .modal-container) .close-btn:hover {
-  background: #cce6d4;
+.confirmation-title,
+.confirmation-title > i {
+  color: #9b1c1c !important;
+}
+
+.confirmation-title h2 {
+  color: #111827 !important;
+}
+
+.modal-backdrop:not(.error-backdrop) > .modal-panel.danger-theme > .modal-header {
+  color: #9b1c1c !important;
+  background: linear-gradient(180deg, #fde8e8 0%, #fbd5d5 100%) !important;
+  border-bottom: 1px solid #f8b4b4 !important;
+}
+
+.modal-backdrop:not(.error-backdrop) > .modal-panel.danger-theme > .modal-header .modal-title,
+.modal-backdrop:not(.error-backdrop) > .modal-panel.danger-theme > .modal-header .modal-title > i {
+  color: #9b1c1c !important;
+}
+
+.modal-backdrop:not(.error-backdrop) > .modal-panel.danger-theme > .modal-header h2 {
+  color: #111827 !important;
+}
+
+:is(.modal-title, .details-title, .vehicle-view-title, .confirmation-title, .broadcast-title) {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  min-width: 0;
+  color: #06523f !important;
+  font-family: 'Raleway', sans-serif !important;
+}
+
+:is(.modal-title, .details-title, .vehicle-view-title, .confirmation-title, .broadcast-title) > i {
+  flex: 0 0 auto;
+  color: #06523f !important;
+  font-size: 1.25rem !important;
+}
+
+:is(.modal-header, .details-header, .vehicle-view-header, .confirmation-header, .broadcast-header) :is(h2, h3),
+:is(.modal-title, .details-title, .vehicle-view-title, .confirmation-title, .broadcast-title) :is(h2, h3) {
+  margin: 0 !important;
+  color: #06523f !important;
+  font: 800 1.35rem/1.35 'Raleway', sans-serif !important;
+  letter-spacing: 0.01em;
+}
+
+.confirmation-header .confirmation-title,
+.confirmation-header .confirmation-title > i {
+  color: #9b1c1c !important;
+}
+
+.confirmation-header .confirmation-title h2 {
+  color: #111827 !important;
+}
+
+:is(.modal-backdrop, .confirmation-backdrop, .details-backdrop, .vehicle-view-backdrop, .emergency-backdrop, .broadcast-backdrop)
+  :is(.close-btn, .close-button, .vehicle-view-close) {
+  box-sizing: border-box;
+  display: inline-flex !important;
+  flex: 0 0 36px;
+  align-items: center;
+  justify-content: center;
+  width: 36px !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  margin-left: 1rem;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: transparent !important;
+  color: #000 !important;
+  cursor: pointer;
+}
+
+:is(.modal-backdrop, .confirmation-backdrop, .details-backdrop, .vehicle-view-backdrop, .emergency-backdrop, .broadcast-backdrop)
+  :is(.close-btn, .close-button, .vehicle-view-close):hover {
+  background: #f0f0f0 !important;
 }
 
 .modal-backdrop:not(.error-backdrop) :is(.modal-panel, .modal-container, .confirm-modal)
@@ -747,12 +841,14 @@ body {
 }
 
 /* Keep modal close controls black and cancellation actions neutral gray. */
-:is(.modal-backdrop, .broadcast-modal, .emergency-modal) :is(.close-btn, .close-button),
+:is(.modal-backdrop, .confirmation-backdrop, .details-backdrop, .vehicle-view-backdrop, .broadcast-modal, .emergency-modal)
+  :is(.close-btn, .close-button, .vehicle-view-close),
 .p-dialog .p-dialog-header-close {
   color: #000 !important;
 }
 
-:is(.modal-backdrop, .broadcast-modal, .emergency-modal) :is(.close-btn, .close-button):hover,
+:is(.modal-backdrop, .confirmation-backdrop, .details-backdrop, .vehicle-view-backdrop, .broadcast-modal, .emergency-modal)
+  :is(.close-btn, .close-button, .vehicle-view-close):hover,
 .p-dialog .p-dialog-header-close:hover {
   color: #000 !important;
   background: #f0f0f0 !important;
@@ -777,16 +873,19 @@ body {
   overflow: hidden;
   color: #283127;
   border: 1px solid #dce8dd;
-  border-radius: 12px;
+  border-radius: 16px;
   box-shadow: 0 24px 60px rgba(0, 54, 40, 0.24);
   font-family: 'Raleway', sans-serif;
 }
 
 .p-dialog .p-dialog-header {
   color: #06523f;
-  background: #e2f0e8;
-  border-bottom: 1px solid #b8d9c4;
-  font-size: 18px;
+  min-height: 98px;
+  padding: 1.4rem 1.7rem;
+  background: linear-gradient(180deg, #e7f3ec 0%, #dcefe4 100%);
+  border-bottom: 1px solid #cfe3d8;
+  font-size: 1.35rem;
+  font-weight: 800;
 }
 
 .p-dialog :is(.p-dialog-content, .p-dialog-footer, label, input, textarea, select, button, small) {
@@ -922,5 +1021,14 @@ body {
 @media (max-width: 540px) {
   .modal-backdrop:not(.error-backdrop) > :is(.modal-panel, .modal-container, .confirm-modal) {
     max-height: calc(100dvh - 24px);
+  }
+
+  :is(.modal-header, .details-header, .vehicle-view-header, .confirmation-header, .broadcast-header) {
+    min-height: 76px;
+    padding: 1rem 1.2rem !important;
+  }
+
+  :is(.modal-header, .details-header, .vehicle-view-header, .confirmation-header, .broadcast-header) :is(h2, h3) {
+    font-size: 1.1rem !important;
   }
 }

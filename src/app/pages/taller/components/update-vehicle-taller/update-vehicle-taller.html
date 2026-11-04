@@ -4,10 +4,7 @@
       <header class="modal-header">
         <div class="modal-title">
           <i [class]="readOnly ? 'pi pi-eye' : 'pi pi-pencil'"></i>
-          <div>
-            <span class="modal-kicker">{{ readOnly ? 'Consulta de mantenimiento' : 'Gestión de taller' }}</span>
-            <h2>{{ readOnly ? 'Detalle del mantenimiento' : 'Editar registro de taller' }}</h2>
-          </div>
+          <h2>{{ readOnly ? 'Detalle del mantenimiento' : 'Editar registro de taller' }}</h2>
         </div>
         <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar">
           <i class="pi pi-times"></i>

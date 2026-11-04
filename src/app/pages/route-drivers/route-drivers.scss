@@ -251,6 +251,36 @@ body {
   }
 }
 
+.route-list-entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 38px;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.route-list-deactivate {
+  display: grid;
+  width: 38px;
+  min-height: 62px;
+  place-items: center;
+  color: #a9362b;
+  background: #fff;
+  border: 1px solid #ead6d2;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.16s ease, border-color 0.16s ease;
+
+  &:hover:not(:disabled) {
+    background: #fff0ee;
+    border-color: #dba59e;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
 .route-list-icon {
   display: grid;
   place-items: center;
@@ -684,5 +714,152 @@ body {
       font-weight: bold;
       font-size: 14px;
     }
+  }
+}
+
+.delete-point-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(9, 29, 23, 0.56);
+  backdrop-filter: blur(3px);
+  animation: delete-point-backdrop-in 180ms ease-out both;
+
+  &.is-closing {
+    animation: delete-point-backdrop-out 180ms ease-in both;
+  }
+}
+
+.delete-point-modal {
+  box-sizing: border-box;
+  width: min(100%, 460px);
+  padding: 24px;
+  border: 1px solid #d8e4de;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(0, 35, 25, 0.28);
+  animation: delete-point-modal-in 180ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+
+  &.is-closing {
+    animation: delete-point-modal-out 180ms ease-in both;
+  }
+}
+
+.delete-point-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  h2 {
+    margin: 3px 0 0;
+    color: #123f32;
+    font-size: 21px;
+    line-height: 1.25;
+  }
+
+  p {
+    margin: 0;
+    color: #668075;
+    font-size: 11px;
+    font-weight: 800;
+  }
+}
+
+.delete-point-icon {
+  display: grid;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 50%;
+  color: #b42318;
+  background: #fff0ee;
+  font-size: 19px;
+}
+
+.delete-point-body {
+  margin-top: 22px;
+
+  p {
+    margin: 0 0 7px;
+    color: #34483f;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  strong {
+    color: #123f32;
+  }
+
+  span {
+    color: #718178;
+    font-size: 13px;
+  }
+}
+
+.delete-point-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 26px;
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 9px 15px;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    font: 700 14px 'Raleway', sans-serif;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  .delete-point-cancel {
+    color: #345247;
+    background: #f1f6f3;
+    border-color: #d8e4de;
+  }
+
+  .delete-point-confirm {
+    color: #fff;
+    background: #b42318;
+  }
+}
+
+@keyframes delete-point-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes delete-point-backdrop-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes delete-point-modal-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes delete-point-modal-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(6px) scale(0.98); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .delete-point-backdrop,
+  .delete-point-modal {
+    animation-duration: 1ms;
   }
 }

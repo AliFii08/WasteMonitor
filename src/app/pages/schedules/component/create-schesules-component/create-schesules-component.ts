@@ -98,6 +98,7 @@ export class CreateSchesulesComponent implements OnInit {
         turno: formData.turno,
         ruta: selectedVehicle?.route || 'Ruta General',
         sector: formData.sector,
+        description: formData.description,
       });
 
       this.isLoading.set(false);

@@ -8,6 +8,8 @@ import { RoutesService } from '../../@core/services/routes.service';
 import { VehiculoService } from '../../@core/services/vehiculos.service';
 import { TablePagination } from '../../@core/components/table-pagination/table-pagination';
 import { MessageService } from 'primeng/api';
+import { AuthService } from '../../@core/services/auth.service';
+import { ViewVehicleComponent } from './components/view-vehicle/view-vehicle';
 
 @Component({
   selector: 'app-vehicles',
@@ -17,6 +19,7 @@ import { MessageService } from 'primeng/api';
     FormsModule,
     CreateVehicleComponent,
     UpdateVehicleComponent,
+    ViewVehicleComponent,
     TablePagination,
   ],
   templateUrl: './vehicles.html',
@@ -27,12 +30,15 @@ export class Vehicles implements OnInit {
   private routesService = inject(RoutesService);
   private cdr = inject(ChangeDetectorRef);
   private messageService = inject(MessageService);
+  private authService = inject(AuthService);
 
   vehicles: Vehicle[] = [];
   selectedVehicles: Vehicle[] = [];
   isCreateModalOpen = false;
   isUpdateModalOpen = false;
   editingVehicle: Vehicle | null = null;
+  viewingVehicle: Vehicle | null = null;
+  isViewModalOpen = false;
   loading = false;
 
   vehicleTypes = [...VEHICLE_TYPES];
@@ -47,6 +53,10 @@ export class Vehicles implements OnInit {
   isDeleteModalOpen = false;
   isDeleteModalClosing = false;
   vehiclesToDelete: Vehicle[] = [];
+
+  get isAdmin(): boolean {
+    return this.authService.hasRole(['admin']);
+  }
 
   get existingPlates(): string[] {
     return this.vehicles.map((v) => v.plate);
@@ -107,12 +117,19 @@ export class Vehicles implements OnInit {
   }
 
   openCreateModal(): void {
+    if (!this.isAdmin) return;
     this.isCreateModalOpen = true;
   }
 
   openEditModal(vehicle: Vehicle): void {
+    if (!this.isAdmin) return;
     this.editingVehicle = { ...vehicle };
     this.isUpdateModalOpen = true;
+  }
+
+  openViewModal(vehicle: Vehicle): void {
+    this.viewingVehicle = vehicle;
+    this.isViewModalOpen = true;
   }
 
   // --- SELECCIÓN MANUAL DE FILAS ---
@@ -122,6 +139,7 @@ export class Vehicles implements OnInit {
   }
 
   toggleVehicleSelection(vehicle: Vehicle, checked: boolean): void {
+    if (!this.isAdmin) return;
     if (checked) {
       if (!this.isVehicleSelected(vehicle)) {
         this.selectedVehicles = [...this.selectedVehicles, vehicle];
@@ -135,6 +153,7 @@ export class Vehicles implements OnInit {
   }
 
   toggleSelectAllVehicles(checked: boolean): void {
+    if (!this.isAdmin) return;
     this.allVehiclesSelected = checked;
     this.selectedVehicles = checked ? [...this.filteredVehicles] : [];
   }
@@ -142,11 +161,13 @@ export class Vehicles implements OnInit {
   // --- MODAL DE BORRADO ---
 
   openDeleteModalForSingle(vehicle: Vehicle): void {
+    if (!this.isAdmin) return;
     this.vehiclesToDelete = [vehicle];
     this.isDeleteModalOpen = true;
   }
 
   onDeleteSelectedVehicles(): void {
+    if (!this.isAdmin) return;
     if (this.selectedVehicles.length === 0) return;
     const selectedIds = new Set(this.selectedVehicles.map((vehicle) => vehicle.id));
     this.vehiclesToDelete = this.vehicles.filter((vehicle) => selectedIds.has(vehicle.id));
@@ -164,6 +185,7 @@ export class Vehicles implements OnInit {
   }
 
   async confirmDelete(): Promise<void> {
+    if (!this.isAdmin) return;
     try {
       const vehiclesById = new Map(this.vehicles.map((vehicle) => [vehicle.id, vehicle]));
       const targets = [...new Set(this.vehiclesToDelete.map((vehicle) => vehicle.id))]
@@ -190,6 +212,7 @@ export class Vehicles implements OnInit {
   // --- CREACIÓN Y EDICIÓN ---
 
   async handleSaveVehicle(newVehicleData: Omit<Vehicle, 'id'>): Promise<void> {
+    if (!this.isAdmin) return;
     try {
       await this.vehiculoService.createVehicle({
         ...newVehicleData,
@@ -204,6 +227,7 @@ export class Vehicles implements OnInit {
   }
 
   async onUpdateVehicle(updatedVehicle: Vehicle): Promise<void> {
+    if (!this.isAdmin) return;
     try {
       await this.vehiculoService.updateVehicle(updatedVehicle);
       await this.loadVehicles();

@@ -14,16 +14,20 @@
         <div class="confirmation-body">
           @if (targetUids.length === 1) {
             <p class="confirm-text">
-              ¿Estás seguro de remover al conductor <strong>{{ driverName }}</strong>?
+              ¿Estás seguro de que deseas eliminar esta tripulación?
+              @if (driverName) {
+                <span>Grupo a cargo de <strong>{{ driverName }}</strong>.</span>
+              }
             </p>
           } @else {
             <p class="confirm-text">
-              ¿Estás seguro de remover a los <strong>{{ targetUids.length }} conductores</strong> seleccionados?
+              ¿Estás seguro de que deseas eliminar las
+              <strong>{{ targetUids.length }} tripulaciones</strong> seleccionadas?
             </p>
           }
 
           <p class="sub-text">
-            El usuario no será borrado del sistema, solo cambiará su rol de vuelta a <strong>'Usuario'</strong> y se liberará su vehículo.
+            Las cuentas de sus integrantes no se eliminarán; solo se desvincularán de la tripulación y se liberará el vehículo asignado.
           </p>
 
           @if (errorMsg) {
@@ -44,7 +48,7 @@
               Procesando...
             } @else {
               <i class="pi pi-trash"></i>
-              Sí, remover
+              Sí, eliminar
             }
           </button>
         </footer>

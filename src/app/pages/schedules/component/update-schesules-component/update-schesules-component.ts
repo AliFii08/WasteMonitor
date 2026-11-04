@@ -79,6 +79,7 @@ export class UpdateSchesulesComponent implements OnInit {
     sector: ['', Validators.required],
     truck: ['', Validators.required],
     turno: ['', Validators.required],
+    description: [''],
   });
 
   async ngOnInit(): Promise<void> {
@@ -125,6 +126,7 @@ export class UpdateSchesulesComponent implements OnInit {
       sector: sectorMatch ? sectorMatch.value : sector,
       truck: camion,
       turno: turnoMatch ? turnoMatch.value : turnoRaw,
+      description: this.schedule.description || '',
     });
     this.errorMessage.set(null);
   }
@@ -158,6 +160,7 @@ export class UpdateSchesulesComponent implements OnInit {
         turno: formData.turno,
         ruta: selectedVehicle?.route || this.schedule.ruta || 'Ruta General',
         sector: formData.sector,
+        description: formData.description,
       });
 
       this.isLoading.set(false);

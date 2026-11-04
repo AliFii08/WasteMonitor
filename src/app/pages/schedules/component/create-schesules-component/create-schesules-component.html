@@ -11,66 +11,68 @@
         </button>
       </header>
 
-      <form [formGroup]="scheduleForm" (ngSubmit)="onSubmit()" class="modal-body">
-        @if (errorMessage()) {
-          <div class="error-msg">
-            <i class="pi pi-exclamation-circle"></i>
-            <span>{{ errorMessage() }}</span>
-          </div>
-        }
+      <form [formGroup]="scheduleForm" (ngSubmit)="onSubmit()" class="modal-form">
+        <div class="modal-body">
+          @if (errorMessage()) {
+            <div class="error-msg">
+              <i class="pi pi-exclamation-circle"></i>
+              <span>{{ errorMessage() }}</span>
+            </div>
+          }
 
-        <div class="form-field">
-          <label for="day">Día de la Semana <span class="req">*</span></label>
-          <select id="day" formControlName="day">
-            <option value="" disabled selected>Seleccione un día</option>
-            @for (day of weekDays; track day.value) {
-              <option [value]="day.value">{{ day.label }}</option>
-            }
-          </select>
-        </div>
-
-        <div class="form-row">
           <div class="form-field">
-            <label for="sector">Sector <span class="req">*</span></label>
-            <select id="sector" formControlName="sector">
-              <option value="" disabled selected>Seleccione un sector</option>
-              @for (sec of sectorSelect; track sec.value) {
-                <option [value]="sec.value">{{ sec.label }}</option>
+            <label for="day">Día de la Semana <span class="req">*</span></label>
+            <select id="day" formControlName="day">
+              <option value="" disabled selected>Seleccione un día</option>
+              @for (day of weekDays; track day.value) {
+                <option [value]="day.value">{{ day.label }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-field">
+              <label for="sector">Sector <span class="req">*</span></label>
+              <select id="sector" formControlName="sector">
+                <option value="" disabled selected>Seleccione un sector</option>
+                @for (sec of sectorSelect; track sec.value) {
+                  <option [value]="sec.value">{{ sec.label }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label for="truck">Camión / Unidad <span class="req">*</span></label>
+              <select id="truck" formControlName="truck">
+                <option value="" disabled selected>
+                  {{ isLoadingVehicles() ? 'Cargando vehículos...' : 'Seleccione un vehículo' }}
+                </option>
+                @for (veh of vehicles(); track veh.id) {
+                  <option [value]="veh.id">{{ veh.id }} - {{ veh.type }} ({{ veh.plate }})</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="turno">Turno <span class="req">*</span></label>
+            <select id="turno" formControlName="turno">
+              <option value="" disabled selected>Seleccione un turno</option>
+              @for (t of turnoSelect; track t.value) {
+                <option [value]="t.value">{{ t.label }}</option>
               }
             </select>
           </div>
 
           <div class="form-field">
-            <label for="truck">Camión / Unidad <span class="req">*</span></label>
-            <select id="truck" formControlName="truck">
-              <option value="" disabled selected>
-                {{ isLoadingVehicles() ? 'Cargando vehículos...' : 'Seleccione un vehículo' }}
-              </option>
-              @for (veh of vehicles(); track veh.id) {
-                <option [value]="veh.id">{{ veh.id }} - {{ veh.type }} ({{ veh.plate }})</option>
-              }
-            </select>
+            <label for="description">Notas / Descripción</label>
+            <textarea
+              id="description"
+              formControlName="description"
+              rows="3"
+              placeholder="Detalles u observaciones del recorrido..."
+            ></textarea>
           </div>
-        </div>
-
-        <div class="form-field">
-          <label for="turno">Turno <span class="req">*</span></label>
-          <select id="turno" formControlName="turno">
-            <option value="" disabled selected>Seleccione un turno</option>
-            @for (t of turnoSelect; track t.value) {
-              <option [value]="t.value">{{ t.label }}</option>
-            }
-          </select>
-        </div>
-
-        <div class="form-field">
-          <label for="description">Notas / Descripción</label>
-          <textarea
-            id="description"
-            formControlName="description"
-            rows="3"
-            placeholder="Detalles u observaciones del recorrido..."
-          ></textarea>
         </div>
 
         <footer class="modal-footer">

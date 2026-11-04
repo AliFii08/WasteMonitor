@@ -78,14 +78,16 @@ export class DeleteCrewModal {
 
       this.messageService.add({
         severity: 'success',
-        summary: 'Equipo eliminado',
-        detail: this.targetUids.length === 1 ? 'El equipo de tripulación fue eliminado.' : 'Los equipos seleccionados fueron eliminados.',
+        summary: this.targetUids.length === 1 ? 'Tripulación eliminada' : 'Tripulaciones eliminadas',
+        detail: this.targetUids.length === 1
+          ? 'La tripulación fue eliminada y sus integrantes quedaron desvinculados.'
+          : 'Las tripulaciones fueron eliminadas y sus integrantes quedaron desvinculados.',
       });
 
       this.deleted.emit();
       this.cerrarModal();
     } catch (err: any) {
-      this.errorMsg = 'Error al eliminar el equipo de tripulación: ' + (err.message || err);
+      this.errorMsg = 'Error al eliminar la tripulación: ' + (err.message || err);
     } finally {
       this.deleting = false;
       this.cdr.detectChanges();

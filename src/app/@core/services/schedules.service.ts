@@ -8,6 +8,7 @@ export interface ScheduleItem {
   turno: string;
   ruta: string;
   sector: string;
+  description?: string;
   /** Eliminación lógica: solo se muestran los horarios con activo !== false */
   activo?: boolean;
 }
@@ -18,6 +19,7 @@ export interface CreateScheduleDto {
   turno: string;
   ruta: string;
   sector: string;
+  description?: string;
   culminado?: boolean;
   activo?: boolean;
 }
@@ -68,6 +70,7 @@ export class SchedulesService {
         turno: schedule.turno,
         ruta: schedule.ruta,
         sector: schedule.sector,
+        description: schedule.description?.trim() || '',
       };
 
       const response = await fetch(`${this.baseUrl}/horarios.json`, {
@@ -97,6 +100,7 @@ export class SchedulesService {
         turno: schedule.turno,
         ruta: schedule.ruta,
         sector: schedule.sector,
+        description: schedule.description?.trim() || '',
       };
 
       const response = await fetch(`${this.baseUrl}/horarios/${id}.json`, {

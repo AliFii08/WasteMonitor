@@ -4,6 +4,7 @@ import { AuthService } from '../../@core/services/auth.service';
 import { CreateSchesulesComponent } from './component/create-schesules-component/create-schesules-component';
 import { UpdateSchesulesComponent } from './component/update-schesules-component/update-schesules-component';
 import { DeleteSchesulesComponent } from './component/delete-schesules-component/delete-schesules-component';
+import { ViewScheduleModal } from './component/view-schedule-modal/view-schedule-modal';
 
 interface WeekDay {
   number: string;
@@ -15,7 +16,12 @@ interface WeekDay {
 @Component({
   selector: 'app-schedules',
   standalone: true,
-  imports: [CreateSchesulesComponent, UpdateSchesulesComponent, DeleteSchesulesComponent],
+  imports: [
+    CreateSchesulesComponent,
+    UpdateSchesulesComponent,
+    DeleteSchesulesComponent,
+    ViewScheduleModal,
+  ],
   templateUrl: './schedules.html',
   styleUrl: './schedules.scss',
 })
@@ -28,9 +34,16 @@ export class Schedules implements OnInit {
     return this.authService.hasRole(['admin']);
   }
 
+  get isCitizen(): boolean {
+    const role = String(this.authService.getCurrentRole()).toLowerCase();
+    const employeeRoles = ['admin', 'supervisor', 'crew', 'conductor', 'mecanico'];
+    return !employeeRoles.includes(role);
+  }
+
   readonly isCreateModalOpen = signal<boolean>(false);
   readonly isUpdateModalOpen = signal<boolean>(false);
   readonly isDeleteModalOpen = signal<boolean>(false);
+  readonly isViewModalOpen = signal<boolean>(false);
   readonly selectedSchedule = signal<ScheduleItem | null>(null);
   // Horarios marcados con el check para eliminación múltiple
   readonly checkedSchedules = signal<ScheduleItem[]>([]);
@@ -121,6 +134,15 @@ export class Schedules implements OnInit {
         }
       }
       this.schedulesMap.set(map);
+      const activeScheduleIds = new Set(
+        Object.values(map)
+          .flat()
+          .map((item) => item.id)
+          .filter((id): id is string => !!id),
+      );
+      this.checkedSchedules.update((checked) =>
+        checked.filter((item) => !!item.id && activeScheduleIds.has(item.id)),
+      );
 
       // Mapear estados filtrando por la fecha exacta del informe
       const statusMap: Record<string, 'active' | 'finished'> = {};
@@ -177,6 +199,7 @@ export class Schedules implements OnInit {
   }
 
   openCreateModal(): void {
+    if (!this.isAdmin) return;
     this.isCreateModalOpen.set(true);
   }
 
@@ -190,8 +213,26 @@ export class Schedules implements OnInit {
   }
 
   openUpdateModal(item: ScheduleItem): void {
+    if (!this.isAdmin) return;
     this.selectedSchedule.set(item);
     this.isUpdateModalOpen.set(true);
+  }
+
+  openViewModal(item: ScheduleItem): void {
+    this.selectedSchedule.set(item);
+    this.isViewModalOpen.set(true);
+  }
+
+  openViewModalFromKeyboard(item: ScheduleItem, event: Event): void {
+    if (!(event instanceof KeyboardEvent)) return;
+    if (event.target !== event.currentTarget) return;
+    if (event.key === ' ') event.preventDefault();
+    this.openViewModal(item);
+  }
+
+  closeViewModal(): void {
+    this.isViewModalOpen.set(false);
+    this.selectedSchedule.set(null);
   }
 
   closeUpdateModal(): void {
@@ -210,7 +251,59 @@ export class Schedules implements OnInit {
     return this.checkedSchedules().some((c) => c.id === item.id);
   }
 
+  getSelectableSchedulesForDay(dayKey: string): ScheduleItem[] {
+    return (this.schedulesMap()[dayKey] || []).filter((item) => !!item.id);
+  }
+
+  getSelectableSchedules(): ScheduleItem[] {
+    return Object.values(this.schedulesMap())
+      .flat()
+      .filter((item) => !!item.id);
+  }
+
+  areDaySchedulesChecked(dayKey: string): boolean {
+    const schedules = this.getSelectableSchedulesForDay(dayKey);
+    return schedules.length > 0 && schedules.every((item) => this.isChecked(item));
+  }
+
+  areSomeDaySchedulesChecked(dayKey: string): boolean {
+    const schedules = this.getSelectableSchedulesForDay(dayKey);
+    const checkedCount = schedules.filter((item) => this.isChecked(item)).length;
+    return checkedCount > 0 && checkedCount < schedules.length;
+  }
+
+  areAllSchedulesChecked(): boolean {
+    const schedules = this.getSelectableSchedules();
+    return schedules.length > 0 && schedules.every((item) => this.isChecked(item));
+  }
+
+  areSomeSchedulesChecked(): boolean {
+    const schedules = this.getSelectableSchedules();
+    const checkedCount = schedules.filter((item) => this.isChecked(item)).length;
+    return checkedCount > 0 && checkedCount < schedules.length;
+  }
+
+  toggleDaySchedules(dayKey: string, checked: boolean): void {
+    if (!this.isAdmin) return;
+    this.setSchedulesChecked(this.getSelectableSchedulesForDay(dayKey), checked);
+  }
+
+  toggleAllSchedules(checked: boolean): void {
+    if (!this.isAdmin) return;
+    this.setSchedulesChecked(this.getSelectableSchedules(), checked);
+  }
+
+  private setSchedulesChecked(schedules: ScheduleItem[], checked: boolean): void {
+    if (!this.isAdmin) return;
+    const scheduleIds = new Set(schedules.map((item) => item.id).filter((id): id is string => !!id));
+    const current = this.checkedSchedules().filter(
+      (item) => !item.id || !scheduleIds.has(item.id),
+    );
+    this.checkedSchedules.set(checked ? [...current, ...schedules] : current);
+  }
+
   toggleCheck(item: ScheduleItem): void {
+    if (!this.isAdmin) return;
     if (!item.id) return;
     const current = this.checkedSchedules();
     const exists = current.some((c) => c.id === item.id);
@@ -222,11 +315,13 @@ export class Schedules implements OnInit {
   // --- Eliminación (individual y múltiple) ---
 
   openDeleteModal(item: ScheduleItem): void {
+    if (!this.isAdmin) return;
     this.schedulesToDelete.set([item]);
     this.isDeleteModalOpen.set(true);
   }
 
   openDeleteCheckedModal(): void {
+    if (!this.isAdmin) return;
     const checked = this.checkedSchedules();
     if (checked.length === 0) return;
     this.schedulesToDelete.set(checked);

@@ -1,16 +1,25 @@
 @if (visible && (informe || informesSeleccionados.length)) {
   <div class="modal-backdrop" [class.is-closing]="isClosing" (click)="close()">
     <section class="modal-panel" [class.is-closing]="isClosing" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
-      <div class="danger-icon"><i class="pi pi-trash"></i></div>
-      <h2>{{ cantidadAEliminar > 1 ? 'Eliminar informes' : 'Eliminar informe' }}</h2>
-      @if (informesSeleccionados.length > 1) {
-        <p>¿Deseas eliminar los <strong>{{ informesSeleccionados.length }}</strong> informes administrativos seleccionados?</p>
-      } @else if (informe) {
-        <p>¿Deseas eliminar el informe administrativo del <strong>{{ informe.fecha }}</strong>?</p>
-      } @else if (informesSeleccionados.length === 1) {
-        <p>¿Deseas eliminar el informe administrativo del <strong>{{ informesSeleccionados[0].fecha }}</strong>?</p>
-      }
-      @if (error) { <p class="error">{{ error }}</p> }
+      <header class="modal-header">
+        <div class="modal-title">
+          <i class="pi pi-trash"></i>
+          <h2>{{ cantidadAEliminar > 1 ? 'Eliminar informes' : 'Eliminar informe' }}</h2>
+        </div>
+        <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar">
+          <i class="pi pi-times"></i>
+        </button>
+      </header>
+      <div class="modal-body">
+        @if (informesSeleccionados.length > 1) {
+          <p>¿Deseas eliminar los <strong>{{ informesSeleccionados.length }}</strong> informes administrativos seleccionados?</p>
+        } @else if (informe) {
+          <p>¿Deseas eliminar el informe administrativo del <strong>{{ informe.fecha }}</strong>?</p>
+        } @else if (informesSeleccionados.length === 1) {
+          <p>¿Deseas eliminar el informe administrativo del <strong>{{ informesSeleccionados[0].fecha }}</strong>?</p>
+        }
+        @if (error) { <p class="error">{{ error }}</p> }
+      </div>
       <footer class="modal-footer"><button type="button" class="btn-cancel" [disabled]="deleting" (click)="close()">Cancelar</button><button type="button" class="btn-danger" [disabled]="deleting" (click)="confirm()">{{ deleting ? 'Eliminando...' : (cantidadAEliminar > 1 ? 'Eliminar informes' : 'Eliminar informe') }}</button></footer>
     </section>
   </div>

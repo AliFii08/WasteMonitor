@@ -12,7 +12,8 @@ export interface RoutePoint {
 export interface RouteData {
   id: string;
   nombreRuta?: string;
-  [key: string]: RoutePoint | string | undefined;
+  activa?: boolean;
+  [key: string]: RoutePoint | string | boolean | undefined;
 }
 
 @Injectable({
@@ -29,10 +30,12 @@ export class RoutesService {
     if (!snapshot.exists()) return [];
 
     const data = snapshot.val();
-    return Object.keys(data).map((key) => ({
-      id: key,
-      ...data[key],
-    }));
+    return Object.keys(data)
+      .map((key) => ({
+        id: key,
+        ...data[key],
+      }))
+      .filter((route) => route.activa !== false);
   }
 
   async getOSRMRouteCoordinates(points: RoutePoint[]): Promise<[number, number][]> {
@@ -104,6 +107,11 @@ export class RoutesService {
   async deleteRoutePoint(routeId: string, pointKey: string): Promise<void> {
     const pointRef = ref(this.database, `routes/${routeId}/${pointKey}`);
     await remove(pointRef);
+  }
+
+  async deactivateRoute(routeId: string): Promise<void> {
+    const routeRef = ref(this.database, `routes/${routeId}`);
+    await update(routeRef, { activa: false });
   }
 
   async getPlaceName(lat: number, lng: number): Promise<string> {

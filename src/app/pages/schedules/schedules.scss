@@ -9,8 +9,8 @@ body {
   flex-direction: column;
   align-items: center;
   color: #003628;
+  margin-bottom: 30px;
   font-family: 'Raleway', sans-serif;
-  //margin-bottom: 50px;
 }
 
 .title h1 {
@@ -24,7 +24,7 @@ body {
 }
 
 .schedule-page {
-  margin-top: 50px;
+  margin-top: 0;
   padding: 0 20px 32px;
   font-family: 'Raleway', sans-serif;
 }
@@ -165,13 +165,64 @@ body {
 }
 
 .actions-header {
+  box-sizing: border-box;
   max-width: 1440px;
   margin: 0 auto 20px;
+  padding: 0 16px;
   display: flex;
   justify-content: flex-start;
   align-items: center;
   flex-wrap: wrap;
   gap: 0.6rem;
+}
+
+.select-all-schedules {
+  box-sizing: border-box;
+  display: inline-flex;
+  min-width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #c9d9c6;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 0 12px;
+  color: #0f4b3a;
+  font:
+    700 13px 'Raleway',
+    sans-serif;
+  cursor: pointer;
+
+  input {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: #06523f;
+    cursor: inherit;
+
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+
+  span {
+    white-space: nowrap;
+  }
+
+  &:has(input:disabled) {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+@media (max-width: 420px) {
+  .select-all-schedules {
+    padding: 0 9px;
+    font-size: 12px;
+  }
 }
 
 .btn-create {
@@ -259,6 +310,55 @@ body {
   flex-direction: column;
   gap: 8px;
   width: 100%;
+}
+
+.citizen-shift-section {
+  .shift-title {
+    margin-bottom: 2px;
+    color: #123f32;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+
+    i {
+      font-size: 15px;
+    }
+  }
+}
+
+.day-card-content .citizen-schedule-row {
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  min-height: 42px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 11px;
+  border: 1px solid #d3e2d6;
+  border-radius: 8px;
+  background: #fff;
+  color: #173d2e;
+  text-align: left;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+
+  span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    color: #173d2e;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  i {
+    flex: 0 0 16px;
+    color: #3f7937;
+    font-size: 16px;
+    text-align: center;
+  }
 }
 
 .shift-title {
@@ -503,13 +603,20 @@ body {
   }
 }
 
-.card-check {
+.day-check {
   flex: 0 0 auto;
-  width: 15px;
-  height: 15px;
-  margin-top: 3px;
-  accent-color: #d62828;
-  cursor: pointer;
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  accent-color: #06523f;
+
+  &:not(:disabled) {
+    cursor: pointer;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+  }
 }
 
 .btn-delete-checked {
@@ -563,7 +670,7 @@ body {
   }
 
   .schedule-page {
-    margin-top: 32px;
+    margin-top: 0;
     padding: 0 12px 24px;
   }
 
@@ -577,7 +684,7 @@ body {
   }
 
   .day-card-header {
-    grid-template-columns: 32px minmax(0, 1fr);
+    grid-template-columns: 32px minmax(0, 1fr) 20px;
     gap: 8px;
     padding: 9px;
   }
@@ -597,6 +704,144 @@ body {
 }
 
 @media (max-width: 380px) {
+  .week-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.schedule-page {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.week-grid {
+  align-items: start;
+  align-content: start;
+}
+
+.day-card {
+  box-sizing: border-box;
+  align-self: start;
+  height: clamp(280px, 30vw, 340px);
+  min-height: 0;
+}
+
+.day-card-content {
+  box-sizing: border-box;
+  min-height: 0;
+  align-items: stretch;
+  justify-content: flex-start;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: #68a357 #e8f2e9;
+  scrollbar-width: thin;
+
+  &::-webkit-scrollbar {
+    width: 7px;
+  }
+
+  &::-webkit-scrollbar-track {
+    border-radius: 8px;
+    background: #e8f2e9;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border: 1px solid #e8f2e9;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #83b875 0%, #4f8e43 100%);
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #3f7937;
+  }
+}
+
+.empty-state {
+  box-sizing: border-box;
+  width: 100%;
+  height: auto;
+  min-height: 100%;
+}
+
+.route-mini-card {
+  box-sizing: border-box;
+  align-items: center;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 3px solid rgba(104, 163, 87, 0.45);
+    outline-offset: 2px;
+  }
+}
+
+.route-info {
+  flex: 1 1 80px;
+  overflow-wrap: anywhere;
+}
+
+.route-info strong,
+.route-info span {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+  .schedule-page {
+    margin-top: 0;
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .day-card {
+    height: 280px;
+  }
+}
+
+@media (max-width: 420px) {
+  .day-card-header {
+    grid-template-columns: 30px minmax(0, 1fr) 20px;
+    gap: 7px;
+    padding: 8px;
+  }
+
+  .day-number {
+    width: 28px;
+  }
+
+  .day-card-header h2 {
+    font-size: 14px;
+  }
+
+  .day-card-content {
+    padding: 10px 8px;
+  }
+
+  .route-mini-card {
+    gap: 6px;
+    padding: 7px;
+  }
+
+  .btn-edit,
+  .btn-delete {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+@media (max-width: 760px) {
+  .week-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .active-badge,
+  .finished-badge {
+    box-sizing: border-box;
+    width: fit-content;
+    max-width: 100%;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 480px) {
   .week-grid {
     grid-template-columns: 1fr;
   }

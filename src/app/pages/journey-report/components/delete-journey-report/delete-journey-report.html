@@ -1,15 +1,15 @@
 @if (visible) {
   <div class="confirmation-backdrop" [class.is-closing]="isClosing" (click)="closeModal()">
     <div class="confirmation-modal" [class.is-closing]="isClosing" (click)="$event.stopPropagation()">
-      <div class="confirmation-header">
+      <header class="confirmation-header">
         <div class="confirmation-title">
           <i class="pi pi-exclamation-triangle"></i>
-          <div>
-            <p class="confirmation-eyebrow">INFORME DE JORNADA</p>
-            <h2>Confirmar eliminación</h2>
-          </div>
+          <h2>Confirmar eliminación</h2>
         </div>
-      </div>
+        <button type="button" class="close-btn" (click)="closeModal()" aria-label="Cerrar">
+          <i class="pi pi-times"></i>
+        </button>
+      </header>
 
       <div class="confirmation-body">
         <p>

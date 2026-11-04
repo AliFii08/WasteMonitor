@@ -190,21 +190,33 @@
 
     <div class="routes-list">
       @for (route of availableRoutes(); track route.id) {
-        <button
-          type="button"
-          class="route-list-item"
-          [class.active]="selectedRouteId() === route.id"
-          [attr.aria-pressed]="selectedRouteId() === route.id"
-          [disabled]="isBuildingLocalRoute()"
-          (click)="selectRouteById(route.id)"
-        >
-          <span class="route-list-icon"><i class="pi pi-map-marker"></i></span>
-          <span class="route-list-copy">
-            <strong>{{ route.nombreRuta || route.id }}</strong>
-            <small>{{ getRoutePointCount(route) }} puntos</small>
-          </span>
-          <i class="pi pi-angle-right route-list-arrow" aria-hidden="true"></i>
-        </button>
+        <div class="route-list-entry">
+          <button
+            type="button"
+            class="route-list-item"
+            [class.active]="selectedRouteId() === route.id"
+            [attr.aria-pressed]="selectedRouteId() === route.id"
+            [disabled]="isBuildingLocalRoute()"
+            (click)="selectRouteById(route.id)"
+          >
+            <span class="route-list-icon"><i class="pi pi-map-marker"></i></span>
+            <span class="route-list-copy">
+              <strong>{{ route.nombreRuta || route.id }}</strong>
+              <small>{{ getRoutePointCount(route) }} puntos</small>
+            </span>
+            <i class="pi pi-angle-right route-list-arrow" aria-hidden="true"></i>
+          </button>
+          <button
+            type="button"
+            class="route-list-deactivate"
+            [disabled]="isBuildingLocalRoute()"
+            [attr.aria-label]="'Desactivar ruta ' + (route.nombreRuta || route.id)"
+            title="Desactivar ruta"
+            (click)="deactivateRoute(route)"
+          >
+            <i class="pi pi-trash" aria-hidden="true"></i>
+          </button>
+        </div>
       } @empty {
         <div class="routes-empty">
           <i class="pi pi-map" aria-hidden="true"></i>
@@ -215,4 +227,92 @@
     </div>
   </aside>
   </div>
+
+  @if (deleteConfirmation(); as confirmation) {
+    <div
+      class="delete-point-backdrop"
+      [class.is-closing]="isDeleteModalClosing()"
+      (click)="closeDeletePointModal()"
+      (keydown.escape)="closeDeletePointModal()"
+    >
+      <section
+        class="delete-point-modal"
+        [class.is-closing]="isDeleteModalClosing()"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="delete-point-title"
+        aria-describedby="delete-point-description"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="delete-point-heading">
+          <span class="delete-point-icon" aria-hidden="true">
+            <i class="pi pi-exclamation-triangle"></i>
+          </span>
+          <div>
+            <p>GESTIÓN DE RUTAS</p>
+            <h2 id="delete-point-title">Eliminar punto</h2>
+          </div>
+        </div>
+        <div class="delete-point-body">
+          <p id="delete-point-description">
+            ¿Seguro que deseas eliminar el punto <strong>#{{ confirmation.point.index }}</strong>?
+          </p>
+          <span>Esta acción no se puede deshacer.</span>
+        </div>
+        <div class="delete-point-actions">
+          <button type="button" class="delete-point-cancel" (click)="closeDeletePointModal()" [disabled]="isDeletingPoint()">
+            Cancelar
+          </button>
+          <button type="button" class="delete-point-confirm" (click)="confirmDeletePoint()" [disabled]="isDeletingPoint()">
+            <i class="pi pi-trash" aria-hidden="true"></i>
+            {{ isDeletingPoint() ? 'Eliminando...' : 'Eliminar punto' }}
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+
+  @if (routeDeactivateConfirmation(); as route) {
+    <div
+      class="delete-point-backdrop"
+      [class.is-closing]="isRouteModalClosing()"
+      (click)="closeDeactivateRouteModal()"
+      (keydown.escape)="closeDeactivateRouteModal()"
+    >
+      <section
+        class="delete-point-modal"
+        [class.is-closing]="isRouteModalClosing()"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="deactivate-route-title"
+        aria-describedby="deactivate-route-description"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="delete-point-heading">
+          <span class="delete-point-icon" aria-hidden="true">
+            <i class="pi pi-exclamation-triangle"></i>
+          </span>
+          <div>
+            <p>GESTIÓN DE RUTAS</p>
+            <h2 id="deactivate-route-title">Desactivar ruta</h2>
+          </div>
+        </div>
+        <div class="delete-point-body">
+          <p id="deactivate-route-description">
+            ¿Seguro que deseas desactivar <strong>{{ route.nombreRuta || route.id }}</strong>?
+          </p>
+          <span>Dejará de aparecer en las rutas disponibles; sus datos se conservarán.</span>
+        </div>
+        <div class="delete-point-actions">
+          <button type="button" class="delete-point-cancel" (click)="closeDeactivateRouteModal()" [disabled]="isDeactivatingRoute()">
+            Cancelar
+          </button>
+          <button type="button" class="delete-point-confirm" (click)="confirmDeactivateRoute()" [disabled]="isDeactivatingRoute()">
+            <i class="pi pi-eye-slash" aria-hidden="true"></i>
+            {{ isDeactivatingRoute() ? 'Desactivando...' : 'Desactivar ruta' }}
+          </button>
+        </div>
+      </section>
+    </div>
+  }
 </div>

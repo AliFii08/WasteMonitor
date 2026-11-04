@@ -291,7 +291,7 @@ export class Taller implements OnInit {
   }
 
   createRegistro(): void {
-    if (this.isAdmin) return;
+    // if (this.isAdmin) return;
     this.createModal?.open?.();
   }
 

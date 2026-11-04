@@ -18,12 +18,12 @@
 .modal-panel {
 	width: 100%;
 	max-width: 420px;
-	padding: 1.5rem;
+	padding: 0;
 	border-radius: 14px;
 	background: #fff;
 	box-shadow: 0 24px 60px rgba(0, 54, 40, 0.28);
 	font-family: 'Raleway', sans-serif;
-	text-align: center;
+	text-align: left;
 	animation: admin-delete-panel-in 200ms ease-out both;
 }
 
@@ -49,6 +49,10 @@
 	font-size: 1.15rem;
 }
 
+.modal-body {
+	text-align: center;
+}
+
 .modal-panel p {
 	color: #60756c;
 	font-size: 0.88rem;
@@ -59,7 +63,8 @@
 	display: flex;
 	justify-content: flex-end;
 	gap: 0.6rem;
-	margin-top: 1.2rem;
+	margin-top: 0;
+	padding: 0 1.4rem 1.4rem;
 }
 
 .modal-footer button {

@@ -29,12 +29,12 @@
       </button>
     </div>
 
-    @if (!isAdmin) {
+    <!-- @if (!isAdmin) { -->
       <button type="button" class="create-btn" (click)="createRegistro()">
         <i class="pi pi-plus"></i>
         Ingresar a taller
       </button>
-    }
+    <!-- } -->
   </div>
 
   <!-- TABLA PRINCIPAL: VEHÍCULOS EN PROCESO / EN ESPERA -->
@@ -218,6 +218,9 @@
           <i class="pi pi-exclamation-triangle"></i>
           <h2>¿Confirmar eliminación?</h2>
         </div>
+        <button type="button" class="close-btn" (click)="closeConfirmModal()" aria-label="Cerrar">
+          <i class="pi pi-times"></i>
+        </button>
       </div>
 
       <div class="confirmation-body">

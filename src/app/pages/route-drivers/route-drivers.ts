@@ -47,6 +47,12 @@ export class RouteDrivers implements AfterViewInit {
   });
   editLat = signal<string>('');
   editLng = signal<string>('');
+  deleteConfirmation = signal<{ point: DisplayPoint; index: number } | null>(null);
+  isDeleteModalClosing = signal(false);
+  isDeletingPoint = signal(false);
+  routeDeactivateConfirmation = signal<RouteData | null>(null);
+  isRouteModalClosing = signal(false);
+  isDeactivatingRoute = signal(false);
 
   startEditing(point: DisplayPoint): void {
     this.editingPointKey.set(point.key);
@@ -86,7 +92,7 @@ export class RouteDrivers implements AfterViewInit {
 
     // Filtrar y ordenar numéricamente según la clave (p1, p2, p3...)
     const pointKeys = Object.keys(route)
-      .filter((key) => key !== 'id' && key !== 'nombreRuta')
+      .filter((key) => /^p\d+$/.test(key))
       .sort((a, b) => {
         const numA = parseInt(a.replace('p', ''), 10);
         const numB = parseInt(b.replace('p', ''), 10);
@@ -316,16 +322,75 @@ export class RouteDrivers implements AfterViewInit {
     }
   }
 
-  async deletePoint(point: DisplayPoint, index: number): Promise<void> {
-    if (!confirm(`¿Eliminar el punto #${point.index}?`)) return;
+  deletePoint(point: DisplayPoint, index: number): void {
+    this.deleteConfirmation.set({ point, index });
+    this.isDeleteModalClosing.set(false);
+  }
 
-    if (this.isBuildingLocalRoute()) {
-      const updated = this.localRoutePoints().filter((_, i) => i !== index);
-      this.localRoutePoints.set(updated);
-      this.updateLocalMapMarkers(updated);
-    } else if (this.selectedRouteId()) {
-      await this.routesService.deleteRoutePoint(this.selectedRouteId(), point.key);
+  closeDeletePointModal(): void {
+    if (!this.deleteConfirmation() || this.isDeleteModalClosing() || this.isDeletingPoint()) return;
+
+    this.isDeleteModalClosing.set(true);
+    window.setTimeout(() => {
+      this.deleteConfirmation.set(null);
+      this.isDeleteModalClosing.set(false);
+    }, 180);
+  }
+
+  async confirmDeletePoint(): Promise<void> {
+    const confirmation = this.deleteConfirmation();
+    if (!confirmation || this.isDeletingPoint()) return;
+
+    this.isDeletingPoint.set(true);
+    try {
+      if (this.isBuildingLocalRoute()) {
+        const updated = this.localRoutePoints().filter((_, i) => i !== confirmation.index);
+        this.localRoutePoints.set(updated);
+        await this.updateLocalMapMarkers(updated);
+      } else if (this.selectedRouteId()) {
+        await this.routesService.deleteRoutePoint(this.selectedRouteId(), confirmation.point.key);
+        await this.loadRoutes();
+      }
+
+      this.isDeletingPoint.set(false);
+      this.closeDeletePointModal();
+    } catch (error) {
+      this.isDeletingPoint.set(false);
+      console.error('Error al eliminar el punto:', error);
+    }
+  }
+
+  deactivateRoute(route: RouteData): void {
+    this.routeDeactivateConfirmation.set(route);
+    this.isRouteModalClosing.set(false);
+  }
+
+  closeDeactivateRouteModal(): void {
+    if (!this.routeDeactivateConfirmation() || this.isRouteModalClosing() || this.isDeactivatingRoute()) return;
+
+    this.isRouteModalClosing.set(true);
+    window.setTimeout(() => {
+      this.routeDeactivateConfirmation.set(null);
+      this.isRouteModalClosing.set(false);
+    }, 180);
+  }
+
+  async confirmDeactivateRoute(): Promise<void> {
+    const route = this.routeDeactivateConfirmation();
+    if (!route || this.isDeactivatingRoute()) return;
+
+    this.isDeactivatingRoute.set(true);
+    try {
+      await this.routesService.deactivateRoute(route.id);
+      if (this.selectedRouteId() === route.id) {
+        this.clearSelectedRoute();
+      }
       await this.loadRoutes();
+      this.isDeactivatingRoute.set(false);
+      this.closeDeactivateRouteModal();
+    } catch (error) {
+      this.isDeactivatingRoute.set(false);
+      console.error('Error al desactivar la ruta:', error);
     }
   }
 
@@ -395,11 +460,11 @@ export class RouteDrivers implements AfterViewInit {
     }
   }
 
-  // Agrega estas señales dentro de la clase RouteDrivers:
+  // agrega estas señales dentro de la clase routedrivers:
   newPointLat = signal<string>('');
   newPointLng = signal<string>('');
 
-  // Método para agregar el punto manualmente desde la fila de la tabla
+  // metodo para agregar el punto manualmente desde la fila de la tabla
   async addPointFromTable(): Promise<void> {
     const routeId = this.selectedRouteId();
     const lat = parseFloat(this.newPointLat());

@@ -1,0 +1,155 @@
+.vehicle-view-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(3, 30, 22, 0.45);
+  backdrop-filter: blur(2px);
+  animation: vehicle-view-fade-in 180ms ease-out both;
+}
+
+.vehicle-view-backdrop.is-closing {
+  animation: vehicle-view-fade-out 180ms ease-in both;
+}
+
+.vehicle-view-modal {
+  width: min(100%, 580px);
+  overflow: hidden;
+  border: 1px solid #dce8dd;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 24px 60px rgba(0, 54, 40, 0.24);
+  font-family: 'Raleway', sans-serif;
+  animation: vehicle-view-enter 180ms ease-out both;
+}
+
+.vehicle-view-modal :not(.pi) {
+  font-family: 'Raleway', sans-serif;
+}
+
+.vehicle-view-modal .pi {
+  font-family: 'primeicons' !important;
+}
+
+.vehicle-view-modal.is-closing {
+  animation: vehicle-view-exit 180ms ease-in both;
+}
+
+.vehicle-view-header,
+.vehicle-view-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+}
+
+.vehicle-view-header {
+  border-bottom: 1px solid #cfe3d8;
+}
+
+.vehicle-view-header h2 {
+  margin: 0.25rem 0 0;
+  color: #06523f;
+  font-family: 'Raleway', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.vehicle-view-kicker {
+  color: #568366;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.vehicle-view-close {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #f1f5f3;
+  color: #315c4d;
+  cursor: pointer;
+}
+
+.vehicle-view-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.vehicle-view-item {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.9rem;
+  border: 1px solid #e2e8e4;
+  border-radius: 10px;
+  background: #f8faf9;
+}
+
+.vehicle-view-item span {
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+.vehicle-view-item strong {
+  overflow-wrap: anywhere;
+  color: #123f32;
+}
+
+.vehicle-view-footer {
+  justify-content: flex-end;
+  border-top: 1px solid #e2e9e2;
+}
+
+.vehicle-view-footer button {
+  border: 0;
+  border-radius: 8px;
+  padding: 0.65rem 1.2rem;
+  background: #568d55;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 520px) {
+  .vehicle-view-grid {
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+    padding: 1rem;
+  }
+
+  .vehicle-view-header,
+  .vehicle-view-footer {
+    padding: 1rem;
+  }
+}
+
+@keyframes vehicle-view-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes vehicle-view-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes vehicle-view-enter {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes vehicle-view-exit {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(8px) scale(0.98); }
+}

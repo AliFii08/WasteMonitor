@@ -2,7 +2,7 @@
   <div class="modal-backdrop" [class.is-closing]="isClosing" (click)="close()">
     <section class="modal-panel" [class.is-closing]="isClosing" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
       <header class="modal-header">
-        <div><span>INFORME ADMINISTRATIVO</span><h2>Crear informe diario</h2></div>
+        <div class="modal-title"><i class="pi pi-file-edit"></i><h2>Crear informe diario</h2></div>
         <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar"><i class="pi pi-times"></i></button>
       </header>
       <form class="modal-body" (ngSubmit)="submit()">

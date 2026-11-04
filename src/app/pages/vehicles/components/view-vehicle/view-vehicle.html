@@ -1,0 +1,53 @@
+@if (visible && vehicle) {
+  <div class="vehicle-view-backdrop" [class.is-closing]="isClosing" (click)="closeModal()">
+    <section
+      class="vehicle-view-modal"
+      [class.is-closing]="isClosing"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="vehicle-view-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="vehicle-view-header">
+        <div class="vehicle-view-title">
+          <i class="pi pi-truck" aria-hidden="true"></i>
+          <h2 id="vehicle-view-title">Detalles del vehículo</h2>
+        </div>
+        <button type="button" class="vehicle-view-close" (click)="closeModal()" aria-label="Cerrar">
+          <i class="pi pi-times"></i>
+        </button>
+      </header>
+
+      <div class="vehicle-view-grid">
+        <div class="vehicle-view-item">
+          <span>ID</span>
+          <strong>{{ vehicle.id }}</strong>
+        </div>
+        <div class="vehicle-view-item">
+          <span>Tipo</span>
+          <strong>{{ vehicle.type | titlecase }}</strong>
+        </div>
+        <div class="vehicle-view-item">
+          <span>Capacidad</span>
+          <strong>{{ vehicle.weight | number: '1.0-0' }} t</strong>
+        </div>
+        <div class="vehicle-view-item">
+          <span>Placa</span>
+          <strong>{{ vehicle.plate }}</strong>
+        </div>
+        <div class="vehicle-view-item">
+          <span>Ruta asignada</span>
+          <strong>{{ vehicle.route || 'Sin asignar' }}</strong>
+        </div>
+        <div class="vehicle-view-item">
+          <span>Estado</span>
+          <strong>{{ vehicle.status === 'en_taller' ? 'En Taller' : (vehicle.status | titlecase) }}</strong>
+        </div>
+      </div>
+
+      <footer class="vehicle-view-footer">
+        <button type="button" (click)="closeModal()">Cerrar</button>
+      </footer>
+    </section>
+  </div>
+}

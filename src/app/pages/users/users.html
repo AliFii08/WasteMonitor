@@ -96,10 +96,7 @@
       <header class="modal-header">
         <div class="modal-title">
           <i class="pi" [ngClass]="selectedUser ? 'pi-pencil' : 'pi-user-plus'"></i>
-          <div>
-            <p class="modal-eyebrow">{{ selectedUser ? 'CUENTA INTERNA' : 'NUEVA CUENTA INTERNA' }}</p>
-            <h2 id="create-title">{{ selectedUser ? 'Editar usuario' : 'Registrar usuario' }}</h2>
-          </div>
+          <h2 id="create-title">{{ selectedUser ? 'Editar usuario' : 'Registrar usuario' }}</h2>
         </div>
         <button type="button" class="close-btn" aria-label="Cerrar" (click)="closeCreateForm()">
           <i class="pi pi-times"></i>

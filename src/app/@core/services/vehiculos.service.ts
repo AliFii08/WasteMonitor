@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Database, ref, get, set, remove, push } from '@angular/fire/database';
 import { Vehicle } from '../interfaces/vehicle.model';
 import { NotificationService } from './notification.service'; // 👈 1. Importar NotificationService
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root',
@@ -11,6 +12,7 @@ export class VehiculoService {
   private database = inject(Database);
   private platformId = inject(PLATFORM_ID);
   private notificationService = inject(NotificationService); // 👈 2. Inyectar NotificationService
+  private authService = inject(AuthService);
 
   // --- OBTENER TODOS LOS VEHÍCULOS ---
   async getVehicles(): Promise<Vehicle[]> {
@@ -44,6 +46,7 @@ export class VehiculoService {
     userContext?: { nombre: string; rol: string },
   ): Promise<string> {
     if (!isPlatformBrowser(this.platformId)) throw new Error('platform-not-supported');
+    this.requireAdmin();
 
     const camionesRef = ref(this.database, 'camiones');
     const snapshot = await get(camionesRef);
@@ -97,6 +100,7 @@ export class VehiculoService {
   // --- ACTUALIZAR VEHÍCULO CON NOTIFICACIÓN A USUARIOS ---
   async updateVehicle(vehicle: Vehicle): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
+    this.requireAdmin();
 
     const newStatus = (vehicle.status || 'disponible').trim().toLowerCase();
 
@@ -129,6 +133,7 @@ export class VehiculoService {
     userContext?: { nombre: string; rol: string },
   ): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
+    this.requireAdmin();
 
     // 1. Marcar el camión como inactivo (borrado lógico)
     const vehicleRef = ref(this.database, `camiones/${vehicle.id}`);
@@ -157,5 +162,11 @@ export class VehiculoService {
       usuarioNombre: userContext?.nombre || 'Usuario del Sistema',
       usuarioRol: userContext?.rol || 'admin',
     });
+  }
+
+  private requireAdmin(): void {
+    if (!this.authService.hasRole(['admin'])) {
+      throw new Error('admin-required');
+    }
   }
 }

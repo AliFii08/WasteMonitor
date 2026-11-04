@@ -1,0 +1,63 @@
+@if (isVisible() && schedule) {
+  <div class="schedule-view-backdrop" (click)="closeModal()">
+    <section
+      class="schedule-view-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="schedule-view-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="schedule-view-header">
+        <div class="schedule-view-title">
+          <i class="pi pi-calendar" aria-hidden="true"></i>
+          <h2 id="schedule-view-title">Detalles del horario</h2>
+        </div>
+        <button type="button" class="schedule-view-close" (click)="closeModal()" aria-label="Cerrar">
+          <i class="pi pi-times" aria-hidden="true"></i>
+        </button>
+      </header>
+
+        @if (isCitizen) {
+          <div class="schedule-view-citizen-list">
+            <div class="schedule-view-citizen-item">
+              <i [class]="'pi ' + shiftIcon" aria-hidden="true"></i>
+              <strong>{{ shiftLabel }}</strong>
+            </div>
+            <div class="schedule-view-citizen-item">
+              <i class="pi pi-map-marker" aria-hidden="true"></i>
+              <strong>{{ schedule.sector }}</strong>
+            </div>
+          </div>
+        } @else {
+          <div class="schedule-view-grid">
+            <div class="schedule-view-item">
+              <span>Día</span>
+              <strong>{{ schedule.dia }}</strong>
+            </div>
+            <div class="schedule-view-item">
+              <span>Turno</span>
+              <strong>{{ schedule.turno }}</strong>
+            </div>
+            <div class="schedule-view-item">
+              <span>Camión</span>
+              <strong>{{ schedule.camion }}</strong>
+            </div>
+            <div class="schedule-view-item">
+              <span>Ruta</span>
+              <strong>{{ schedule.ruta }}</strong>
+            </div>
+            @if (description) {
+              <div class="schedule-view-item">
+                <span>Notas / Descripción</span>
+                <strong>{{ description }}</strong>
+              </div>
+            }
+          </div>
+        }
+
+      <footer class="schedule-view-footer">
+        <button type="button" (click)="closeModal()">Cerrar</button>
+      </footer>
+    </section>
+  </div>
+}
