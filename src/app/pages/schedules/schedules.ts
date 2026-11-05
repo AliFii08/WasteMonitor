@@ -1,16 +1,21 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { SchedulesService, ScheduleItem } from '../../@core/services/schedules.service';
+import {
+  SchedulesService,
+  ScheduleItem,
+  CitizenScheduleItem,
+} from '../../@core/services/schedules.service';
 import { AuthService } from '../../@core/services/auth.service';
 import { CreateSchesulesComponent } from './component/create-schesules-component/create-schesules-component';
 import { UpdateSchesulesComponent } from './component/update-schesules-component/update-schesules-component';
 import { DeleteSchesulesComponent } from './component/delete-schesules-component/delete-schesules-component';
 import { ViewScheduleModal } from './component/view-schedule-modal/view-schedule-modal';
+import { CreateCitizenScheduleComponent } from './component/create-citizen-schedule/create-citizen-schedule';
 
 interface WeekDay {
   number: string;
   name: string;
   key: string;
-  dateStr: string; // Formato YYYY-MM-DD
+  dateStr: string;
 }
 
 @Component({
@@ -21,6 +26,7 @@ interface WeekDay {
     UpdateSchesulesComponent,
     DeleteSchesulesComponent,
     ViewScheduleModal,
+    CreateCitizenScheduleComponent,
   ],
   templateUrl: './schedules.html',
   styleUrl: './schedules.scss',
@@ -29,57 +35,51 @@ export class Schedules implements OnInit {
   private schedulesService = inject(SchedulesService);
   private authService = inject(AuthService);
 
-  /** Solo el administrador puede editar o eliminar horarios. */
   get isAdmin(): boolean {
     return this.authService.hasRole(['admin']);
   }
 
+  // Permite al admin alternar entre su vista y la de ciudadano
+  readonly previewAsCitizen = signal<boolean>(false);
+
   get isCitizen(): boolean {
+    if (this.isAdmin && this.previewAsCitizen()) return true;
     const role = String(this.authService.getCurrentRole()).toLowerCase();
     const employeeRoles = ['admin', 'supervisor', 'crew', 'conductor', 'mecanico'];
     return !employeeRoles.includes(role);
   }
 
+  toggleCitizenPreview(): void {
+    this.previewAsCitizen.update((v) => !v);
+  }
+
   readonly isCreateModalOpen = signal<boolean>(false);
+  readonly isCreateCitizenModalOpen = signal<boolean>(false);
   readonly isUpdateModalOpen = signal<boolean>(false);
   readonly isDeleteModalOpen = signal<boolean>(false);
   readonly isViewModalOpen = signal<boolean>(false);
+
   readonly selectedSchedule = signal<ScheduleItem | null>(null);
-  // Horarios marcados con el check para eliminación múltiple
+  readonly selectedCitizenSchedule = signal<CitizenScheduleItem | null>(null);
+
   readonly checkedSchedules = signal<ScheduleItem[]>([]);
-  // Qué se envía al modal de eliminar (uno o varios)
   readonly schedulesToDelete = signal<ScheduleItem[]>([]);
   readonly schedulesMap = signal<Record<string, ScheduleItem[]>>({});
+  readonly citizenSchedulesMap = signal<Record<string, CitizenScheduleItem[]>>({});
   readonly journeyStatusMap = signal<Record<string, 'active' | 'finished'>>({});
 
-  // Señal para almacenar la semana actual calculada dinámicamente
   readonly weekDays = signal<WeekDay[]>([]);
-
-  // Opcional: Para controlar si el usuario quiere navegar entre semanas (si deseas agregar botones de anterior/siguiente)
-  private currentWeekOffset = 0;
 
   ngOnInit(): void {
     this.generateWeekDays();
     this.loadSchedules();
   }
 
-  /**
-   * Calcula de forma dinámica los días de la semana (Lunes a Domingo)
-   * basándose en la fecha actual y el desplazamiento de semanas.
-   */
   generateWeekDays(offsetWeeks: number = 0): void {
     const now = new Date();
-
-    // Ajustar la fecha según el desplazamiento de semanas
     now.setDate(now.getDate() + offsetWeeks * 7);
-
-    // Obtener el día de la semana actual (0 = Domingo, 1 = Lunes, ..., 6 = Sábado)
     const currentDayOfWeek = now.getDay();
-
-    // Calcular cuántos días restar para llegar al lunes de esta semana
-    // Si es domingo (0), el lunes anterior fue hace 6 días. Si es lunes (1), es 0 días, etc.
     const distanceToMonday = currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek;
-
     const monday = new Date(now);
     monday.setDate(now.getDate() + distanceToMonday);
 
@@ -96,17 +96,10 @@ export class Schedules implements OnInit {
     const computedDays: WeekDay[] = dayNames.map((d, index) => {
       const targetDate = new Date(monday);
       targetDate.setDate(monday.getDate() + index);
-
       const year = targetDate.getFullYear();
       const month = String(targetDate.getMonth() + 1).padStart(2, '0');
       const dayNum = String(targetDate.getDate()).padStart(2, '0');
-
-      return {
-        number: dayNum,
-        name: d.name,
-        key: d.key,
-        dateStr: `${year}-${month}-${dayNum}`,
-      };
+      return { number: dayNum, name: d.name, key: d.key, dateStr: `${year}-${month}-${dayNum}` };
     });
 
     this.weekDays.set(computedDays);
@@ -114,26 +107,34 @@ export class Schedules implements OnInit {
 
   async loadSchedules(): Promise<void> {
     try {
-      const [items, informesData] = await Promise.all([
+      const [items, citizenItems, informesData] = await Promise.all([
         this.schedulesService.getHorarios(),
+        this.schedulesService.getCitizenSchedules(),
         this.schedulesService.getActiveJourneys(),
       ]);
 
       const map: Record<string, ScheduleItem[]> = {};
       for (const item of items) {
-        // Eliminación lógica: se ocultan solo los marcados como activo === false.
-        // Los horarios antiguos (sin el campo) se siguen mostrando.
         if (item.activo === false) continue;
-
         const normalizedDay = item.dia?.toLowerCase().trim();
         if (normalizedDay) {
-          if (!map[normalizedDay]) {
-            map[normalizedDay] = [];
-          }
+          if (!map[normalizedDay]) map[normalizedDay] = [];
           map[normalizedDay].push(item);
         }
       }
       this.schedulesMap.set(map);
+
+      const citizenMap: Record<string, CitizenScheduleItem[]> = {};
+      for (const cItem of citizenItems) {
+        if (cItem.activo === false) continue;
+        const dayKey = cItem.dia?.toLowerCase().trim();
+        if (dayKey) {
+          if (!citizenMap[dayKey]) citizenMap[dayKey] = [];
+          citizenMap[dayKey].push(cItem);
+        }
+      }
+      this.citizenSchedulesMap.set(citizenMap);
+
       const activeScheduleIds = new Set(
         Object.values(map)
           .flat()
@@ -144,9 +145,7 @@ export class Schedules implements OnInit {
         checked.filter((item) => !!item.id && activeScheduleIds.has(item.id)),
       );
 
-      // Mapear estados filtrando por la fecha exacta del informe
       const statusMap: Record<string, 'active' | 'finished'> = {};
-
       Object.values(informesData).forEach((informe: any) => {
         if (!informe || !informe.camion) return;
 
@@ -198,6 +197,16 @@ export class Schedules implements OnInit {
     return list.filter((i) => i.turno?.toLowerCase().includes('nocturno'));
   }
 
+  getCitizenDiurnos(dayKey: string): CitizenScheduleItem[] {
+    const list = this.citizenSchedulesMap()[dayKey] || [];
+    return list.filter((i) => i.turno?.toLowerCase().includes('diurno'));
+  }
+
+  getCitizenNocturnos(dayKey: string): CitizenScheduleItem[] {
+    const list = this.citizenSchedulesMap()[dayKey] || [];
+    return list.filter((i) => i.turno?.toLowerCase().includes('nocturno'));
+  }
+
   openCreateModal(): void {
     if (!this.isAdmin) return;
     this.isCreateModalOpen.set(true);
@@ -209,6 +218,36 @@ export class Schedules implements OnInit {
 
   async onScheduleCreated(): Promise<void> {
     this.closeCreateModal();
+    await this.loadSchedules();
+  }
+
+  openCreateCitizenModal(): void {
+    if (!this.isAdmin) return;
+    this.selectedCitizenSchedule.set(null);
+    this.isCreateCitizenModalOpen.set(true);
+  }
+
+  openUpdateCitizenModal(item: CitizenScheduleItem): void {
+    if (!this.isAdmin) return;
+    this.selectedCitizenSchedule.set(item);
+    this.isCreateCitizenModalOpen.set(true);
+  }
+
+  async deleteCitizenScheduleItem(item: CitizenScheduleItem): Promise<void> {
+    if (!this.isAdmin || !item.id) return;
+    if (confirm('¿Deseas eliminar este bloque de horario ciudadano?')) {
+      await this.schedulesService.deleteCitizenSchedule(item.id);
+      await this.loadSchedules();
+    }
+  }
+
+  closeCreateCitizenModal(): void {
+    this.isCreateCitizenModalOpen.set(false);
+    this.selectedCitizenSchedule.set(null);
+  }
+
+  async onCitizenScheduleCreated(): Promise<void> {
+    this.closeCreateCitizenModal();
     await this.loadSchedules();
   }
 
@@ -295,24 +334,14 @@ export class Schedules implements OnInit {
 
   private setSchedulesChecked(schedules: ScheduleItem[], checked: boolean): void {
     if (!this.isAdmin) return;
-    const scheduleIds = new Set(schedules.map((item) => item.id).filter((id): id is string => !!id));
-    const current = this.checkedSchedules().filter(
-      (item) => !item.id || !scheduleIds.has(item.id),
+    const scheduleIds = new Set(
+      schedules.map((item) => item.id).filter((id): id is string => !!id),
     );
+    const current = this.checkedSchedules().filter((item) => !item.id || !scheduleIds.has(item.id));
     this.checkedSchedules.set(checked ? [...current, ...schedules] : current);
   }
 
-  toggleCheck(item: ScheduleItem): void {
-    if (!this.isAdmin) return;
-    if (!item.id) return;
-    const current = this.checkedSchedules();
-    const exists = current.some((c) => c.id === item.id);
-    this.checkedSchedules.set(
-      exists ? current.filter((c) => c.id !== item.id) : [...current, item],
-    );
-  }
-
-  // --- Eliminación (individual y múltiple) ---
+  // --- Eliminación ---
 
   openDeleteModal(item: ScheduleItem): void {
     if (!this.isAdmin) return;
