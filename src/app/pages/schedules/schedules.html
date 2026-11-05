@@ -6,269 +6,322 @@
 <main class="schedule-page">
   <div class="actions-header">
     @if (isAdmin) {
-      <button type="button" class="btn-create" (click)="openCreateModal()">
-        <i class="pi pi-plus"></i>
-        <span>Añadir horario</span>
-      </button>
+    <button type="button" class="btn-create" (click)="openCreateModal()">
+      <i class="pi pi-plus"></i>
+      <span>Añadir horario</span>
+    </button>
 
-      <label class="select-all-schedules">
+    <button
+      type="button"
+      class="btn-create"
+      style="background-color: #169a8a"
+      (click)="openCreateCitizenModal()"
+    >
+      <i class="pi pi-map"></i>
+      <span>Crear horario ciudadano</span>
+    </button>
+
+    <!-- Botón para alternar la vista de usuario -->
+    <button
+      type="button"
+      class="btn-create"
+      [style.background-color]="previewAsCitizen() ? '#d59a39' : '#365f76'"
+      (click)="toggleCitizenPreview()"
+      [attr.aria-label]="previewAsCitizen() ? 'Ver vista de administrador' : 'Ver vista de ciudadano'"
+    >
+      <i class="pi [previewAsCitizen() ? 'pi-eye-slash' : 'pi-eye']"></i>
+      <span>{{ previewAsCitizen() ? 'Ver vista Admin' : 'Ver vista Ciudadano' }}</span>
+    </button>
+
+    @if (!previewAsCitizen()) {
+    <label class="select-all-schedules">
+      <input
+        type="checkbox"
+        [checked]="areAllSchedulesChecked()"
+        [indeterminate]="areSomeSchedulesChecked()"
+        [disabled]="getSelectableSchedules().length === 0"
+        (change)="toggleAllSchedules($any($event.target).checked)"
+        [attr.aria-label]="
+              areAllSchedulesChecked()
+                ? 'Deseleccionar todos los horarios de la semana'
+                : 'Seleccionar todos los horarios de la semana'
+            "
+      />
+      <span>{{ areAllSchedulesChecked() ? 'Deseleccionar todos' : 'Seleccionar todos' }}</span>
+    </label>
+    } } @if (isAdmin && !previewAsCitizen() && checkedSchedules().length > 0) {
+    <button type="button" class="btn-delete-checked" (click)="openDeleteCheckedModal()">
+      <i class="pi pi-trash"></i>
+      <span> Eliminar seleccionados ({{ checkedSchedules().length }}) </span>
+    </button>
+    }
+  </div>
+
+  <section class="week-grid" aria-label="Programación semanal">
+    @for (day of weekDays(); track day.key) { @let diurnos = getDiurnos(day.key); @let nocturnos =
+    getNocturnos(day.key); @let citizenDiurnos = getCitizenDiurnos(day.key); @let citizenNocturnos =
+    getCitizenNocturnos(day.key); @let hasSchedules = isCitizen ? (citizenDiurnos.length > 0 ||
+    citizenNocturnos.length > 0) : (diurnos.length > 0 || nocturnos.length > 0);
+
+    <article class="day-card" [class.weekend-card]="day.key === 'sabado' || day.key === 'domingo'">
+      <header class="day-card-header">
+        <span class="day-number">{{ day.number }}</span>
+        <h2>{{ day.name }}</h2>
+        @if (isAdmin && !isCitizen) {
         <input
           type="checkbox"
-          [checked]="areAllSchedulesChecked()"
-          [indeterminate]="areSomeSchedulesChecked()"
-          [disabled]="getSelectableSchedules().length === 0"
-          (change)="toggleAllSchedules($any($event.target).checked)"
-          [attr.aria-label]="
-            areAllSchedulesChecked()
-              ? 'Deseleccionar todos los horarios de la semana'
-              : 'Seleccionar todos los horarios de la semana'
-          "
+          class="day-check"
+          [checked]="areDaySchedulesChecked(day.key)"
+          [indeterminate]="areSomeDaySchedulesChecked(day.key)"
+          [disabled]="getSelectableSchedulesForDay(day.key).length === 0"
+          (change)="toggleDaySchedules(day.key, $any($event.target).checked)"
+          [attr.aria-label]="'Seleccionar todos los horarios del ' + day.name"
         />
-        <span>{{ areAllSchedulesChecked() ? 'Deseleccionar todos' : 'Seleccionar todos' }}</span>
-      </label>
-    }
-
-    @if (isAdmin && checkedSchedules().length > 0) {
-      <button type="button" class="btn-delete-checked" (click)="openDeleteCheckedModal()">
-        <i class="pi pi-trash"></i>
-        <span> Eliminar seleccionados ({{ checkedSchedules().length }}) </span>
-      </button>
-    }
-  </div>
-
-  <section class="week-grid" aria-label="Programación semanal de camiones">
-    @for (day of weekDays(); track day.key) {
-      @let diurnos = getDiurnos(day.key);
-      @let nocturnos = getNocturnos(day.key);
-      @let hasSchedules = diurnos.length > 0 || nocturnos.length > 0;
-
-      <article
-        class="day-card"
-        [class.weekend-card]="day.key === 'sabado' || day.key === 'domingo'"
-      >
-        <header class="day-card-header">
-          <span class="day-number">{{ day.number }}</span>
-          <h2>{{ day.name }}</h2>
-          @if (isAdmin) {
-            <input
-              type="checkbox"
-              class="day-check"
-              [checked]="areDaySchedulesChecked(day.key)"
-              [indeterminate]="areSomeDaySchedulesChecked(day.key)"
-              [disabled]="getSelectableSchedulesForDay(day.key).length === 0"
-              (change)="toggleDaySchedules(day.key, $any($event.target).checked)"
-              [attr.aria-label]="'Seleccionar todos los horarios del ' + day.name"
-            />
-          }
-        </header>
-
-        <div class="day-card-content">
-          @if (hasSchedules) {
-            @if (isCitizen) {
-              @if (diurnos.length > 0) {
-                <div class="shift-section citizen-shift-section">
-                  <span class="shift-title"><i class="pi pi-sun"></i> Turno Diurno</span>
-                  @for (item of diurnos; track item.id) {
-                    <div class="citizen-schedule-row">
-                      <i class="pi pi-map-marker" aria-hidden="true"></i>
-                      <span>{{ item.sector }}</span>
-                    </div>
-                  }
-                </div>
-              }
-              @if (nocturnos.length > 0) {
-                @if (diurnos.length > 0) {
-                  <hr class="shift-divider" />
-                }
-                <div class="shift-section citizen-shift-section">
-                  <span class="shift-title"><i class="pi pi-moon"></i> Turno Nocturno</span>
-                  @for (item of nocturnos; track item.id) {
-                    <div class="citizen-schedule-row">
-                      <i class="pi pi-map-marker" aria-hidden="true"></i>
-                      <span>{{ item.sector }}</span>
-                    </div>
-                  }
-                </div>
-              }
-            } @else {
-              <!-- Turno Diurno -->
-@if (diurnos.length > 0) {
-  <div class="shift-section">
-    <span class="shift-title"><i class="pi pi-sun"></i> Turno Diurno</span>
-    @for (item of diurnos; track item.id) {
-      @let status = getJourneyStatus(item, day.dateStr);
-      <div
-        class="route-mini-card"
-        [class.journey-active]="status === 'active'"
-        [class.journey-finished]="status === 'finished'"
-        role="group"
-        tabindex="0"
-        [attr.aria-label]="'Detalles del horario del camión ' + item.camion + '. Presiona Enter para ver.'"
-        (click)="openViewModal(item)"
-        (keydown.enter)="openViewModalFromKeyboard(item, $event)"
-        (keydown.space)="openViewModalFromKeyboard(item, $event)"
-      >
-        <i class="pi pi-truck" aria-hidden="true"></i>
-        <div class="route-info">
-          <strong>Camión: {{ item.camion }}</strong>
-          <span>Ruta: {{ item.ruta }}</span>
-          @if (item.description && item.description.trim() !== '') {
-            <span>Nota: {{ item.description }}</span>
-          }
-          @if (status === 'active') {
-            <span class="active-badge"
-              ><i class="pi pi-circle-fill"></i> Viaje en curso</span
-            >
-          } @else if (status === 'finished') {
-            <span class="finished-badge"
-              ><i class="pi pi-check-circle"></i> Viaje finalizado</span
-            >
-          }
-        </div>
-        @if (isAdmin) {
-          <button
-            type="button"
-            class="btn-edit"
-            (click)="$event.stopPropagation(); openUpdateModal(item)"
-            (keydown.enter)="$event.stopPropagation()"
-            (keydown.space)="$event.stopPropagation()"
-            aria-label="Editar horario"
-          >
-            <i class="pi pi-pencil" aria-hidden="true"></i>
-          </button>
-          <button
-            type="button"
-            class="btn-delete"
-            (click)="$event.stopPropagation(); openDeleteModal(item)"
-            (keydown.enter)="$event.stopPropagation()"
-            (keydown.space)="$event.stopPropagation()"
-            aria-label="Eliminar horario"
-          >
-            <i class="pi pi-trash" aria-hidden="true"></i>
-          </button>
         }
-      </div>
-    }
-  </div>
-}
+      </header>
 
-<!-- Turno Nocturno -->
-@if (nocturnos.length > 0) {
-  @if (diurnos.length > 0) {
-    <hr class="shift-divider" />
-  }
-  <div class="shift-section">
-    <span class="shift-title"><i class="pi pi-moon"></i> Turno Nocturno</span>
-    @for (item of nocturnos; track item.id) {
-      @let status = getJourneyStatus(item, day.dateStr);
-      <div
-        class="route-mini-card"
-        [class.journey-active]="status === 'active'"
-        [class.journey-finished]="status === 'finished'"
-        role="group"
-        tabindex="0"
-        [attr.aria-label]="'Detalles del horario del camión ' + item.camion + '. Presiona Enter para ver.'"
-        (click)="openViewModal(item)"
-        (keydown.enter)="openViewModalFromKeyboard(item, $event)"
-        (keydown.space)="openViewModalFromKeyboard(item, $event)"
-      >
-        <i class="pi pi-truck" aria-hidden="true"></i>
-        <div class="route-info">
-          <strong>Camión: {{ item.camion }}</strong>
-          <span>Ruta: {{ item.ruta }}</span>
-          @if (item.description && item.description.trim() !== '') {
-            <span>Nota: {{ item.description }}</span>
-          }
-          @if (status === 'active') {
-            <span class="active-badge"
-              ><i class="pi pi-circle-fill"></i> Viaje en curso</span
-            >
-          } @else if (status === 'finished') {
-            <span class="finished-badge"
-              ><i class="pi pi-check-circle"></i> Viaje finalizado</span
-            >
-          }
-        </div>
-        @if (isAdmin) {
-          <button
-            type="button"
-            class="btn-edit"
-            (click)="$event.stopPropagation(); openUpdateModal(item)"
-            (keydown.enter)="$event.stopPropagation()"
-            (keydown.space)="$event.stopPropagation()"
-            aria-label="Editar horario"
-          >
-            <i class="pi pi-pencil" aria-hidden="true"></i>
-          </button>
-          <button
-            type="button"
-            class="btn-delete"
-            (click)="$event.stopPropagation(); openDeleteModal(item)"
-            (keydown.enter)="$event.stopPropagation()"
-            (keydown.space)="$event.stopPropagation()"
-            aria-label="Eliminar horario"
-          >
-            <i class="pi pi-trash" aria-hidden="true"></i>
-          </button>
-        }
-      </div>
-    }
-  </div>
-}
-            }
-          } @else {
-            <div class="empty-state">
-              <i class="pi pi-truck" aria-hidden="true"></i>
-              <strong>Sin recorrido asignado</strong>
-              <span>Sector, camión y hora pendientes</span>
+      <div class="day-card-content">
+        @if (hasSchedules) { @if (isCitizen) { @if (citizenDiurnos.length > 0) {
+        <div class="shift-section citizen-shift-section">
+          <span class="shift-title"><i class="pi pi-sun"></i> Turno Matutino</span>
+          @for (cs of citizenDiurnos; track cs.id) {
+          <div class="citizen-block-container" style="margin-bottom: 8px">
+            @for (sec of cs.sectores; track sec) {
+            <div class="citizen-schedule-row" style="margin-bottom: 4px">
+              <i class="pi pi-map-marker" aria-hidden="true"></i>
+              <span>{{ sec }}</span>
             </div>
+            } @if (isAdmin) {
+            <div
+              class="admin-actions-row"
+              style="display: flex; gap: 6px; justify-content: flex-end; margin-top: 4px"
+            >
+              <button
+                type="button"
+                class="btn-edit"
+                (click)="openUpdateCitizenModal(cs)"
+                aria-label="Editar horario ciudadano"
+              >
+                <i class="pi pi-pencil"></i>
+              </button>
+              <button
+                type="button"
+                class="btn-delete"
+                (click)="deleteCitizenScheduleItem(cs)"
+                aria-label="Eliminar horario ciudadano"
+              >
+                <i class="pi pi-trash"></i>
+              </button>
+            </div>
+            }
+          </div>
           }
         </div>
+        } @if (citizenNocturnos.length > 0) { @if (citizenDiurnos.length > 0) {
+        <hr class="shift-divider" />
+        }
+        <div class="shift-section citizen-shift-section">
+          <span class="shift-title"><i class="pi pi-moon"></i> Turno Nocturno</span>
+          @for (cs of citizenNocturnos; track cs.id) {
+          <div class="citizen-block-container" style="margin-bottom: 8px">
+            @for (sec of cs.sectores; track sec) {
+            <div class="citizen-schedule-row" style="margin-bottom: 4px">
+              <i class="pi pi-map-marker" aria-hidden="true"></i>
+              <span>{{ sec }}</span>
+            </div>
+            } @if (isAdmin) {
+            <div
+              class="admin-actions-row"
+              style="display: flex; gap: 6px; justify-content: flex-end; margin-top: 4px"
+            >
+              <button
+                type="button"
+                class="btn-edit"
+                (click)="openUpdateCitizenModal(cs)"
+                aria-label="Editar horario ciudadano"
+              >
+                <i class="pi pi-pencil"></i>
+              </button>
+              <button
+                type="button"
+                class="btn-delete"
+                (click)="deleteCitizenScheduleItem(cs)"
+                aria-label="Eliminar horario ciudadano"
+              >
+                <i class="pi pi-trash"></i>
+              </button>
+            </div>
+            }
+          </div>
+          }
+        </div>
+        } } @else {
+        <!-- Turno Diurno Operativo -->
+        @if (diurnos.length > 0) {
+        <div class="shift-section">
+          <span class="shift-title"><i class="pi pi-sun"></i> Turno Diurno</span>
+          @for (item of diurnos; track item.id) { @let status = getJourneyStatus(item, day.dateStr);
+          <div
+            class="route-mini-card"
+            [class.journey-active]="status === 'active'"
+            [class.journey-finished]="status === 'finished'"
+            role="group"
+            tabindex="0"
+            [attr.aria-label]="'Detalles del horario del camión ' + item.camion + '. Presiona Enter para ver.'"
+            (click)="openViewModal(item)"
+            (keydown.enter)="openViewModalFromKeyboard(item, $event)"
+            (keydown.space)="openViewModalFromKeyboard(item, $event)"
+          >
+            <i class="pi pi-truck" aria-hidden="true"></i>
+            <div class="route-info">
+              <strong>Camión: {{ item.camion }}</strong>
+              <span>Ruta: {{ item.ruta }}</span>
+              @if (item.description && item.description.trim() !== '') {
+              <span>Nota: {{ item.description }}</span>
+              } @if (status === 'active') {
+              <span class="active-badge"><i class="pi pi-circle-fill"></i> Viaje en curso</span>
+              } @else if (status === 'finished') {
+              <span class="finished-badge"
+                ><i class="pi pi-check-circle"></i> Viaje finalizado</span
+              >
+              }
+            </div>
+            @if (isAdmin) {
+            <button
+              type="button"
+              class="btn-edit"
+              (click)="$event.stopPropagation(); openUpdateModal(item)"
+              aria-label="Editar horario"
+            >
+              <i class="pi pi-pencil" aria-hidden="true"></i>
+            </button>
+            <button
+              type="button"
+              class="btn-delete"
+              (click)="$event.stopPropagation(); openDeleteModal(item)"
+              aria-label="Eliminar horario"
+            >
+              <i class="pi pi-trash" aria-hidden="true"></i>
+            </button>
+            }
+          </div>
+          }
+        </div>
+        }
 
-        <footer class="day-card-footer">
-          <span
-            class="status-dot"
-            [style.background-color]="hasSchedules ? '#68a357' : '#d59a39'"
-            aria-hidden="true"
-          ></span>
-          {{ hasSchedules ? 'Horario publicado' : 'Horario no publicado' }}
-        </footer>
-      </article>
+        <!-- Turno Nocturno Operativo -->
+        @if (nocturnos.length > 0) { @if (diurnos.length > 0) {
+        <hr class="shift-divider" />
+        }
+        <div class="shift-section">
+          <span class="shift-title"><i class="pi pi-moon"></i> Turno Nocturno</span>
+          @for (item of nocturnos; track item.id) { @let status = getJourneyStatus(item,
+          day.dateStr);
+          <div
+            class="route-mini-card"
+            [class.journey-active]="status === 'active'"
+            [class.journey-finished]="status === 'finished'"
+            role="group"
+            tabindex="0"
+            [attr.aria-label]="'Detalles del horario del camión ' + item.camion + '. Presiona Enter para ver.'"
+            (click)="openViewModal(item)"
+            (keydown.enter)="openViewModalFromKeyboard(item, $event)"
+            (keydown.space)="openViewModalFromKeyboard(item, $event)"
+          >
+            <i class="pi pi-truck" aria-hidden="true"></i>
+            <div class="route-info">
+              <strong>Camión: {{ item.camion }}</strong>
+              <span>Ruta: {{ item.ruta }}</span>
+              @if (item.description && item.description.trim() !== '') {
+              <span>Nota: {{ item.description }}</span>
+              } @if (status === 'active') {
+              <span class="active-badge"><i class="pi pi-circle-fill"></i> Viaje en curso</span>
+              } @else if (status === 'finished') {
+              <span class="finished-badge"
+                ><i class="pi pi-check-circle"></i> Viaje finalizado</span
+              >
+              }
+            </div>
+            @if (isAdmin) {
+            <button
+              type="button"
+              class="btn-edit"
+              (click)="$event.stopPropagation(); openUpdateModal(item)"
+              aria-label="Editar horario"
+            >
+              <i class="pi pi-pencil" aria-hidden="true"></i>
+            </button>
+            <button
+              type="button"
+              class="btn-delete"
+              (click)="$event.stopPropagation(); openDeleteModal(item)"
+              aria-label="Eliminar horario"
+            >
+              <i class="pi pi-trash" aria-hidden="true"></i>
+            </button>
+            }
+          </div>
+          }
+        </div>
+        } } } @else {
+        <div class="empty-state">
+          <i class="pi pi-truck" aria-hidden="true"></i>
+          <strong>Sin recorrido asignado</strong>
+          <span>Sector, camión y hora pendientes</span>
+        </div>
+        }
+      </div>
+
+      <footer class="day-card-footer">
+        <span
+          class="status-dot"
+          [style.background-color]="hasSchedules ? '#68a357' : '#d59a39'"
+          aria-hidden="true"
+        ></span>
+        {{ hasSchedules ? 'Horario publicado' : 'Horario no publicado' }}
+      </footer>
+    </article>
     }
   </section>
 </main>
 
 @if (isAdmin) {
-  <app-create-schesules-component
-    [isOpen]="isCreateModalOpen()"
-    (close)="closeCreateModal()"
-    (scheduleCreated)="onScheduleCreated()"
-  >
-  </app-create-schesules-component>
+<app-create-schesules-component
+  [isOpen]="isCreateModalOpen()"
+  (close)="closeCreateModal()"
+  (scheduleCreated)="onScheduleCreated()"
+>
+</app-create-schesules-component>
 
-  <app-update-schesules-component
-    [isOpen]="isUpdateModalOpen()"
-    [schedule]="selectedSchedule()"
-    (close)="closeUpdateModal()"
-    (scheduleUpdated)="onScheduleUpdated()"
-  >
-  </app-update-schesules-component>
+<app-create-citizen-schedule
+  [isOpen]="isCreateCitizenModalOpen()"
+  [schedule]="selectedCitizenSchedule()"
+  (close)="closeCreateCitizenModal()"
+  (scheduleCreated)="onCitizenScheduleCreated()"
+>
+</app-create-citizen-schedule>
 
-  <app-delete-schesules-component
-    [isOpen]="isDeleteModalOpen()"
-    [schedules]="schedulesToDelete()"
-    (close)="closeDeleteModal()"
-    (schedulesDeleted)="onSchedulesDeleted()"
-  >
-  </app-delete-schesules-component>
-}
+<app-update-schesules-component
+  [isOpen]="isUpdateModalOpen()"
+  [schedule]="selectedSchedule()"
+  (close)="closeUpdateModal()"
+  (scheduleUpdated)="onScheduleUpdated()"
+>
+</app-update-schesules-component>
 
-@if (!isCitizen) {
-  <app-view-schedule-modal
-    [isOpen]="isViewModalOpen()"
-    [schedule]="selectedSchedule()"
-    [isCitizen]="false"
-    (close)="closeViewModal()"
-  >
-  </app-view-schedule-modal>
+<app-delete-schesules-component
+  [isOpen]="isDeleteModalOpen()"
+  [schedules]="schedulesToDelete()"
+  (close)="closeDeleteModal()"
+  (schedulesDeleted)="onSchedulesDeleted()"
+>
+</app-delete-schesules-component>
+} @if (!isCitizen) {
+<app-view-schedule-modal
+  [isOpen]="isViewModalOpen()"
+  [schedule]="selectedSchedule()"
+  [isCitizen]="false"
+  (close)="closeViewModal()"
+>
+</app-view-schedule-modal>
 }

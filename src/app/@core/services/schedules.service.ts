@@ -9,7 +9,6 @@ export interface ScheduleItem {
   ruta: string;
   sector: string;
   description?: string;
-  /** Eliminación lógica: solo se muestran los horarios con activo !== false */
   activo?: boolean;
 }
 
@@ -24,6 +23,20 @@ export interface CreateScheduleDto {
   activo?: boolean;
 }
 
+export interface CitizenScheduleItem {
+  id?: string;
+  dia: string;
+  turno: string;
+  sectores: string[];
+  activo?: boolean;
+}
+
+export interface CreateCitizenScheduleDto {
+  dia: string;
+  turno: string;
+  sectores: string[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -34,14 +47,9 @@ export class SchedulesService {
     try {
       const response = await fetch(`${this.baseUrl}/horarios.json`);
       if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-
       const data = await response.json();
       if (!data) return [];
-
-      return Object.keys(data).map((key) => ({
-        id: key,
-        ...data[key],
-      }));
+      return Object.keys(data).map((key) => ({ id: key, ...data[key] }));
     } catch (error) {
       console.error('Error al obtener los horarios:', error);
       throw error;
@@ -60,9 +68,76 @@ export class SchedulesService {
     }
   }
 
+  async getCitizenSchedules(): Promise<CitizenScheduleItem[]> {
+    try {
+      const response = await fetch(`${this.baseUrl}/horarios_ciudadanos.json`);
+      if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+      const data = await response.json();
+      if (!data) return [];
+      return Object.keys(data).map((key) => ({ id: key, ...data[key] }));
+    } catch (error) {
+      console.error('Error al obtener los horarios ciudadanos:', error);
+      throw error;
+    }
+  }
+
+  async createCitizenSchedule(schedule: CreateCitizenScheduleDto): Promise<{ name: string }> {
+    try {
+      const payload = {
+        dia: schedule.dia.toLowerCase().trim(),
+        turno: schedule.turno.toLowerCase().trim(),
+        sectores: schedule.sectores.filter((s) => s && s.trim() !== ''),
+        activo: true,
+      };
+      const response = await fetch(`${this.baseUrl}/horarios_ciudadanos.json`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) throw new Error(`Error al crear el horario ciudadano.`);
+      return await response.json();
+    } catch (error) {
+      console.error('Error al guardar el horario ciudadano:', error);
+      throw error;
+    }
+  }
+
+  async updateCitizenSchedule(id: string, schedule: CreateCitizenScheduleDto): Promise<void> {
+    try {
+      const payload = {
+        dia: schedule.dia.toLowerCase().trim(),
+        turno: schedule.turno.toLowerCase().trim(),
+        sectores: schedule.sectores.filter((s) => s && s.trim() !== ''),
+      };
+      const response = await fetch(`${this.baseUrl}/horarios_ciudadanos/${id}.json`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) throw new Error(`Error al actualizar el horario ciudadano.`);
+    } catch (error) {
+      console.error('Error al actualizar el horario ciudadano:', error);
+      throw error;
+    }
+  }
+
+  async deleteCitizenSchedule(id: string): Promise<void> {
+    try {
+      const response = await fetch(`${this.baseUrl}/horarios_ciudadanos/${id}.json`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ activo: false }),
+      });
+      if (!response.ok) throw new Error('Error al eliminar el horario ciudadano');
+    } catch (error) {
+      console.error('Error al eliminar horario ciudadano:', error);
+      throw error;
+    }
+  }
+
   async createSchedule(schedule: CreateScheduleDto): Promise<{ name: string }> {
     try {
-      const payload: Omit<ScheduleItem, 'id'> = {
+      const payload = {
         camion: schedule.camion,
         culminado: schedule.culminado ?? false,
         activo: schedule.activo ?? true,
@@ -72,17 +147,12 @@ export class SchedulesService {
         sector: schedule.sector,
         description: schedule.description?.trim() || '',
       };
-
       const response = await fetch(`${this.baseUrl}/horarios.json`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-
-      if (!response.ok) {
-        throw new Error(`Error al crear el horario. Estado: ${response.status}`);
-      }
-
+      if (!response.ok) throw new Error(`Error al crear el horario.`);
       return await response.json();
     } catch (error) {
       console.error('Error al guardar el horario:', error);
@@ -92,9 +162,7 @@ export class SchedulesService {
 
   async updateSchedule(id: string, schedule: CreateScheduleDto): Promise<void> {
     try {
-      // PATCH: solo se envían los campos editables; 'culminado' y demás
-      // propiedades existentes se conservan tal cual.
-      const payload: Omit<Partial<ScheduleItem>, 'id'> = {
+      const payload = {
         camion: schedule.camion,
         dia: schedule.dia.toLowerCase().trim(),
         turno: schedule.turno,
@@ -102,49 +170,34 @@ export class SchedulesService {
         sector: schedule.sector,
         description: schedule.description?.trim() || '',
       };
-
       const response = await fetch(`${this.baseUrl}/horarios/${id}.json`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-
-      if (!response.ok) {
-        throw new Error(`Error al actualizar el horario. Estado: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`Error al actualizar el horario.`);
     } catch (error) {
       console.error('Error al actualizar el horario:', error);
       throw error;
     }
   }
 
-  /**
-   * Eliminación lógica: marca activo=false en uno o varios horarios
-   * con una sola actualización multi-ruta (PATCH a la raíz).
-   */
   async deleteSchedules(ids: string[]): Promise<void> {
     try {
       const validIds = ids.filter((id) => !!id);
-      if (validIds.length === 0) {
-        throw new Error('No se identificaron los horarios a eliminar.');
-      }
-
+      if (validIds.length === 0) throw new Error('No se identificaron los horarios.');
       const payload: Record<string, boolean> = {};
       validIds.forEach((id) => {
         payload[`horarios/${id}/activo`] = false;
       });
-
       const response = await fetch(`${this.baseUrl}/.json`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-
-      if (!response.ok) {
-        throw new Error(`Error al eliminar el horario. Estado: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`Error al eliminar.`);
     } catch (error) {
-      console.error('Error al eliminar el horario:', error);
+      console.error('Error al eliminar:', error);
       throw error;
     }
   }

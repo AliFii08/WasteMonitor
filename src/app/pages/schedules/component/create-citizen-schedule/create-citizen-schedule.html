@@ -1,0 +1,74 @@
+@if (isVisible()) {
+<div class="modal-backdrop" (click)="closeModal()">
+  <div class="modal-panel" (click)="$event.stopPropagation()">
+    <header class="modal-header">
+      <div class="modal-title">
+        <i class="pi pi-map" aria-hidden="true"></i>
+        <h2>{{ schedule ? 'Editar Horario Ciudadano' : 'Crear Horario de Ciudadano' }}</h2>
+      </div>
+      <button type="button" class="close-btn" (click)="closeModal()" aria-label="Cerrar">
+        <i class="pi pi-times"></i>
+      </button>
+    </header>
+
+    <form [formGroup]="citizenForm" (ngSubmit)="onSubmit()" class="modal-body">
+      @if (errorMessage()) {
+      <div class="error-msg">
+        <i class="pi pi-exclamation-circle"></i>
+        <span>{{ errorMessage() }}</span>
+      </div>
+      }
+
+      <div class="form-field">
+        <label for="citizen-day">Día de la Semana <span class="req">*</span></label>
+        <select id="citizen-day" formControlName="dia">
+          <option value="" disabled>Seleccione un día</option>
+          @for (day of weekDays; track day.value) {
+          <option [value]="day.value">{{ day.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label for="citizen-turno">Turno <span class="req">*</span></label>
+        <select id="citizen-turno" formControlName="turno">
+          <option value="" disabled>Seleccione un turno</option>
+          @for (t of turnoSelect; track t.value) {
+          <option [value]="t.value">{{ t.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label>Sectores a trabajar <span class="req">*</span></label>
+        <div class="checkbox-group" formArrayName="sectores">
+          @for (sec of availableSectors; track sec; let i = $index) {
+          <label class="checkbox-label">
+            <input type="checkbox" [formControlName]="i" />
+            <span>{{ sec }}</span>
+          </label>
+          }
+        </div>
+        @if (citizenForm.get('sectores')?.touched && citizenForm.get('sectores')?.invalid) {
+        <span class="error-text">Debe seleccionar al menos un sector.</span>
+        }
+      </div>
+
+      <footer class="modal-footer">
+        <button type="button" class="btn-cancel" (click)="closeModal()" [disabled]="isLoading()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn-submit" [disabled]="isLoading()">
+          @if (isLoading()) {
+          <i class="pi pi-spin pi-spinner"></i>
+          <span>Guardando...</span>
+          } @else {
+          <i class="pi pi-check"></i>
+          <span>{{ schedule ? 'Actualizar Horario' : 'Guardar Horario' }}</span>
+          }
+        </button>
+      </footer>
+    </form>
+  </div>
+</div>
+}
