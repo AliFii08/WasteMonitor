@@ -1,332 +1,367 @@
 @if (visible && reporte) {
-  <div class="modal-backdrop" [class.is-closing]="isClosing" (click)="closeModal()">
-    <div class="modal-panel" [class.is-closing]="isClosing" (click)="$event.stopPropagation()">
-      <header class="modal-header">
-        <div class="modal-title">
-          <i class="pi pi-pencil"></i>
-          <h2>Editar Informe de Jornada</h2>
-        </div>
-        <button type="button" class="close-btn" (click)="closeModal()" aria-label="Cerrar">
-          <i class="pi pi-times"></i>
-        </button>
-      </header>
+<div class="modal-backdrop" [class.is-closing]="isClosing" (click)="closeModal()">
+  <div class="modal-panel" [class.is-closing]="isClosing" (click)="$event.stopPropagation()">
+    <header class="modal-header">
+      <div class="modal-title">
+        <i class="pi pi-pencil"></i>
+        <h2>Editar Informe de Jornada</h2>
+      </div>
+      <button type="button" class="close-btn" (click)="closeModal()" aria-label="Cerrar">
+        <i class="pi pi-times"></i>
+      </button>
+    </header>
 
-      <!-- Navigation Tabs -->
-      <!-- Navigation Tabs -->
-      <nav class="modal-tabs">
-        <!-- Pestaña General -->
+    <!-- Navigation Tabs -->
+    <!-- Navigation Tabs -->
+    <nav class="modal-tabs">
+      <!-- Pestaña General -->
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab === 'general'"
+        (click)="selectTab('general')"
+      >
+        General
+      </button>
+
+      <!-- Pestañas de los Viajes -->
+      @for (viaje of viajesList; track viaje.key; let idx = $index) {
+      <div class="tab-btn-wrap">
         <button
           type="button"
           class="tab-btn"
-          [class.active]="activeTab === 'general'"
-          (click)="selectTab('general')"
+          [class.active]="activeTab === viaje.key"
+          (click)="selectTab(viaje.key)"
         >
-          General
+          Viaje {{ viaje.numero }}
         </button>
 
-        <!-- Pestañas de los Viajes -->
-        @for (viaje of viajesList; track viaje.key; let idx = $index) {
-          <div class="tab-btn-wrap">
-            <button
-              type="button"
-              class="tab-btn"
-              [class.active]="activeTab === viaje.key"
-              (click)="selectTab(viaje.key)"
-            >
-              Viaje {{ viaje.numero }}
-            </button>
-
-            @if (viajesList.length > 1 && !estaFirmado) {
-              <button
-                type="button"
-                class="tab-remove-btn"
-                title="Eliminar Viaje"
-                (click)="eliminarViaje(idx, $event)"
-              >
-                <i class="pi pi-times"></i>
-              </button>
-            }
-          </div>
-        }
-
-        <!-- Botón '+' único al final -->
-        @if (!estaFirmado) {
-          <button
-            type="button"
-            class="add-tab-btn"
-            (click)="abrirModalNuevoViaje()"
-            title="Agregar nuevo viaje"
-          >
-            <i class="pi pi-plus"></i>
-          </button>
-        }
-      </nav>
-
-      <form (ngSubmit)="onSubmit()" #f="ngForm" class="modal-form">
-        <div class="modal-body">
-          @if (isLoading) {
-            <div class="loading-state">
-              <i class="pi pi-spin pi-spinner"></i>
-              <p>Cargando información de viajes...</p>
-            </div>
-          } @else {
-            <!-- Pestaña: General -->
-            @if (activeTab === 'general') {
-              <div class="tab-content">
-                <div class="edit-intro">
-                  <div>
-                    <span class="eyebrow">Datos de la jornada</span>
-                    <h3>Información general</h3>
-                    <p>Verifica la asignación y el resumen antes de guardar los cambios.</p>
-                  </div>
-                  <span class="report-id">#{{ reporte.id || 'N/A' }}</span>
-                </div>
-
-                <div class="field-section">
-                  <div class="section-heading">
-                    <i class="pi pi-sliders-h"></i>
-                    <span>Asignación operativa automática</span>
-                  </div>
-                  <div class="field-grid">
-                <div class="form-field">
-                  <label>Usuario</label>
-                  <input
-                    type="text"
-                    [value]="
-                      nombreUsuario || reporte.nombreUsuario || reporte.usuario || 'Sin usuario'
-                    "
-                    disabled
-                    class="input-disabled"
-                  />
-                </div>
-
-                <div class="form-field">
-                  <label for="camion">Vehículo / Camión</label>
-                  <input
-                    type="text"
-                    id="camion"
-                    [(ngModel)]="camion"
-                    name="camion"
-                    disabled
-                    placeholder="Sin vehículo asignado"
-                  />
-                </div>
-
-                <div class="form-field">
-                  <label for="ruta">Ruta</label>
-                  <input
-                    type="text"
-                    id="ruta"
-                    [(ngModel)]="ruta"
-                    name="ruta"
-                    disabled
-                    placeholder="Sin ruta asignada"
-                  />
-                </div>
-                  </div>
-                </div>
-
-                <div class="metrics-grid">
-                  <div class="metric-card">
-                    <i class="pi pi-weight"></i>
-                    <span>Total recogido</span>
-                    <strong>{{ totalToneladas }} ton</strong>
-                  </div>
-                  <div class="metric-card">
-                    <i class="pi pi-map"></i>
-                    <span>Viajes registrados</span>
-                    <strong>{{ viajesList.length }}</strong>
-                  </div>
-                </div>
-              </div>
-            }
-
-            <!-- Pestañas Dinámicas de Viaje -->
-            @for (viaje of viajesList; track viaje.key) {
-              @if (activeTab === viaje.key) {
-                <div class="tab-content">
-                  <div class="trip-header">
-                    <div>
-                      <span class="eyebrow">Detalle operativo</span>
-                      <span class="trip-title">Editar Viaje {{ viaje.numero }}</span>
-                    </div>
-                    <span class="trip-badge">{{ viaje.tonRecogidas || 0 }} ton</span>
-                  </div>
-
-                  <div class="trip-card">
-                  <div class="form-field">
-                    <label [for]="'ton_' + viaje.key"
-                      >Toneladas Recogidas <span class="req">*</span></label
-                    >
-                    <input
-                      type="number"
-                      [id]="'ton_' + viaje.key"
-                      [(ngModel)]="viaje.tonRecogidas"
-                      [name]="'ton_' + viaje.key"
-                      [disabled]="estaFirmado"
-                      (focus)="limpiarToneladasSiEsCero(viaje)"
-                      step="0.01"
-                      min="0"
-                      required
-                    />
-                  </div>
-
-                  <div class="form-field">
-                    <label [for]="'dir_' + viaje.key"
-                      >Dirección del Llenado <span class="req">*</span></label
-                    >
-                    <input
-                      type="text"
-                      [id]="'dir_' + viaje.key"
-                      [(ngModel)]="viaje.direccionDelLlenado"
-                      [name]="'dir_' + viaje.key"
-                      [disabled]="estaFirmado"
-                      placeholder="Ej: Sector El Milagro"
-                      required
-                    />
-                  </div>
-
-                  <div class="form-field">
-                    <label [for]="'desc_' + viaje.key">Descripción / Observaciones</label>
-                    <textarea
-                      [id]="'desc_' + viaje.key"
-                      [(ngModel)]="viaje.descripcion"
-                      [name]="'desc_' + viaje.key"
-                      [disabled]="estaFirmado"
-                      rows="3"
-                      placeholder="Observaciones de este viaje..."
-                    ></textarea>
-                  </div>
-                  </div>
-                </div>
-              }
-            }
-          }
-        </div>
-
-        <footer class="modal-footer">
-          @if (puedeFinalizar) {
-            <button
-              type="button"
-              class="btn-finish"
-              [disabled]="isSubmitting"
-              (click)="finalizarInforme()"
-            >
-              <i class="pi pi-flag-fill"></i>
-              Finalizar jornada
-            </button>
-          }
-          @if (isAdmin) {
-            <button
-              type="button"
-              class="btn-submit"
-              [disabled]="isSubmitting || reporte?.estado === 'firmado'"
-              (click)="firmarInforme()"
-            >
-              <i class="pi pi-check-circle"></i>
-              {{ reporte?.estado === 'firmado' ? 'Firmado' : 'Firmar' }}
-            </button>
-          }
-          <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
-          @if (activeTab === 'general' && !estaFirmado) {
-            <button type="submit" class="btn-submit" [disabled]="isSubmitting">
-              {{ isSubmitting ? 'Guardando...' : 'Guardar cambios' }}
-            </button>
-          }
-          @if(!estaFirmado){
-          <button
-            *ngIf="activeTab !== 'general'"
-            type="button"
-            class="btn btn-primary"
-            [disabled]="isSubmitting"
-            (click)="actualizarViajeActivo()"
-          >
-            {{ isSubmitting ? 'Guardando...' : 'Actualizar Viaje' }}
-          </button>
-        }
-        </footer>
-      </form>
-    </div>
-  </div>
-}
-
-@if (showErrorModal) {
-  <div class="modal-backdrop error-backdrop" (click)="closeErrorModal()">
-    <div class="error-panel" (click)="$event.stopPropagation()">
-      <div class="error-icon">
-        <i class="pi pi-exclamation-triangle"></i>
-      </div>
-
-      <h3>Atención</h3>
-      <p>{{ errorMessage }}</p>
-
-      <button type="button" class="btn-error-close" (click)="closeErrorModal()">Entendido</button>
-    </div>
-  </div>
-}
-
-@if (showAddTripModal) {
-  <div class="modal-backdrop mini-backdrop" (click)="cerrarModalNuevoViaje()">
-    <div class="modal-panel mini-panel" (click)="$event.stopPropagation()">
-      <header class="modal-header">
-        <div class="modal-title">
-          <i class="pi pi-plus-circle"></i>
-          <h3>Agregar Nuevo Viaje</h3>
-        </div>
-        <button type="button" class="close-btn" (click)="cerrarModalNuevoViaje()">
+        @if (viajesList.length > 1 && !estaFirmado) {
+        <button
+          type="button"
+          class="tab-remove-btn"
+          title="Eliminar Viaje"
+          (click)="eliminarViaje(idx, $event)"
+        >
           <i class="pi pi-times"></i>
         </button>
-      </header>
+        }
+      </div>
+      }
 
-      <form (ngSubmit)="guardarNuevoViaje()" #newTripForm="ngForm" class="modal-form">
-        <div class="modal-body">
-          <div class="form-field">
-            <label for="new_ton">Toneladas Recogidas <span class="req">*</span></label>
-            <input
-              type="number"
-              id="new_ton"
-              [(ngModel)]="nuevoViaje.tonRecogidas"
-              name="new_ton"
-              (focus)="limpiarNuevasToneladasSiEsCero()"
-              step="0.01"
-              min="0"
-              required
-            />
+      <!-- Botón '+' único al final -->
+      @if (!estaFirmado) {
+      <button
+        type="button"
+        class="add-tab-btn"
+        (click)="abrirModalNuevoViaje()"
+        title="Agregar nuevo viaje"
+      >
+        <i class="pi pi-plus"></i>
+      </button>
+      }
+    </nav>
+
+    <form (ngSubmit)="onSubmit()" #f="ngForm" class="modal-form">
+      <div class="modal-body">
+        @if (isLoading) {
+        <div class="loading-state">
+          <i class="pi pi-spin pi-spinner"></i>
+          <p>Cargando información de viajes...</p>
+        </div>
+        } @else {
+        <!-- Pestaña: General -->
+        @if (activeTab === 'general') {
+        <div class="tab-content">
+          <div class="edit-intro">
+            <div>
+              <span class="eyebrow">Datos de la jornada</span>
+              <h3>Información general</h3>
+              <p>Verifica la asignación y el resumen antes de guardar los cambios.</p>
+            </div>
+            <span class="report-id">#{{ reporte.id || 'N/A' }}</span>
           </div>
 
-          <div class="form-field">
-            <label for="new_dir">Dirección de Llenado <span class="req">*</span></label>
-            <input
-              type="text"
-              id="new_dir"
-              [(ngModel)]="nuevoViaje.direccionDelLlenado"
-              name="new_dir"
-              placeholder="Ej: Sector El Milagro"
-              required
-            />
+          <div class="field-section">
+            <div class="section-heading">
+              <i class="pi pi-sliders-h"></i>
+              <span>Asignación operativa automática</span>
+            </div>
+            <div class="field-grid">
+              <div class="form-field">
+                <label>Usuario</label>
+                <input
+                  type="text"
+                  [value]="
+                      nombreUsuario || reporte.nombreUsuario || reporte.usuario || 'Sin usuario'
+                    "
+                  disabled
+                  class="input-disabled"
+                />
+              </div>
+
+              <div class="form-field">
+                <label for="camion">Vehículo / Camión</label>
+                <input
+                  type="text"
+                  id="camion"
+                  [(ngModel)]="camion"
+                  name="camion"
+                  disabled
+                  placeholder="Sin vehículo asignado"
+                />
+              </div>
+
+              <div class="form-field">
+                <label for="ruta">Ruta</label>
+                <input
+                  type="text"
+                  id="ruta"
+                  [(ngModel)]="ruta"
+                  name="ruta"
+                  disabled
+                  placeholder="Sin ruta asignada"
+                />
+              </div>
+            </div>
           </div>
 
-          <div class="form-field">
-            <label for="new_desc">Descripción / Observaciones</label>
-            <textarea
-              id="new_desc"
-              [(ngModel)]="nuevoViaje.descripcion"
-              name="new_desc"
-              rows="3"
-            ></textarea>
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <i class="pi pi-weight"></i>
+              <span>Total recogido</span>
+              <strong>{{ totalToneladas }} ton</strong>
+            </div>
+            <div class="metric-card">
+              <i class="pi pi-map"></i>
+              <span>Viajes registrados</span>
+              <strong>{{ viajesList.length }}</strong>
+            </div>
           </div>
         </div>
+        }
 
-        <footer class="modal-footer">
-          <button type="button" class="btn-cancel" (click)="cerrarModalNuevoViaje()">
-            Cancelar
-          </button>
-          <button type="submit" class="btn-submit" [disabled]="!newTripForm.valid || isSavingTrip">
-            <i class="pi pi-check"></i>
-            Guardar Viaje
-          </button>
-        </footer>
-      </form>
+        <!-- Pestañas Dinámicas de Viaje -->
+        @for (viaje of viajesList; track viaje.key) { @if (activeTab === viaje.key) {
+        <div class="tab-content">
+          <div class="trip-header">
+            <div>
+              <span class="eyebrow">Detalle operativo</span>
+              <span class="trip-title">Editar Viaje {{ viaje.numero }}</span>
+            </div>
+            <span class="trip-badge">{{ viaje.tonRecogidas || 0 }} ton</span>
+          </div>
+
+          <div class="trip-card">
+            <div class="form-field">
+              <label [for]="'ton_' + viaje.key"
+                >Toneladas Recogidas <span class="req">*</span></label
+              >
+              <input
+                type="number"
+                [id]="'ton_' + viaje.key"
+                [(ngModel)]="viaje.tonRecogidas"
+                [name]="'ton_' + viaje.key"
+                [disabled]="estaFirmado"
+                (focus)="limpiarToneladasSiEsCero(viaje)"
+                step="0.01"
+                min="0"
+                required
+              />
+            </div>
+
+            <div class="form-field">
+              <label [for]="'dir_' + viaje.key"
+                >Dirección del Llenado <span class="req">*</span></label
+              >
+              <input
+                type="text"
+                [id]="'dir_' + viaje.key"
+                [(ngModel)]="viaje.direccionDelLlenado"
+                [name]="'dir_' + viaje.key"
+                [disabled]="estaFirmado"
+                placeholder="Ej: Sector El Milagro"
+                required
+              />
+            </div>
+
+            <div class="form-field">
+              <label [for]="'desc_' + viaje.key">Descripción / Observaciones</label>
+              <textarea
+                [id]="'desc_' + viaje.key"
+                [(ngModel)]="viaje.descripcion"
+                [name]="'desc_' + viaje.key"
+                [disabled]="estaFirmado"
+                rows="3"
+                placeholder="Observaciones de este viaje..."
+              ></textarea>
+            </div>
+          </div>
+        </div>
+        } } }
+      </div>
+
+      <footer class="modal-footer">
+        @if (puedeFinalizar) {
+        <button
+          type="button"
+          class="btn-finish"
+          [disabled]="isSubmitting"
+          (click)="abrirConfirmarFinalizar()"
+        >
+          <i class="pi pi-flag-fill"></i>
+          Finalizar jornada
+        </button>
+        } @if (isAdmin) {
+        <button
+          type="button"
+          class="btn-submit"
+          [disabled]="isSubmitting || reporte?.estado === 'firmado'"
+          (click)="firmarInforme()"
+        >
+          <i class="pi pi-check-circle"></i>
+          {{ reporte?.estado === 'firmado' ? 'Firmado' : 'Firmar' }}
+        </button>
+        }
+        <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
+        @if (activeTab === 'general' && !estaFirmado) {
+        <button type="submit" class="btn-submit" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Guardando...' : 'Guardar cambios' }}
+        </button>
+        } @if(!estaFirmado){
+        <button
+          *ngIf="activeTab !== 'general'"
+          type="button"
+          class="btn btn-primary"
+          [disabled]="isSubmitting"
+          (click)="actualizarViajeActivo()"
+        >
+          {{ isSubmitting ? 'Guardando...' : 'Actualizar Viaje' }}
+        </button>
+        }
+      </footer>
+    </form>
+  </div>
+</div>
+} @if (showErrorModal) {
+<div class="modal-backdrop error-backdrop" (click)="closeErrorModal()">
+  <div class="error-panel" (click)="$event.stopPropagation()">
+    <div class="error-icon">
+      <i class="pi pi-exclamation-triangle"></i>
+    </div>
+
+    <h3>Atención</h3>
+    <p>{{ errorMessage }}</p>
+
+    <button type="button" class="btn-error-close" (click)="closeErrorModal()">Entendido</button>
+  </div>
+</div>
+} @if (showAddTripModal) {
+<div class="modal-backdrop mini-backdrop" (click)="cerrarModalNuevoViaje()">
+  <div class="modal-panel mini-panel" (click)="$event.stopPropagation()">
+    <header class="modal-header">
+      <div class="modal-title">
+        <i class="pi pi-plus-circle"></i>
+        <h3>Agregar Nuevo Viaje</h3>
+      </div>
+      <button type="button" class="close-btn" (click)="cerrarModalNuevoViaje()">
+        <i class="pi pi-times"></i>
+      </button>
+    </header>
+
+    <form (ngSubmit)="guardarNuevoViaje()" #newTripForm="ngForm" class="modal-form">
+      <div class="modal-body">
+        <div class="form-field">
+          <label for="new_ton">Toneladas Recogidas <span class="req">*</span></label>
+          <input
+            type="number"
+            id="new_ton"
+            [(ngModel)]="nuevoViaje.tonRecogidas"
+            name="new_ton"
+            (focus)="limpiarNuevasToneladasSiEsCero()"
+            step="0.01"
+            min="0"
+            required
+          />
+        </div>
+
+        <div class="form-field">
+          <label for="new_dir">Dirección de Llenado <span class="req">*</span></label>
+          <input
+            type="text"
+            id="new_dir"
+            [(ngModel)]="nuevoViaje.direccionDelLlenado"
+            name="new_dir"
+            placeholder="Ej: Sector El Milagro"
+            required
+          />
+        </div>
+
+        <div class="form-field">
+          <label for="new_desc">Descripción / Observaciones</label>
+          <textarea
+            id="new_desc"
+            [(ngModel)]="nuevoViaje.descripcion"
+            name="new_desc"
+            rows="3"
+          ></textarea>
+        </div>
+      </div>
+
+      <footer class="modal-footer">
+        <button type="button" class="btn-cancel" (click)="cerrarModalNuevoViaje()">Cancelar</button>
+        <button type="submit" class="btn-submit" [disabled]="!newTripForm.valid || isSavingTrip">
+          <i class="pi pi-check"></i>
+          Guardar Viaje
+        </button>
+      </footer>
+    </form>
+  </div>
+</div>
+} @if (showFinishConfirmModal) {
+<div class="modal-backdrop finish-backdrop" (click)="cerrarConfirmarFinalizar()">
+  <div class="delete-point-modal green-theme" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">
+        <i class="pi pi-flag-fill" aria-hidden="true"></i>
+        <h2 id="finish-journey-title">Finalizar Jornada</h2>
+      </div>
+      <button
+        type="button"
+        class="close-btn"
+        (click)="cerrarConfirmarFinalizar()"
+        aria-label="Cerrar"
+      >
+        <i class="pi pi-times" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="confirm-text">
+        ¿Confirmas que todos los viajes de esta jornada están <strong>registrados</strong>?
+      </p>
+      <p class="sub-text">
+        Una vez finalizada, la jornada cambiará de estado y se detendrá el rastreo activo.
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button
+        type="button"
+        class="btn-cancel"
+        (click)="cerrarConfirmarFinalizar()"
+        [disabled]="isSubmitting"
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        class="btn-finish-confirm"
+        (click)="finalizarInforme()"
+        [disabled]="isSubmitting"
+      >
+        <i class="pi pi-check" aria-hidden="true"></i>
+        {{ isSubmitting ? 'Finalizando...' : 'Sí, finalizar' }}
+      </button>
     </div>
   </div>
+</div>
 }

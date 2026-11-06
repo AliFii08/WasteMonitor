@@ -1,15 +1,16 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, ChangeDetectorRef, inject } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  OnChanges,
+  SimpleChanges,
+  ChangeDetectorRef,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import {
-  Database,
-  ref,
-  push,
-  get,
-  set,
-  remove,
-  update,
-} from '@angular/fire/database';
+import { Database, ref, push, get, set, remove, update } from '@angular/fire/database';
 import { AuthService } from '../../../../@core/services/auth.service';
 import { SessionTimeoutService } from '../../../../@core/services/session-timeout.service';
 
@@ -66,7 +67,12 @@ export class UpdateJourneyReport implements OnChanges {
 
   get puedeFinalizar(): boolean {
     const estado = String(this.reporte?.estado || '').toLowerCase();
-    return this.isSupervisor && this.puedeEditarInforme && estado !== 'finalizado' && estado !== 'firmado';
+    return (
+      this.isSupervisor &&
+      this.puedeEditarInforme &&
+      estado !== 'finalizado' &&
+      estado !== 'firmado'
+    );
   }
 
   get puedeEditarInforme(): boolean {
@@ -78,8 +84,13 @@ export class UpdateJourneyReport implements OnChanges {
       this.reporte?.usuarioId ||
       this.reporte?.userId;
     const estado = String(this.reporte?.estado ?? '').toLowerCase();
-    return !!currentUserId && creatorId === currentUserId &&
-      estado !== 'finalizado' && estado !== 'firmado' && this.reporte?.estado !== true;
+    return (
+      !!currentUserId &&
+      creatorId === currentUserId &&
+      estado !== 'finalizado' &&
+      estado !== 'firmado' &&
+      this.reporte?.estado !== true
+    );
   }
 
   get estaFirmado(): boolean {
@@ -103,7 +114,7 @@ export class UpdateJourneyReport implements OnChanges {
     private db: Database,
     private auth: Auth,
     private informe: InformeService,
-  ) { }
+  ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['reporte'] && this.reporte) {
@@ -180,9 +191,8 @@ export class UpdateJourneyReport implements OnChanges {
             numero: index,
             descripcion: String(v.descripcion || ''),
             direccionDelLlenado: String(v.direccionDelLlenado || v.direccionDeLlenado || ''),
-            tonRecogidas: v.tonRecogidas === '' || v.tonRecogidas == null
-              ? null
-              : Number(v.tonRecogidas),
+            tonRecogidas:
+              v.tonRecogidas === '' || v.tonRecogidas == null ? null : Number(v.tonRecogidas),
           });
           index++;
         });
@@ -203,6 +213,24 @@ export class UpdateJourneyReport implements OnChanges {
     if (!this.puedeEditarInforme) return;
     this.nuevoViaje = { descripcion: '', direccionDelLlenado: '', tonRecogidas: null };
     this.showAddTripModal = true;
+  }
+
+  // --- MINI MODAL CONFIRMAR FIN DE JORNADA ---
+  showFinishConfirmModal: boolean = false;
+
+  abrirConfirmarFinalizar(): void {
+    if (!this.reporte?.id || !this.puedeFinalizar) return;
+    const currentUser = this.auth.currentUser;
+    if (!currentUser) {
+      this.errorMessage = 'No hay una sesión de usuario activa para finalizar la jornada.';
+      this.showErrorModal = true;
+      return;
+    }
+    this.showFinishConfirmModal = true;
+  }
+
+  cerrarConfirmarFinalizar(): void {
+    this.showFinishConfirmModal = false;
   }
 
   cerrarModalNuevoViaje(): void {
@@ -300,8 +328,7 @@ export class UpdateJourneyReport implements OnChanges {
       return;
     }
 
-    if (!confirm('¿Confirmas que todos los viajes de esta jornada están registrados?')) return;
-
+    this.showFinishConfirmModal = false;
     this.isSubmitting = true;
 
     try {
@@ -342,10 +369,7 @@ export class UpdateJourneyReport implements OnChanges {
       // 4. Detener rastreo GPS de forma segura (sin bloquear el cierre)
       try {
         const rawUsuarioId =
-          this.reporte.usuario ||
-          this.reporte.usuarioId ||
-          this.reporte.uidUsuario ||
-          userUid;
+          this.reporte.usuario || this.reporte.usuarioId || this.reporte.uidUsuario || userUid;
         const usuarioId = String(rawUsuarioId || '').trim();
 
         if (usuarioId && this.locationService) {
@@ -370,7 +394,10 @@ export class UpdateJourneyReport implements OnChanges {
       try {
         await this.trackingNotification.showFinished(informeId);
       } catch (notificationError) {
-        console.error('No se pudo actualizar la notificación local de seguimiento:', notificationError);
+        console.error(
+          'No se pudo actualizar la notificación local de seguimiento:',
+          notificationError,
+        );
         notificationFailed = true;
       }
 
@@ -385,7 +412,6 @@ export class UpdateJourneyReport implements OnChanges {
           this.cdr.detectChanges();
         }, 200);
       }
-
     } catch (error) {
       console.error('Error al finalizar el informe:', error);
       this.errorMessage = 'No se pudo finalizar la jornada.';

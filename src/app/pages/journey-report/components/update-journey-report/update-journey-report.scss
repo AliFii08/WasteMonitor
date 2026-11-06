@@ -100,7 +100,9 @@
     padding: 0.65rem 0.9rem;
     border: none;
     background: transparent;
-    font: 700 0.85rem 'Raleway', sans-serif;
+    font:
+      700 0.85rem 'Raleway',
+      sans-serif;
     color: #4b6358;
     cursor: pointer;
     border-bottom: 3px solid transparent;
@@ -321,7 +323,9 @@
     border: 1px solid #c9d9c6;
     border-radius: 8px;
     padding: 0.6rem 0.75rem;
-    font: 600 14px 'Raleway', sans-serif;
+    font:
+      600 14px 'Raleway',
+      sans-serif;
     color: #123f32;
     background: #fff;
     box-sizing: border-box;
@@ -378,7 +382,9 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    font: 800 13px 'Raleway', sans-serif;
+    font:
+      800 13px 'Raleway',
+      sans-serif;
     cursor: pointer;
 
     &:disabled {
@@ -464,14 +470,157 @@
   }
 }
 
+/* === TEMA VERDE PARA MODAL DE CONFIRMACIÓN DE FIN DE JORNADA === */
+.finish-backdrop {
+  z-index: 1200;
+}
+
+.delete-point-modal.green-theme {
+  width: 100%;
+  max-width: 460px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #c2dbce;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(0, 54, 40, 0.28);
+  animation: slideUp 0.2s ease-out;
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.1rem 1.4rem;
+    background: linear-gradient(180deg, #e7f3ec 0%, #dcefe4 100%);
+    border-bottom: 1px solid #cfe3d8;
+
+    .modal-title {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: #06523f;
+
+      i {
+        font-size: 1.2rem;
+        color: #68a357;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #06523f;
+      }
+    }
+
+    .close-btn {
+      width: 34px;
+      height: 34px;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: #06523f;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+
+      &:hover {
+        background: rgba(6, 82, 63, 0.1);
+      }
+    }
+  }
+
+  .modal-body {
+    padding: 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    .confirm-text {
+      margin: 0;
+      color: #173d32;
+      font-size: 1rem;
+      line-height: 1.4;
+
+      strong {
+        color: #1b7a45;
+      }
+    }
+
+    .sub-text {
+      margin: 0;
+      color: #60756c;
+      font-size: 0.85rem;
+      line-height: 1.35;
+    }
+  }
+
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    padding: 1rem 1.4rem;
+    border-top: 1px solid #e5efe9;
+
+    button {
+      height: 42px;
+      border: 0;
+      border-radius: 8px;
+      padding: 0 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      font:
+        800 13px 'Raleway',
+        sans-serif;
+      cursor: pointer;
+
+      &:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+    }
+
+    .btn-cancel {
+      background: #eef3f0;
+      color: #0f4b3a;
+
+      &:hover:not(:disabled) {
+        background: #dde8e1;
+      }
+    }
+
+    .btn-finish-confirm {
+      background: #174c39;
+      color: #fff;
+
+      &:hover:not(:disabled) {
+        background: #173d32;
+      }
+    }
+  }
+}
+
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
-  from { transform: translateY(12px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 @media (max-width: 560px) {
