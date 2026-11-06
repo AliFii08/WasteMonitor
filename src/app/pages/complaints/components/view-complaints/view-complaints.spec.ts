@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ViewComplaints } from './view-complaints';
+import { QuejasService } from '../../../../@core/services/quejas.service';
 
 describe('ViewComplaints', () => {
   let component: ViewComplaints;
@@ -8,7 +9,8 @@ describe('ViewComplaints', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ViewComplaints]
+      imports: [ViewComplaints],
+      providers: [{ provide: QuejasService, useValue: {} }],
     })
     .compileComponents();
 

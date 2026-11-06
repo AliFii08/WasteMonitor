@@ -459,6 +459,18 @@ body {
   border-bottom: 1px solid #f8b4b4 !important;
 }
 
+.emergency-backdrop > .emergency-modal > .modal-header {
+  color: #9b1c1c !important;
+  background: linear-gradient(180deg, #fde8e8 0%, #fbd5d5 100%) !important;
+  border-bottom: 1px solid #f8b4b4 !important;
+}
+
+.emergency-backdrop > .emergency-modal > .modal-header .modal-title,
+.emergency-backdrop > .emergency-modal > .modal-header .modal-title > i,
+.emergency-backdrop > .emergency-modal > .modal-header h2 {
+  color: #9b1c1c !important;
+}
+
 .confirmation-title,
 .confirmation-title > i {
   color: #9b1c1c !important;
@@ -504,6 +516,19 @@ body {
   color: #06523f !important;
   font: 800 1.35rem/1.35 'Raleway', sans-serif !important;
   letter-spacing: 0.01em;
+}
+
+.broadcast-modal > .broadcast-header {
+  color: #765400 !important;
+  background: linear-gradient(180deg, #fff7dc 0%, #ffedb5 100%) !important;
+  border-bottom: 1px solid #f1d77f !important;
+}
+
+.broadcast-modal > .broadcast-header .broadcast-title,
+.broadcast-modal > .broadcast-header .broadcast-title > i,
+.broadcast-modal > .broadcast-header h2,
+.broadcast-modal > .broadcast-header .close-button {
+  color: #765400 !important;
 }
 
 .confirmation-header .confirmation-title,
@@ -613,7 +638,7 @@ body {
   resize: none !important;
 }
 
-.modal-backdrop:not(.error-backdrop) > .modal-panel:not(.mini-panel):has(textarea),
+.modal-backdrop:not(.error-backdrop) > .modal-panel:not(.mini-panel):not(.compact-modal):has(textarea),
 .modal-backdrop:not(.error-backdrop) > .modal-container:has(textarea),
 .emergency-modal:has(textarea),
 .broadcast-modal:has(textarea) {

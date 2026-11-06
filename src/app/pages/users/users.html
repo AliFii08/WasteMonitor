@@ -143,8 +143,7 @@
 
 @if (selectedStatusUser; as statusUser) {
   <div class="modal-backdrop" [class.is-closing]="isStatusModalClosing" (click)="closeStatusConfirmation()">
-    <section class="modal-panel" [class.is-closing]="isStatusModalClosing" [class.danger-theme]="statusUser.activo !== false"
-      [class.success-theme]="statusUser.activo === false" role="dialog" aria-modal="true"
+    <section class="modal-panel danger-theme" [class.is-closing]="isStatusModalClosing" role="dialog" aria-modal="true"
       aria-labelledby="status-title" aria-describedby="status-description"
       (click)="$event.stopPropagation()" (keydown.escape)="closeStatusConfirmation()">
       <header class="modal-header">

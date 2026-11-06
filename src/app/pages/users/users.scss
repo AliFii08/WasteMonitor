@@ -340,20 +340,6 @@
   }
 }
 
-.success-theme .modal-header {
-  background: linear-gradient(180deg, #e7f3ec 0%, #d5e8dc 100%);
-  border-bottom-color: #c4dbcb;
-
-  .modal-title,
-  .close-btn {
-    color: #0f4b3a;
-  }
-
-  h2 {
-    color: #111827;
-  }
-}
-
 .modal-title {
   display: flex;
   align-items: center;
@@ -420,10 +406,6 @@
     font-size: 0.85rem;
     line-height: 1.35;
   }
-}
-
-.success-theme .confirm-text strong {
-  color: #0f4b3a;
 }
 
 .form-grid {

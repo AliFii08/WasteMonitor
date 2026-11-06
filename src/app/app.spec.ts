@@ -1,10 +1,20 @@
 import { TestBed } from '@angular/core/testing';
+import { Auth } from '@angular/fire/auth';
+import { provideRouter } from '@angular/router';
+import { MessageService } from 'primeng/api';
 import { App } from './app';
+import { LocationService } from './@core/services/location.service';
 
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
+      providers: [
+        { provide: Auth, useValue: {} },
+        { provide: LocationService, useValue: { restoreActiveTrackingIfAny: () => undefined } },
+        { provide: MessageService, useValue: {} },
+        provideRouter([]),
+      ],
     }).compileComponents();
   });
 
@@ -14,10 +24,8 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render title', async () => {
+  it('should include the router outlet', () => {
     const fixture = TestBed.createComponent(App);
-    await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, wasteMonitor');
+    expect((fixture.nativeElement as HTMLElement).querySelector('router-outlet')).toBeTruthy();
   });
 });
